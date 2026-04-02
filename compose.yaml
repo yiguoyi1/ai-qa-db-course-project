@@ -1,0 +1,23 @@
+name: ai-qa-db-course-project
+
+services:
+  oracle26ai:
+    image: container-registry.oracle.com/database/free:${ORACLE_IMAGE_TAG:-23.26.1.0}
+    container_name: ${ORACLE_CONTAINER_NAME:-oracle26ai}
+    restart: unless-stopped
+    ports:
+      - "${ORACLE_PORT:-1521}:1521"
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD:?Set ORACLE_PWD in .env}
+      ORACLE_CHARACTERSET: ${ORACLE_CHARACTERSET:-AL32UTF8}
+      ENABLE_ARCHIVELOG: ${ENABLE_ARCHIVELOG:-true}
+      ENABLE_FORCE_LOGGING: ${ENABLE_FORCE_LOGGING:-true}
+      APP_USER: ${APP_USER:-AI_QA_APP}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?Set APP_USER_PASSWORD in .env}
+    volumes:
+      - oracle26ai-data:/opt/oracle/oradata
+      - ./docker/oracle/startup:/opt/oracle/scripts/startup:ro
+    shm_size: 1gb
+
+volumes:
+  oracle26ai-data:
