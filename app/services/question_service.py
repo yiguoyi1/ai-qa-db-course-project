@@ -1,0 +1,165 @@
+import oracledb
+
+from app.core.errors import AppError, NotFoundError, ValidationError
+from app.db.connection import get_connection
+from app.repositories.answer_repository import AnswerRepository
+from app.repositories.log_repository import LogRepository
+from app.repositories.question_repository import QuestionRepository
+from app.schemas.question import (
+    AskQuestionRequest,
+    QuestionDetailResponse,
+    QuestionListResponse,
+)
+from app.services.ai_answer_service import AIAnswerService
+
+
+class QuestionService:
+    VALID_QUESTION_STATUSES = {"OPEN", "RESOLVED", "CLOSED", "ARCHIVED"}
+
+    def __init__(
+        self,
+        question_repository: QuestionRepository | None = None,
+        answer_repository: AnswerRepository | None = None,
+        log_repository: LogRepository | None = None,
+        ai_answer_service: AIAnswerService | None = None,
+    ) -> None:
+        self._question_repository = question_repository or QuestionRepository()
+        self._answer_repository = answer_repository or AnswerRepository()
+        self._log_repository = log_repository or LogRepository()
+        self._ai_answer_service = ai_answer_service or AIAnswerService()
+
+    def ask_question(self, payload: AskQuestionRequest) -> QuestionDetailResponse:
+        with get_connection() as connection:
+            try:
+                question_id = self._question_repository.create_question(
+                    connection=connection,
+                    user_id=payload.user_id,
+                    category_id=payload.category_id,
+                    title=payload.title,
+                    content=payload.content,
+                )
+                self._question_repository.add_tags(
+                    connection=connection,
+                    question_id=question_id,
+                    tag_ids=payload.tag_ids,
+                )
+
+                generated_answer = self._ai_answer_service.generate_single_answer(
+                    title=payload.title,
+                    content=payload.content,
+                )
+                self._answer_repository.create_ai_answer(
+                    connection=connection,
+                    question_id=question_id,
+                    provider_name=generated_answer.provider_name,
+                    content=generated_answer.content,
+                    model_name=generated_answer.model_name,
+                )
+                self._log_repository.create_prompt_log(
+                    connection=connection,
+                    question_id=question_id,
+                    prompt_text=generated_answer.prompt_text,
+                    response_text=generated_answer.content,
+                    token_usage=generated_answer.token_usage,
+                    model_name=generated_answer.model_name,
+                )
+
+                connection.commit()
+            except oracledb.DatabaseError as exc:
+                connection.rollback()
+                raise self._translate_database_error(exc) from exc
+            except Exception:
+                connection.rollback()
+                raise
+
+            question = self._question_repository.get_question_detail(connection, question_id)
+            if question is None:
+                raise NotFoundError("Question was created but could not be reloaded.")
+
+            question["answers"] = self._answer_repository.list_answers_by_question(
+                connection,
+                question_id,
+            )
+            return QuestionDetailResponse(**question)
+
+    def get_question_detail(self, question_id: int) -> QuestionDetailResponse:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+
+        with get_connection() as connection:
+            question = self._question_repository.get_question_detail(connection, question_id)
+            if question is None:
+                raise NotFoundError(f"Question {question_id} was not found.")
+
+            question["answers"] = self._answer_repository.list_answers_by_question(
+                connection,
+                question_id,
+            )
+            return QuestionDetailResponse(**question)
+
+    def list_questions(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 10,
+        category_id: int | None = None,
+        tag_id: int | None = None,
+        status: str | None = "OPEN",
+    ) -> QuestionListResponse:
+        if page <= 0:
+            raise ValidationError("page must be greater than 0.")
+        if page_size <= 0 or page_size > 50:
+            raise ValidationError("page_size must be between 1 and 50.")
+        if category_id is not None and category_id <= 0:
+            raise ValidationError("category_id must be greater than 0.")
+        if tag_id is not None and tag_id <= 0:
+            raise ValidationError("tag_id must be greater than 0.")
+
+        normalized_status = status.strip().upper() if status is not None else None
+        if normalized_status == "":
+            normalized_status = None
+
+        if (
+            normalized_status is not None
+            and normalized_status not in self.VALID_QUESTION_STATUSES
+        ):
+            raise ValidationError(
+                "status must be one of OPEN, RESOLVED, CLOSED, or ARCHIVED."
+            )
+
+        with get_connection() as connection:
+            items = self._question_repository.list_questions(
+                connection=connection,
+                page=page,
+                page_size=page_size,
+                category_id=category_id,
+                tag_id=tag_id,
+                status=normalized_status,
+            )
+            total = self._question_repository.count_questions(
+                connection=connection,
+                category_id=category_id,
+                tag_id=tag_id,
+                status=normalized_status,
+            )
+
+        return QuestionListResponse(
+            items=items,
+            page=page,
+            page_size=page_size,
+            total=total,
+        )
+
+    @staticmethod
+    def _translate_database_error(exc: oracledb.DatabaseError) -> AppError:
+        details = exc.args[0] if exc.args else exc
+        message = getattr(details, "message", str(details))
+
+        if "ORA-02291" in message:
+            return ValidationError("user_id, category_id, or tag_ids contain invalid references.")
+        if "ORA-00001" in message:
+            return ValidationError("Duplicate question-tag relationship was detected.")
+        if "ORA-2290" in message:
+            return ValidationError("Request data violates a database constraint.")
+
+        return AppError(f"Database operation failed: {message}", status_code=500)

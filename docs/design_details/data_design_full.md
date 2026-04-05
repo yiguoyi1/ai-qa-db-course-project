@@ -38,6 +38,7 @@
 ### 用户行为表
 
 * ANSWER_FEEDBACK
+* ANSWER_COMMENTS
 * FAVORITES
 * BROWSE_HISTORY
 * SEARCH_HISTORY
@@ -129,6 +130,7 @@
 | ---------------- | ------------ |
 | ANSWER_ID | NUMBER |
 | QUESTION_ID | NUMBER |
+| USER_ID | NUMBER |
 | ANSWER_TYPE | VARCHAR2(20) |
 | PROVIDER_NAME | VARCHAR2(50) |
 | CONTENT | CLOB |
@@ -141,7 +143,9 @@
 
 **主键：** ANSWER_ID
 
-**外键：** QUESTION_ID → QUESTIONS
+**外键：**
+* QUESTION_ID → QUESTIONS
+* USER_ID → USERS
 
 ---
 
@@ -196,7 +200,36 @@
 
 ---
 
-### 3.4.8 FAVORITES
+### 3.4.8 ANSWER_COMMENTS
+
+| 字段名 | 类型 |
+| ------------- | ------------- |
+| COMMENT_ID | NUMBER |
+| ANSWER_ID | NUMBER |
+| USER_ID | NUMBER |
+| PARENT_COMMENT_ID | NUMBER |
+| ROOT_COMMENT_ID | NUMBER |
+| REPLY_TO_USER_ID | NUMBER |
+| CONTENT | CLOB |
+| COMMENT_LEVEL | NUMBER |
+| STATUS | VARCHAR2(20) |
+| REPLY_COUNT | NUMBER |
+| CREATE_TIME | DATE |
+| UPDATE_TIME | DATE |
+| DELETE_TIME | DATE |
+
+**主键：** COMMENT_ID
+
+**外键：**
+* ANSWER_ID → ANSWERS
+* USER_ID → USERS
+* PARENT_COMMENT_ID → ANSWER_COMMENTS
+* ROOT_COMMENT_ID → ANSWER_COMMENTS
+* REPLY_TO_USER_ID → USERS
+
+---
+
+### 3.4.9 FAVORITES
 
 | 字段名 | 类型 |
 | ------------- | ------ |
@@ -215,7 +248,7 @@
 
 ---
 
-### 3.4.9 BROWSE_HISTORY
+### 3.4.10 BROWSE_HISTORY
 
 | 字段名 | 类型 |
 | ----------- | ------ |
@@ -234,7 +267,7 @@
 
 ---
 
-### 3.4.10 SEARCH_HISTORY
+### 3.4.11 SEARCH_HISTORY
 
 | 字段名 | 类型 |
 | ----------- | ------------- |
@@ -249,7 +282,7 @@
 
 ---
 
-### 3.4.11 RECOMMENDATIONS
+### 3.4.12 RECOMMENDATIONS
 
 | 字段名 | 类型 |
 | ----------- | ------------- |
@@ -271,7 +304,7 @@
 
 ---
 
-### 3.4.12 USER_TAG_PROFILE
+### 3.4.13 USER_TAG_PROFILE
 
 | 字段名 | 类型 |
 | ----------- | ----------- |
@@ -289,7 +322,7 @@
 
 ---
 
-### 3.4.13 CHAT_SESSION
+### 3.4.14 CHAT_SESSION
 
 | 字段名 | 类型 |
 | ---------- | ------------ |
@@ -305,7 +338,7 @@
 
 ---
 
-### 3.4.14 CHAT_MESSAGE
+### 3.4.15 CHAT_MESSAGE
 
 | 字段名 | 类型 |
 | ----------- | ------------ |
@@ -322,7 +355,7 @@
 
 ---
 
-### 3.4.15 AI_PROMPT_LOG
+### 3.4.16 AI_PROMPT_LOG
 
 | 字段名 | 类型 |
 | ------------- | ------------ |
@@ -340,7 +373,7 @@
 
 ---
 
-### 3.4.16 LOGIN_LOG
+### 3.4.17 LOGIN_LOG
 
 | 字段名 | 类型 |
 | ---------- | ------------ |
@@ -356,7 +389,7 @@
 
 ---
 
-### 3.4.17 OPERATION_LOG
+### 3.4.18 OPERATION_LOG
 
 | 字段名 | 类型 |
 | ---------- | ------------- |
@@ -381,10 +414,12 @@
 1. 一个用户可以提出多个问题，`QUESTIONS.USER_ID -> USERS.USER_ID`
 2. 一个问题属于一个分类，`QUESTIONS.CATEGORY_ID -> CATEGORIES.CATEGORY_ID`
 3. 一个问题可以对应多个回答，`ANSWERS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
-4. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
-5. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈，这些行为分别落入独立行为表
-6. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
-7. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
+4. 人工回答可回溯到真实回答用户，`ANSWERS.USER_ID -> USERS.USER_ID`
+5. 一个回答可以继续挂载评论与回复，`ANSWER_COMMENTS.ANSWER_ID -> ANSWERS.ANSWER_ID`
+6. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
+7. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈和评论，这些行为分别落入独立行为表
+8. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
+9. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
 
 整体关系链路可概括为：
 
@@ -398,9 +433,10 @@
 
 1. 引入 `AI_PROMPT_LOG`，用于记录提示词、响应内容、模型名和 token 消耗，提升可追溯性
 2. 引入 `CHAT_SESSION` 与 `CHAT_MESSAGE`，支持多轮对话场景
-3. 引入 `USER_TAG_PROFILE`，将用户行为沉淀为标签权重，避免推荐只依赖单次行为
-4. 引入 `RECOMMENDATIONS`，将推荐结果落表，便于查询、排序和状态管理
-5. 通过触发器和存储过程自动回写问题和回答统计字段，避免应用层重复维护统计逻辑
+3. 引入 `ANSWER_COMMENTS`，将回答下的评论与楼中楼回复单独建模，避免与反馈表混用
+4. 引入 `USER_TAG_PROFILE`，将用户行为沉淀为标签权重，避免推荐只依赖单次行为
+5. 引入 `RECOMMENDATIONS`，将推荐结果落表，便于查询、排序和状态管理
+6. 通过触发器和存储过程自动回写问题和回答统计字段，避免应用层重复维护统计逻辑
 
 ---
 
@@ -475,13 +511,14 @@
 3. `CATEGORIES.STATUS`: `ACTIVE`, `INACTIVE`
 4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`
 5. `ANSWERS.ANSWER_TYPE`: `AI`, `MANUAL`, `SYSTEM`
-6. `ANSWER_FEEDBACK.IS_LIKE`: `Y`, `N`
-7. `RECOMMENDATIONS.REC_TYPE`: `TAG_BASED`, `POPULARITY`, `HYBRID`, `MANUAL`
-8. `RECOMMENDATIONS.REC_SOURCE`: `USER_TAG_PROFILE`, `POPULARITY`, `USER_ACTION`, `ADMIN_RULE`, `MANUAL`
-9. `RECOMMENDATIONS.STATUS`: `ACTIVE`, `EXPIRED`, `DISMISSED`
-10. `CHAT_SESSION.STATUS`: `OPEN`, `CLOSED`, `ARCHIVED`
-11. `CHAT_MESSAGE.SENDER_TYPE`: `USER`, `AI`, `SYSTEM`
-12. `LOGIN_LOG.RESULT`: `SUCCESS`, `FAILURE`, `LOCKED`
+6. `ANSWER_COMMENTS.STATUS`: `ACTIVE`, `HIDDEN`, `DELETED`
+7. `ANSWER_FEEDBACK.IS_LIKE`: `Y`, `N`
+8. `RECOMMENDATIONS.REC_TYPE`: `TAG_BASED`, `POPULARITY`, `HYBRID`, `MANUAL`
+9. `RECOMMENDATIONS.REC_SOURCE`: `USER_TAG_PROFILE`, `POPULARITY`, `USER_ACTION`, `ADMIN_RULE`, `MANUAL`
+10. `RECOMMENDATIONS.STATUS`: `ACTIVE`, `EXPIRED`, `DISMISSED`
+11. `CHAT_SESSION.STATUS`: `OPEN`, `CLOSED`, `ARCHIVED`
+12. `CHAT_MESSAGE.SENDER_TYPE`: `USER`, `AI`, `SYSTEM`
+13. `LOGIN_LOG.RESULT`: `SUCCESS`, `FAILURE`, `LOCKED`
 
 ---
 
@@ -500,6 +537,8 @@
 - 用户名必须唯一
 - 同一用户不能重复收藏同一问题
 - 同一用户对同一回答只能保留一条反馈
+- 评论挂在回答下，不直接挂在问题下
+- 评论删除采用软删除，不级联删除子回复
 - 评分必须在 `0` 到 `5` 之间
 - 浏览数、收藏数、回答数、点赞数等统计值不能为负数
 
@@ -510,7 +549,7 @@
 当前数据流逻辑如下：
 
 1. 用户登录并进入系统
-2. 用户执行提问、浏览、收藏、搜索、反馈等动作
+2. 用户执行提问、浏览、收藏、搜索、反馈、评论与回复等动作
 3. 行为数据写入对应业务表
 4. 触发器和过程自动更新问题与回答的统计字段
 5. 存储过程根据行为重建用户标签画像

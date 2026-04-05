@@ -20,10 +20,16 @@
 - `QUESTIONS.USER_ID -> USERS.USER_ID`
 - `QUESTIONS.CATEGORY_ID -> CATEGORIES.CATEGORY_ID`
 - `ANSWERS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
+- `ANSWERS.USER_ID -> USERS.USER_ID`
 - `QUESTION_TAGS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
 - `QUESTION_TAGS.TAG_ID -> TAGS.TAG_ID`
 - `ANSWER_FEEDBACK.ANSWER_ID -> ANSWERS.ANSWER_ID`
 - `ANSWER_FEEDBACK.USER_ID -> USERS.USER_ID`
+- `ANSWER_COMMENTS.ANSWER_ID -> ANSWERS.ANSWER_ID`
+- `ANSWER_COMMENTS.USER_ID -> USERS.USER_ID`
+- `ANSWER_COMMENTS.PARENT_COMMENT_ID -> ANSWER_COMMENTS.COMMENT_ID`
+- `ANSWER_COMMENTS.ROOT_COMMENT_ID -> ANSWER_COMMENTS.COMMENT_ID`
+- `ANSWER_COMMENTS.REPLY_TO_USER_ID -> USERS.USER_ID`
 - `FAVORITES.USER_ID -> USERS.USER_ID`
 - `FAVORITES.QUESTION_ID -> QUESTIONS.QUESTION_ID`
 - `BROWSE_HISTORY.USER_ID -> USERS.USER_ID`
@@ -46,6 +52,7 @@
 - `CATEGORIES.STATUS` in `('ACTIVE', 'INACTIVE')`
 - `QUESTIONS.STATUS` in `('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED')`
 - `ANSWERS.ANSWER_TYPE` in `('AI', 'MANUAL', 'SYSTEM')`
+- `ANSWER_COMMENTS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
 - `ANSWER_FEEDBACK.IS_LIKE` in `('Y', 'N')`
 - `RECOMMENDATIONS.REC_TYPE` in `('TAG_BASED', 'POPULARITY', 'HYBRID', 'MANUAL')`
 - `RECOMMENDATIONS.REC_SOURCE` in `('USER_TAG_PROFILE', 'POPULARITY', 'USER_ACTION', 'ADMIN_RULE', 'MANUAL')` or `NULL`
@@ -63,6 +70,8 @@
 - `ANSWERS.LIKE_COUNT >= 0`
 - `ANSWERS.DISLIKE_COUNT >= 0`
 - `ANSWERS.AVG_RATING` is `NULL` or between `0` and `5`
+- `ANSWER_COMMENTS.COMMENT_LEVEL >= 1`
+- `ANSWER_COMMENTS.REPLY_COUNT >= 0`
 - `ANSWER_FEEDBACK.RATING` is `NULL` or between `0` and `5`
 - `BROWSE_HISTORY.DURATION >= 0`
 - `BROWSE_HISTORY.CLICK_DEPTH >= 1`
@@ -73,3 +82,26 @@
 ## Time Rules
 
 - `CHAT_SESSION.END_TIME` must be `NULL` or greater than or equal to `START_TIME`
+- `ANSWER_COMMENTS.DELETE_TIME` must be `NULL` or greater than or equal to `CREATE_TIME`
+
+## Answer Source Rules
+
+- `MANUAL` answers must carry a real `USER_ID`.
+- `AI` and `SYSTEM` answers must keep `USER_ID = NULL`.
+- `MANUAL` answers currently represent community user replies.
+
+## Comment and Reply Rules
+
+- Comments are attached to `ANSWERS`, not directly to `QUESTIONS`.
+- Top-level comments use `PARENT_COMMENT_ID = NULL`.
+- Reply comments must reference a parent comment that belongs to the same `ANSWER_ID`.
+- `ROOT_COMMENT_ID` identifies the root comment thread for both top-level comments and replies.
+- New comments are only allowed when the related question status is `OPEN` or `RESOLVED`.
+- Replies are only allowed against comments in `ACTIVE` status.
+- Users are allowed to reply to their own comments.
+- Comment editing is not supported in the current version.
+- Comment deletion uses soft delete instead of physical delete.
+- Deleting a comment does not cascade to child replies.
+- When listing comments, deleted top-level comments are displayed as `原评论已删除`.
+- When listing comments, deleted replies are displayed as `原回复已删除`.
+- Only the comment author can delete the comment in the current implementation.

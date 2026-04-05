@@ -23,6 +23,7 @@
 | 表名 | 所属模块 | 业务作用 | 核心字段 | 说明 |
 | --- | --- | --- | --- | --- |
 | `ANSWER_FEEDBACK` | 回答反馈 | 记录用户对回答的点赞、点踩、评分 | `ANSWER_ID`, `USER_ID`, `IS_LIKE`, `RATING` | 一人对同一回答只保留一条当前反馈 |
+| `ANSWER_COMMENTS` | 评论与回复 | 记录回答下的社区评论、回复与楼中楼结构 | `ANSWER_ID`, `USER_ID`, `PARENT_COMMENT_ID`, `ROOT_COMMENT_ID`, `STATUS` | 采用软删除，删除后保留评论树结构 |
 | `FAVORITES` | 收藏管理 | 记录用户收藏的问题 | `USER_ID`, `QUESTION_ID`, `FAVORITE_TIME` | 用于收藏列表、热度统计和推荐过滤 |
 | `BROWSE_HISTORY` | 浏览行为 | 记录用户浏览的问题及停留情况 | `USER_ID`, `QUESTION_ID`, `DURATION`, `CLICK_DEPTH` | 用于浏览统计和兴趣画像建模 |
 | `SEARCH_HISTORY` | 搜索行为 | 记录用户搜索关键词 | `USER_ID`, `KEYWORD`, `SEARCH_TIME` | 用于分析搜索偏好和潜在热点 |
@@ -73,6 +74,7 @@
 | 收藏与浏览 | `FAVORITES`, `BROWSE_HISTORY` |
 | 搜索记录 | `SEARCH_HISTORY` |
 | 回答反馈 | `ANSWER_FEEDBACK` |
+| 评论与回复 | `ANSWER_COMMENTS` |
 | 画像与推荐 | `USER_TAG_PROFILE`, `RECOMMENDATIONS` |
 | AI 会话与调用日志 | `CHAT_SESSION`, `CHAT_MESSAGE`, `AI_PROMPT_LOG` |
 | 后台审计 | `OPERATION_LOG`, `LOGIN_LOG` |
@@ -81,6 +83,7 @@
 
 - 主链路完整：从用户、问题、回答到推荐都已经具备对应表结构
 - 行为与主数据分离：便于统计、审计和后续扩展
+- 社区互动结构更完整：回答反馈与评论回复分层建模，避免混用
 - 画像与推荐解耦：画像负责沉淀兴趣，推荐负责产出结果
 - 日志能力完整：登录日志、操作日志、Prompt 日志、会话日志分层清晰
 - 设计偏向课程答辩友好：每个模块都能明确说明“业务目的”和“数据库落点”
