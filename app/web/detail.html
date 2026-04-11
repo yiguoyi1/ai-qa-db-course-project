@@ -1,10 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问题详情 - AI 问答社区</title>
+    <style>
+        /* 保持一致的高级 UI 风格 */
+        :root { --primary: #2563eb; --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #111827; --text-muted: #6b7280; --border-color: #e5e7eb; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-main); }
+        .navbar { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 0 40px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }
+        .navbar-brand { font-size: 20px; font-weight: 700; color: var(--primary); cursor: pointer; text-decoration: none; }
+
+        /* 🌟 修改容器：加宽，并采用 1fr 和 300px 的左右分栏布局 */
+        .container {
+            max-width: 1100px; /* 原来是800，加宽以容纳侧边栏 */
+            margin: 32px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px; /* 左侧自适应，右侧固定 300px */
+            gap: 24px;
+            align-items: start; /* 确保左右两边各自独立滚动 */
+        }
+
+        /* 🌟 新增：右侧悬浮面板专属样式 */
+        .sidebar-sticky {
+            position: sticky;
+            top: 88px; /* 距离顶部的距离（避开导航栏） */
+        }
+
+        .detail-card { background: var(--card-bg); padding: 32px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .back-link { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .back-link:hover { text-decoration: underline; }
+
+        .q-title { font-size: 24px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.4; }
+        .q-meta { font-size: 14px; color: var(--text-muted); display: flex; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+        .q-content { font-size: 16px; line-height: 1.7; white-space: pre-wrap; color: #374151; min-height: 100px; }
+
+        /* 加载状态的样式 */
+        #loading { text-align: center; padding: 40px; color: var(--text-muted); }
+
+        /* 🌟 评论折叠专属样式 */
+        .answer-wrapper {
+            position: relative;
+            max-height: 160px; /* 默认只显示大约 6 行的高度 */
+            overflow: hidden;
+            transition: max-height 0.3s ease; /* 展开时有一个平滑的动画 */
+        }
+
+        .answer-wrapper.expanded {
+            max-height: 5000px; /* 展开后解除限制（给个巨大的值配合动画） */
+        }
+
+        /* 底部淡出的雾化遮罩层 */
+        .fade-mask {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            /* 从透明过渡到卡片的底色 #f8fafc */
+            background: linear-gradient(to bottom, rgba(248, 250, 252, 0), rgba(248, 250, 252, 1));
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 展开后，遮罩层变得完全透明 */
+        .answer-wrapper.expanded .fade-mask { opacity: 0; }
+
+        /* 展开/收起按钮 */
+        .toggle-btn {
+            color: var(--primary);
+            background: none; border: none; padding: 12px 0 0 0;
+            font-size: 14px; font-weight: 600; cursor: pointer; display: inline-block;
+        }
+        .toggle-btn:hover { text-decoration: underline; }
+
+    </style>
 </head>
 <body>
-$END$
+
+    <nav class="navbar">
+        <a href="home.html" class="navbar-brand">💡 AI QA 社区</a>
+    </nav>
+
+    <div class="container">
+        <div class="main-content" style="min-width: 0;">
+            <a href="home.html" class="back-link">← 返回大厅</a>
+
+            <div class="detail-card" id="detail-container">
+                <div id="loading">⏳ 正在拼命从数据库里拉取全文...</div>
+                </div>
+        </div>
+
+        <div class="sidebar-sticky">
+            <div class="detail-card" style="padding: 24px;">
+                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; color: #111827;">💡 撰写你的回答</h3>
+
+                <textarea id="my-answer-content" rows="6" placeholder="分享你的知识和见解..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 14px; font-family: inherit; margin-bottom: 16px; transition: border-color 0.2s;"></textarea>
+
+                <button onclick="submitAnswer()" style="width: 100%; padding: 10px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">发 布 回 答</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            // 1. 检查房卡 (就算进详情页也要验票)
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                alert('请先登录！');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 2. 从浏览器的地址栏里，把 id 抠出来 (比如 detail.html?id=42，抠出 42)
+            const urlParams = new URLSearchParams(window.location.search);
+            const questionId = urlParams.get('id');
+
+            if (!questionId) {
+                document.getElementById('detail-container').innerHTML = '<div style="color:red">❌ 找不到帖子 ID</div>';
+                return;
+            }
+
+            // 3. 呼叫后端，拿完整数据！
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/questions/${questionId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    renderDetail(data);
+                } else {
+                    document.getElementById('detail-container').innerHTML = `<div style="color:red">❌ 拉取失败，可能帖子被删了，或者后端没写这个接口 (状态码: ${response.status})</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('detail-container').innerHTML = '<div style="color:red">❌ 网络错误，后端服务挂了吗？</div>';
+            }
+        };
+
+        function renderDetail(q) {
+            const container = document.getElementById('detail-container');
+            const date = new Date(q.ask_time).toLocaleString();
+            const author = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+            const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
+
+            // 🌟 新增：拼装回答（评论区）的 HTML 🌟
+            let answersHtml = '<h3 style="margin-top: 48px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 18px; color: #111827;">💬 回答区</h3>';
+
+            if (q.answers && q.answers.length > 0) {
+                q.answers.forEach(ans => {
+                    const ansDate = new Date(ans.generate_time).toLocaleString();
+                    const ansId = ans.answer_id; // 拿一个唯一 ID，用来控制开关
+
+                    // 🌟 智能判断：是人类还是 AI？
+                    let authorName = '';
+                    let authorIcon = '';
+                    let tagColor = '';
+
+                    // 匹配底层数据库里的 'MANUAL' 类型
+                    if (ans.answer_type === 'MANUAL' || !ans.provider_name) {
+                        authorName = ans.author_username ? ans.author_username : `社区用户 ${ans.user_id}`;
+                        authorIcon = '👤';
+                        tagColor = 'background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;'; // 真人：高级灰
+                    } else {
+                        authorName = ans.provider_name;
+                        authorIcon = '🤖';
+                        tagColor = 'background: #dbeafe; color: #1e40af;'; // AI：科技蓝
+                    }
+
+                    // 组装带高级样式的 HTML
+                    answersHtml += `
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px; margin-top: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                            <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                <span style="${tagColor} padding: 4px 8px; border-radius: 6px; font-size: 12px;">${authorIcon} ${authorName}</span>
+                                <span style="font-weight: normal; font-size: 13px; color: #94a3b8;">回答于 ${ansDate}</span>
+                            </div>
+
+                            <div id="wrapper-${ansId}" class="answer-wrapper">
+                                <div style="font-size: 15px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${ans.content}</div>
+                                <div id="mask-${ansId}" class="fade-mask"></div>
+                            </div>
+
+                            <button id="btn-${ansId}" class="toggle-btn" onclick="toggleAnswer(${ansId})">阅读全文 ↓</button>
+                        </div>
+                    `;
+                });
+            } else {
+                answersHtml += '<div style="color: #9ca3af; margin-top: 32px; font-size: 15px; text-align: center; background: #f9fafb; padding: 32px; border-radius: 12px;">暂时还没有人（或 AI）回答，快来抢沙发吧！</div>';
+            }
+
+            container.innerHTML = `
+                <h1 class="q-title">${q.title}</h1>
+                <div class="q-meta">
+                    <span>👤 ${author}</span>
+                    <span>⏱ ${date}</span>
+                </div>
+                <div class="q-content">${content}</div>
+                ${answersHtml} `;
+
+            // 🌟 智能检测：如果回答本来就很短，就不显示展开按钮了
+            if (q.answers && q.answers.length > 0) {
+                q.answers.forEach(ans => {
+                    const wrapper = document.getElementById(`wrapper-${ans.answer_id}`);
+                    const btn = document.getElementById(`btn-${ans.answer_id}`);
+                    const mask = document.getElementById(`mask-${ans.answer_id}`);
+
+                    // scrollHeight 是文字的真实高度，如果小于或等于我们设定的 160px，就直接完全展示
+                    if (wrapper && wrapper.scrollHeight <= 160) {
+                        wrapper.classList.add('expanded');
+                        if (btn) btn.style.display = 'none';
+                        if (mask) mask.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // 🌟 展开/收起触发函数
+        function toggleAnswer(ansId) {
+            const wrapper = document.getElementById(`wrapper-${ansId}`);
+            const btn = document.getElementById(`btn-${ansId}`);
+
+            // 如果已经是展开状态，就移除 expanded 类，并改文字为向下箭头
+            if (wrapper.classList.contains('expanded')) {
+                wrapper.classList.remove('expanded');
+                btn.innerText = '阅读全文 ↓';
+            } else {
+                // 如果是折叠状态，就加上 expanded 类，并改文字为向上箭头
+                wrapper.classList.add('expanded');
+                btn.innerText = '收起全文 ↑';
+            }
+        }
+
+        // 🌟 真正提交回答到后端（完美适配原作者接口）
+        async function submitAnswer() {
+            const content = document.getElementById('my-answer-content').value.trim();
+            if (!content) {
+                alert("❌ 还没有填写回答内容哦！");
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const questionId = urlParams.get('id');
+            const token = localStorage.getItem('access_token');
+
+            // 🌟 关键新增：从本地保险箱拿出我们登录时存好的 user_id，并确保它是数字
+            const userId = parseInt(localStorage.getItem('user_id'));
+
+            // 按钮变灰，防止用户狂点
+            const btn = document.querySelector('button[onclick="submitAnswer()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "发布中...";
+            btn.disabled = true;
+
+            try {
+                // 拿着房卡去敲原作者真正的大门
+                const response = await fetch(`http://127.0.0.1:8000/api/questions/${questionId}/answers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    // 🌟 核心修复：完全按照原作者的标准，把 user_id 也装进快递盒子里！
+                    body: JSON.stringify({
+                        user_id: userId,
+                        content: content
+                    })
+                });
+
+                if (response.ok) {
+                    // 发布成功，直接刷新当前页面！
+                    window.location.reload();
+                } else {
+                    const errorData = await response.json();
+                    alert("❌ 发布失败: " + JSON.stringify(errorData));
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                alert("❌ 网络错误，请检查后端服务！");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+    </script>
 </body>
 </html>

@@ -9,6 +9,7 @@ from app.schemas.question import (
     AskQuestionRequest,
     QuestionDetailResponse,
     QuestionListResponse,
+    QuestionCreate,
 )
 from app.services.ai_answer_service import AIAnswerService
 
@@ -163,3 +164,20 @@ class QuestionService:
             return ValidationError("Request data violates a database constraint.")
 
         return AppError(f"Database operation failed: {message}", status_code=500)
+
+    def get_questions(self) -> list[dict]:
+        with get_connection() as connection:
+            return self._question_repository.get_question_list(connection)
+
+    # 🌟 新增：纯发帖方法（不触发 AI 回答）
+    def publish_question(self, user_id: int, payload: QuestionCreate) -> dict:
+        with get_connection() as connection:
+            q_id = self._question_repository.create_question(
+                connection=connection,
+                user_id=user_id,
+                category_id=1,  # 默认归入第一个分类
+                title=payload.title,
+                content=payload.content or ""
+            )
+            connection.commit()  # 🌟 必须提交，否则存不进数据库！
+            return {"question_id": q_id, "message": "发布成功"}

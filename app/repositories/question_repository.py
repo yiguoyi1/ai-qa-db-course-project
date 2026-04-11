@@ -115,19 +115,20 @@ class QuestionRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT
-                question_id,
-                user_id,
-                category_id,
-                title,
-                content,
-                ask_time,
-                status,
-                view_count,
-                favorite_count,
-                answer_count
-            FROM questions
-            WHERE question_id = :question_id
+            SELECT q.question_id,
+                   q.user_id,
+                   q.category_id,
+                   q.title,
+                   q.content,
+                   q.ask_time,
+                   q.status,
+                   q.view_count,
+                   q.favorite_count,
+                   q.answer_count,
+                   u.username -- 🌟 1. SELECT 里加上 username
+            FROM questions q
+                     LEFT JOIN users u ON q.user_id = u.user_id -- 🌟 2. 加上连表查询
+            WHERE q.question_id = :question_id
             """,
             {"question_id": question_id},
         )
@@ -146,6 +147,7 @@ class QuestionRepository:
             "view_count": int(row[7]),
             "favorite_count": int(row[8]),
             "answer_count": int(row[9]),
+            "username": row[10],  # 🌟 3. 新增这行：把查出的名字装进去
         }
 
         cursor.execute(
@@ -226,8 +228,10 @@ class QuestionRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count
+                q.answer_count,
+                u.username  -- 🌟 1. SELECT 里加上这行
             FROM questions q
+            LEFT JOIN users u ON q.user_id = u.user_id  -- 🌟 2. FROM 后面加上连表查询
             WHERE {' AND '.join(where_clauses)}
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -250,6 +254,7 @@ class QuestionRepository:
                 "view_count": int(row[6]),
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
+                "username": row[9],  # 🌟 3. 新增这行：把第10个字段（索引为9）装进 username
                 "tags": [],
             }
             for row in rows
@@ -292,3 +297,18 @@ class QuestionRepository:
             question["tags"] = tags_by_question_id.get(question["question_id"], [])
 
         return questions
+
+    def get_question_list(self, connection) -> list[dict]:
+        cursor = connection.cursor()
+        # 用连表查询 (JOIN) 一次性把问题和发帖人的名字都查出来
+        cursor.execute("""
+                       SELECT q.question_id, q.title, q.content, q.ask_time, q.answer_count, u.username
+                       FROM questions q
+                                LEFT JOIN users u ON q.user_id = u.user_id
+                       ORDER BY q.ask_time DESC
+                       """)
+        columns = [col[0].lower() for col in cursor.description]
+        rows = cursor.fetchall()
+        cursor.close()
+
+        return [dict(zip(columns, row)) for row in rows]

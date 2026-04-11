@@ -59,5 +59,6 @@ class AuthService:
             # 4. 把发好的房卡端给服务员
             return TokenResponse(
                 access_token=encoded_jwt,
-                user_id=user["user_id"]
+                user_id=user["user_id"],
+                username=user["username"]
             )

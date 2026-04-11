@@ -1,10 +1,367 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 问答社区 - 首页</title>
+    <style>
+        /* 沿用大门的高级配色 */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand { font-size: 20px; font-weight: 700; color: var(--primary); }
+
+        .navbar-user { display: flex; align-items: center; gap: 16px; }
+        .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+        .btn-outline {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: #f9fafb; border-color: #d1d5db; }
+
+        /* 核心布局：左侧信息流，右侧边栏 */
+        .container {
+            max-width: 1000px;
+            margin: 32px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 24px;
+        }
+
+        /* 帖子卡片 */
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .feed-header h2 { margin: 0; font-size: 20px; }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .post-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s;
+        }
+        .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .post-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-main); }
+        .post-preview { font-size: 15px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5; }
+        .post-meta { font-size: 13px; color: #9ca3af; display: flex; gap: 16px; }
+
+        /* 右侧边栏 */
+        .sidebar-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .sidebar-card h3 { margin: 0 0 16px 0; font-size: 16px; }
+
+        /* 🌟 苹果风开关按钮的专属样式 */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s ease-in-out; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s ease-in-out; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .switch input:checked + .slider { background-color: #2563eb; } /* 开启时的蓝色 */
+        .switch input:checked + .slider:before { transform: translateX(20px); } /* 圆点向右滑动的距离 */
+
+    </style>
 </head>
 <body>
-$END$
+
+<nav class="navbar">
+    <div class="navbar-brand">💡 AI QA 社区</div>
+    <div class="navbar-user">
+        <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
+        <button class="btn-outline" onclick="logout()">退出登录</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="main-feed">
+        <div class="feed-header">
+            <h2>最新问答</h2>
+            <button class="btn-primary" onclick="openPostModal()">+ 提问</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-card">
+            <h3>热门标签</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span style="background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 13px;">Oracle</span>
+                <span style="background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 13px;">FastAPI</span>
+                <span style="background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 13px;">Python</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="post-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <h2 style="margin-top: 0; margin-bottom: 24px; color: #111827;">发布新问题</h2>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">问题标题 <span style="color:red">*</span></label>
+            <input type="text" id="post-title" placeholder="一句话描述你的问题" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; font-size: 15px;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display:block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">详细描述 (可选)</label>
+            <textarea id="post-content" rows="5" placeholder="补充更多背景信息，让大家更好地帮助你..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 15px; font-family: inherit;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 14px 16px; border-radius: 10px; border: 1px solid #e2e8f0; transition: all 0.2s;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 20px;">🤖</div>
+                <div>
+                    <div style="font-size: 14px; color: #1e293b; font-weight: 600;">召唤 AI 助手立刻解答</div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">开启后，大模型将自动为你生成一份详尽回答</div>
+                </div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="use-ai" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button onclick="closePostModal()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; font-weight: 600; cursor: pointer;">取消</button>
+            <button onclick="submitQuestion()" style="padding: 10px 20px; border: none; background: #2563eb; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">发 布</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🌟 核心安保逻辑：页面一加载，立马查房卡 🌟
+    window.onload = async function() {
+            // 1. 检查房卡
+            const token = localStorage.getItem('access_token');
+            const username = localStorage.getItem('username');
+
+            if (!token) {
+                alert('您还没有登录，请先登录！');
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('user-greeting').innerText = `欢迎回来, ${username}`;
+
+            // 2. 🌟 呼叫后端：拉取真实帖子列表！🌟
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/questions', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 注意：虽然现在还没强制校验，但我们养成好习惯，把房卡带上
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const questions = await response.json();
+                    renderQuestions(questions); // 拿到数据后，交给下面的函数去画 UI
+                } else {
+                    console.error("拉取帖子失败");
+                }
+            } catch (error) {
+                console.error("网络请求出错:", error);
+            }
+        };
+
+        // 🌟 增强版：将真实数据渲染变成漂亮的卡片 🌟
+        function renderQuestions(responseData) {
+            const feedContainer = document.querySelector('.main-feed');
+
+            // 1. 保留头部并清空下方
+            const headerHtml = feedContainer.querySelector('.feed-header').outerHTML;
+            feedContainer.innerHTML = headerHtml;
+
+            // 🌟 2. 核心排雷针：把后端传来的东西打印出来！
+            console.log("👉 收到后端的数据:", responseData);
+
+            // 3. 容错处理：确保我们拿到的是一个数组
+            let questions = [];
+            if (Array.isArray(responseData)) {
+                questions = responseData;
+            } else if (responseData && Array.isArray(responseData.items)) {
+                // 🌟 核心修复：后端把真正的数组放在了 items 里！🌟
+                questions = responseData.items;
+            } else if (responseData && Array.isArray(responseData.data)) {
+                questions = responseData.data;
+            } else {
+                feedContainer.innerHTML += `<div style="text-align:center; padding: 40px; color: #dc2626; font-weight: bold;">❌ 数据格式解析失败，请按 F12 打开开发者工具查看控制台日志！</div>`;
+                return;
+            }
+
+            // 4. 如果数据库里真的没数据
+            if (questions.length === 0) {
+                feedContainer.innerHTML += `<div style="text-align:center; padding: 40px; color: #6b7280; font-size: 15px;">📭 数据库里还没有帖子，快来抢沙发吧！</div>`;
+                return;
+            }
+
+
+            // 5. 循环渲染真实数据
+            questions.forEach(q => {
+                const date = new Date(q.ask_time).toLocaleString();
+
+                // 既然决定进详情页看，这里就不需要提示“无详细描述”了，直接留白或者截取一部分标题
+                const displayContent = '<span style="color:#9ca3af; font-size:13px;">点击查看详情全文...</span>';
+                const displayAuthor = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+
+                // 🌟 关键修改：加上 cursor:pointer 和 onclick 事件，把 question_id 传过去
+                const cardHtml = `
+                    <div class="post-card" style="cursor: pointer;" onclick="goToDetail(${q.question_id})">
+                        <h3 class="post-title">${q.title}</h3>
+                        <p class="post-preview">${displayContent}</p>
+                        <div class="post-meta">
+                            <span>👤 ${displayAuthor}</span>
+                            <span>💬 ${q.answer_count || 0} 个回答</span>
+                            <span>⏱ ${date}</span>
+                        </div>
+                    </div>
+                `;
+                feedContainer.innerHTML += cardHtml;
+            });
+        }
+
+    // 退出登录逻辑
+    function logout() {
+        // 1. 销毁房卡
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_id');
+        // 2. 踢回大门
+        window.location.href = 'login.html';
+    }
+
+    // 🌟 跳转到详情页的魔法 🌟
+    function goToDetail(questionId) {
+        // 带着问题 ID，跳转到详情页
+        window.location.href = `detail.html?id=${questionId}`;
+    }
+    // 🌟 弹窗的开启与关闭逻辑
+    function openPostModal() {
+        document.getElementById('post-modal').style.display = 'flex';
+    }
+
+    function closePostModal() {
+        document.getElementById('post-modal').style.display = 'none';
+        // 关闭时清空输入框
+        document.getElementById('post-title').value = '';
+        document.getElementById('post-content').value = '';
+    }
+
+    // 🌟 核心：提交帖子到后端
+    async function submitQuestion() {
+        const titleInput = document.getElementById('post-title').value.trim();
+        const contentInput = document.getElementById('post-content').value.trim();
+
+        if (!titleInput) {
+            alert("❌ 标题不能为空哦！");
+            return;
+        }
+
+        const token = localStorage.getItem('access_token');
+        const userId = parseInt(localStorage.getItem('user_id')); // 从保险箱拿出 user_id
+        const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
+
+        try {
+            // 🌟 核心分流逻辑 🌟
+            let apiUrl = 'http://127.0.0.1:8000/api/questions';
+            let requestBody = { title: titleInput, content: contentInput };
+
+            if (useAi) {
+                // 如果开启了 AI，走原作者带 AI 生成的专属通道
+                apiUrl = 'http://127.0.0.1:8000/api/questions/ask';
+                // 这个通道的标准比较严格，需要补齐参数
+                requestBody = {
+                    user_id: userId,
+                    category_id: 1,
+                    title: titleInput,
+                    content: contentInput,
+                    tag_ids: []
+                };
+            }
+
+            // UI 提示变成加载中，因为 AI 生成需要几秒钟
+            const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = useAi ? '🤖 AI 正在思考中...' : '发布中...';
+            submitBtn.disabled = true;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                closePostModal();
+                window.location.reload();
+            } else {
+                const errorData = await response.json();
+                alert("❌ 发布失败: " + JSON.stringify(errorData));
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            alert("❌ 网络请求失败，请检查后端是否运行。");
+        }
+    }
+</script>
 </body>
 </html>
