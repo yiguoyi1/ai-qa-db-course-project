@@ -136,8 +136,10 @@ class SearchRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count
+                q.answer_count,
+                u.username  -- 🌟 1. SELECT 里多查一列：用户表里的名字
             FROM questions q
+            LEFT JOIN users u ON q.user_id = u.user_id -- 🌟 2. 关键：把用户表连进来！
             WHERE {' AND '.join(where_clauses)}
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -159,6 +161,7 @@ class SearchRepository:
                 "view_count": int(row[6]),
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
+                "username": row[9],  # 🌟 3. 别忘了把第 10 列（索引是9）的名字装进字典里发给前端！
                 "tags": [],
             }
             for row in rows
@@ -203,3 +206,21 @@ class SearchRepository:
             item["tags"] = tags_by_question_id.get(item["question_id"], [])
 
         return items
+
+    # 🌟 新增：获取用户最近的 5 条不重复搜索历史
+    def get_search_history(self, connection: oracledb.Connection, user_id: int, limit: int = 5) -> list[str]:
+        cursor = connection.cursor()
+        # 利用 MAX(rowid) 巧妙获取最新插入的记录，并去重
+        cursor.execute(
+            """
+            SELECT keyword
+            FROM search_history
+            WHERE user_id = :user_id
+            GROUP BY keyword
+            ORDER BY MAX(rowid) DESC
+            OFFSET 0 ROWS FETCH NEXT :limit ROWS ONLY
+            """,
+            {"user_id": user_id, "limit": limit}
+        )
+        # 把结果拼成一个单纯的字符串列表返回给前端，比如：["考研", "Python", "FastAPI"]
+        return [row[0] for row in cursor.fetchall()]

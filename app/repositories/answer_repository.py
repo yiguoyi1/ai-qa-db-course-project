@@ -151,3 +151,50 @@ class AnswerRepository:
             )
 
         return answers
+
+    # 🌟 终极纯净版：只管记账，把加减法交给底层数据库触发器！
+    def handle_feedback(self, connection: oracledb.Connection, answer_id: int, user_id: int, is_like: str) -> str:
+        cursor = connection.cursor()
+
+        # 查账本
+        cursor.execute(
+            "SELECT is_like FROM answer_feedback WHERE answer_id = :1 AND user_id = :2",
+            [answer_id, user_id]
+        )
+        row = cursor.fetchone()
+
+        if row:
+            if row[0] == is_like:
+                # 重复操作 -> 删记录（取消赞/踩）
+                cursor.execute("DELETE FROM answer_feedback WHERE answer_id = :1 AND user_id = :2",
+                               [answer_id, user_id])
+                action = "CANCELED"
+            else:
+                # 动作相反 -> 更新记录（赞踩互换）
+                cursor.execute("UPDATE answer_feedback SET is_like = :1 WHERE answer_id = :2 AND user_id = :3",
+                               [is_like, answer_id, user_id])
+                action = "SWITCHED"
+        else:
+            # 第一次操作 -> 插入新记录
+            cursor.execute("INSERT INTO answer_feedback (answer_id, user_id, is_like) VALUES (:1, :2, :3)",
+                           [answer_id, user_id, is_like])
+            action = "ADDED"
+
+        cursor.close()
+        return action
+
+    # 🌟 新增：查询当前用户在某个问题下的所有点赞/踩记录
+    def get_user_feedbacks_for_question(self, connection: oracledb.Connection, question_id: int,
+                                        user_id: int) -> dict:
+        cursor = connection.cursor()
+        cursor.execute("""
+                       SELECT f.answer_id, f.is_like
+                       FROM answer_feedback f
+                                JOIN answers a ON f.answer_id = a.answer_id
+                       WHERE a.question_id = :1 AND f.user_id = :2
+                       """, [question_id, user_id])
+
+        # 把结果组装成字典，大概长这样：{ 102: 'Y', 105: 'N' }
+        feedbacks = {int(row[0]): row[1] for row in cursor.fetchall()}
+        cursor.close()
+        return feedbacks

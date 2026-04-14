@@ -5,6 +5,8 @@ from app.core.errors import AppError
 from app.schemas.question import QuestionListResponse
 from app.services.search_service import SearchService
 
+# 🌟 1. 在文件顶部的 import 区域，把之前的验票保安请过来
+from app.api.routes.questions import get_current_user_id
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -36,3 +38,14 @@ def search_questions(
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+
+
+# 🌟 2. 在文件最底部，新增拉取历史记录的大门
+@router.get("/history", response_model=list[str])
+def get_user_search_history(
+    user_id: int = Depends(get_current_user_id), # 验票保安
+    service: SearchService = Depends(get_search_service)
+):
+    return service.get_search_history(user_id)

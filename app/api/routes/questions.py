@@ -17,6 +17,8 @@ from pydantic import BaseModel
 from app.services.answer_service import AnswerService
 from app.schemas.answer import CreateManualAnswerRequest
 
+from app.schemas.question import FeedbackRequest # 记得在顶部或者这里引入一下
+
 router = APIRouter(prefix="/questions", tags=["questions"])
 
 
@@ -88,6 +90,7 @@ def get_current_user_id(authorization: str = Header(...)) -> int:
     except:
         raise HTTPException(status_code=401, detail="房卡无效或已过期，请重新登录")
 
+
 # 🌟 终于！开设接收纯社区发帖的 POST 大门 🌟
 @router.post("")
 def create_community_question(
@@ -97,3 +100,24 @@ def create_community_question(
 ):
     return service.publish_question(user_id, payload)
 
+
+
+# 🌟 接收用户点赞/踩的终极通道
+@router.post("/answers/{answer_id}/feedback")
+def submit_answer_feedback(
+    answer_id: int,
+    payload: FeedbackRequest,
+    user_id: int = Depends(get_current_user_id)
+):
+    service = AnswerService()
+    return service.submit_feedback(answer_id, user_id, payload.is_like)
+
+
+
+@router.get("/{question_id}/feedbacks")
+def get_my_feedbacks(
+    question_id: int,
+    user_id: int = Depends(get_current_user_id) # 必须拿着房卡才能查自己的私账
+):
+    service = AnswerService()
+    return service.get_user_feedbacks(question_id, user_id)

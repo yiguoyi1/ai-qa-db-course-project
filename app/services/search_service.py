@@ -101,3 +101,8 @@ class SearchService:
             return ValidationError("user_id contains an invalid reference.")
 
         return AppError(f"Database operation failed: {message}", status_code=500)
+
+    # 🌟 新增：向库管员要历史记录
+    def get_search_history(self, user_id: int) -> list[str]:
+        with get_connection() as connection:
+            return self._search_repository.get_search_history(connection, user_id)

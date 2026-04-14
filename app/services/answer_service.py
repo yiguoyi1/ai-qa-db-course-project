@@ -75,3 +75,15 @@ class AnswerService:
             return ValidationError("Manual answer data violates a database constraint.")
 
         return AppError(f"Database operation failed: {message}", status_code=500)
+
+    # 🌟 新增：处理点赞/踩请求
+    def submit_feedback(self, answer_id: int, user_id: int, is_like: str) -> dict:
+        with get_connection() as connection:
+            action = self._answer_repository.handle_feedback(connection, answer_id, user_id, is_like)
+            connection.commit()
+            return {"message": "反馈成功", "action": action, "is_like": is_like}
+
+    # 🌟 新增：获取用户的反馈状态
+    def get_user_feedbacks(self, question_id: int, user_id: int) -> dict:
+        with get_connection() as connection:
+            return self._answer_repository.get_user_feedbacks_for_question(connection, question_id, user_id)

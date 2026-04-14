@@ -24,3 +24,4 @@ def create_manual_answer(
         return service.create_manual_answer(question_id=question_id, payload=payload)
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+

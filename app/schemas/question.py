@@ -80,3 +80,7 @@ class QuestionListItem(BaseModel):
 class QuestionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     content: str | None = None
+
+# 🌟 新增：用户提交反馈（点赞/踩）的标准
+class FeedbackRequest(BaseModel):
+    is_like: str = Field(pattern="^(Y|N)$", description="Y代表赞，N代表踩")
