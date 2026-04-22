@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class AskQuestionRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: int | None = Field(default=None, gt=0)
     category_id: int = Field(gt=0)
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
@@ -79,7 +79,7 @@ class QuestionListItem(BaseModel):
 # 🌟 新增：前端发帖的标准（不需要传 user_id，因为我们会从 Token 里拿）
 class QuestionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
-    content: str | None = None
+    content: str = Field(min_length=1)
 
 # 🌟 新增：用户提交反馈（点赞/踩）的标准
 class FeedbackRequest(BaseModel):

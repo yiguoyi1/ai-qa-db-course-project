@@ -185,6 +185,12 @@
 </div>
 
 <script>
+  const HOME_PAGE_URL = '/home';
+
+  function buildApiUrl(path) {
+      return new URL(path, window.location.origin).toString();
+  }
+
   // 切换登录/注册表单的 UI 逻辑
   function toggleForm(type) {
       const title = document.getElementById('form-title');
@@ -231,7 +237,7 @@
       showMessage('⏳ 正在验证登录信息...', true);
 
       try {
-          const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+          const response = await fetch(buildApiUrl('/api/auth/login'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username: user, password: pass })
@@ -248,14 +254,14 @@
 
                 // 🌟 跳转大招：延迟 0.5 秒后（让用户看清成功提示），跳入大厅 🌟
                 setTimeout(() => {
-                    window.location.href = 'home.html';
+                    window.location.href = HOME_PAGE_URL;
                 }, 500);
 
             } else {
               showMessage(`❌ 登录失败: ${data.detail || '账号或密码错误'}`, false);
           }
       } catch (error) {
-          showMessage(`❌ 网络请求失败，请确认 FastAPI 后端是否运行在 8000 端口。`, false);
+          showMessage(`❌ 网络请求失败，请确认后端服务已经启动。`, false);
       }
   }
 
@@ -269,7 +275,7 @@
       showMessage('⏳ 正在为您创建账号...', true);
 
       try {
-          const response = await fetch('http://127.0.0.1:8000/api/auth/register', {
+          const response = await fetch(buildApiUrl('/api/auth/register'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username: user, password: pass, nickname: nick })
@@ -282,7 +288,7 @@
               showMessage(`❌ 注册失败: ${data.detail || '用户名可能已被占用'}`, false);
           }
       } catch (error) {
-          showMessage(`❌ 网络请求失败，请确认 FastAPI 后端是否运行在 8000 端口。`, false);
+          showMessage(`❌ 网络请求失败，请确认后端服务已经启动。`, false);
       }
   }
 </script>

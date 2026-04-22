@@ -177,7 +177,7 @@ class QuestionService:
                 user_id=user_id,
                 category_id=1,  # 默认归入第一个分类
                 title=payload.title,
-                content=payload.content or ""
+                content=payload.content,
             )
             connection.commit()  # 🌟 必须提交，否则存不进数据库！
             return {"question_id": q_id, "message": "发布成功"}

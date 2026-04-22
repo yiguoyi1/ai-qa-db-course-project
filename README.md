@@ -12,7 +12,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 
 - Oracle 26ai 数据库脚本与校验脚本
 - FastAPI 后端
-- 静态网页前端
+- 网页前端源码与页面入口
 - 独立 CLI 测试前端
 
 如果你是新的协作者，建议先看：
@@ -45,11 +45,17 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 
 ### 3. 网页前端
 
-当前仓库已经包含静态网页前端页面，位于 `app/web/`：
+当前仓库已经包含由 FastAPI 统一交付的网页前端，页面源码位于 `app/web/`：
 
 - [app/web/login.html](app/web/login.html)
 - [app/web/home.html](app/web/home.html)
 - [app/web/detail.html](app/web/detail.html)
+
+当前推荐访问入口：
+
+- `/login`
+- `/home`
+- `/questions/{question_id}`
 
 当前网页端已经实现：
 
@@ -57,7 +63,9 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 首页问题流
 - 搜索与搜索历史下拉
 - 发布问题
+- 首页发帖正文统一必填
 - 切换“纯社区发帖”与“AI 首答发帖”
+- 首页热门标签动态加载
 - 问题详情查看
 - Markdown 回答渲染与代码高亮
 - 发布人工回答
@@ -77,17 +85,22 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 
 ## 当前最值得先改的地方
 
-基于当前代码现状，最值得优先收口的是：
+基于当前代码现状，前三阶段已经完成到可用状态：
 
-1. 统一接口契约和鉴权方式
-   当前同时存在 JWT 取 `user_id` 和显式传 `user_id` 两种模式，回答反馈也有两套入口。
-2. 把网页前端纳入统一交付方式
-   现在 `app/web/` 页面还没有通过 FastAPI 静态托管，且 API 地址写死为 `http://127.0.0.1:8000`。
-3. 修正发帖体验与后端校验错位
-   首页弹窗把“详细描述”标成可选，但 AI 发帖接口仍要求 `content` 非空。
-4. 收口安全配置
+- 受保护写接口已经以 JWT 登录态为主
+- 少量 `user_id` 字段只保留过渡兼容与一致性校验
+- CLI 已补充登录与 `Bearer Token` 透传能力
+- 网页前端已经由 FastAPI 统一提供入口
+- 页面请求已经改为同源 API，不再写死 `127.0.0.1:8000`
+- 首页热门标签已经改为真实标签接口数据
+
+接下来最值得继续收口的是：
+
+1. 收口安全配置
    JWT `SECRET_KEY` 仍硬编码在服务层，还没有进入 `.env`。
-5. 补齐社区核心能力
+2. 继续清理鉴权过渡接口
+   回答反馈仍保留兼容入口，`questions.py` 内也还有历史遗留路由需要进一步拆分。
+3. 补齐社区核心能力
    采纳答案、用户中心、网页端评论 / 收藏 / 推荐入口仍待完善。
 
 详细说明见：
@@ -114,7 +127,7 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
   - `schemas/`：请求与响应模型
   - `integrations/llm/`：AI 提供商接入
   - `prompts/`：提示词模板
-  - `web/`：静态网页前端
+  - `web/`：网页前端源码
 - `frontend_cli/`
   独立命令行前端
 - `sql/`
@@ -228,19 +241,18 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## 使用网页前端
 
-当前网页前端仍是静态页面，尚未通过 FastAPI 统一托管。
+API 启动后，推荐直接访问：
 
-在 API 启动后，可直接打开：
-
-- `app/web/login.html`
-- `app/web/home.html`
-- `app/web/detail.html`
+- `http://127.0.0.1:8000/login`
+- `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/questions/62`
 
 注意：
 
-- 页面脚本当前默认请求 `http://127.0.0.1:8000`
+- 页面源码仍位于 `app/web/`
+- 页面请求现在走同源 `/api/...`，不再写死本地地址
 - 登录成功后，JWT 和用户信息会写入 `localStorage`
-- 首页右侧热门标签目前仍是硬编码展示，不是动态接口渲染
+- 首页右侧热门标签现在来自 `GET /api/tags`
 
 ## 使用 CLI
 
@@ -259,15 +271,34 @@ python .\scripts\start_business_test.py
 也可以单独执行：
 
 ```powershell
+python -m frontend_cli.main auth login --username <username> --password <password>
+python -m frontend_cli.main --access-token <token> menu
 python -m frontend_cli.main health
 python -m frontend_cli.main menu
 python -m frontend_cli.main questions list
 python -m frontend_cli.main questions detail --question-id <question_id>
-python -m frontend_cli.main questions answer --question-id <question_id> --user-id <user_id> --content "这是一个人工回答示例"
+python -m frontend_cli.main --access-token <token> questions answer --question-id <question_id> --user-id <user_id> --content "这是一个人工回答示例"
 python -m frontend_cli.main search questions --q DeepSeek
 ```
 
+CLI 现在支持：
+
+- `auth login` / `auth register`
+- 全局参数 `--access-token`
+- 环境变量 `CLI_ACCESS_TOKEN`
+
+说明：
+
+- 公开读接口仍可匿名调用
+- 受保护写接口现在要求 Bearer Token
+- CLI 里的 `user_id` 参数目前只作为过渡兼容字段，服务端会校验它必须和当前登录用户一致
+
 ## 当前主要接口
+
+说明：
+
+- 公开读接口可匿名访问
+- 写接口和用户私有接口需要 Bearer Token
 
 ### 认证
 
@@ -309,7 +340,6 @@ python -m frontend_cli.main search questions --q DeepSeek
 - 采纳答案
 - 用户中心
 - 网页前端评论 / 收藏 / 推荐完整闭环
-- 网页前端与后端统一托管和统一配置
 - 登录审计收口
 - 多轮对话正式业务链
 

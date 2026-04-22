@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class SaveAnswerFeedbackRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: int | None = Field(default=None, gt=0)
     is_like: Literal["Y", "N"]
     rating: float | None = Field(default=None, ge=0, le=5)
     comment_text: str | None = Field(default=None, max_length=500)

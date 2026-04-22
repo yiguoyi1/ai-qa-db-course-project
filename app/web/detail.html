@@ -110,12 +110,12 @@
 <body>
 
     <nav class="navbar">
-        <a href="home.html" class="navbar-brand">💡 AI QA 社区</a>
+        <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
     </nav>
 
     <div class="container">
         <div class="main-content" style="min-width: 0;">
-            <a href="home.html" class="back-link">← 返回大厅</a>
+            <a href="/home" class="back-link">← 返回大厅</a>
 
             <div class="detail-card" id="detail-container">
                 <div id="loading">⏳ 正在拼命从数据库里拉取全文...</div>
@@ -134,18 +134,72 @@
     </div>
 
     <script>
+        const LOGIN_PAGE_URL = '/login';
+
+        function buildApiUrl(path) {
+            return new URL(path, window.location.origin).toString();
+        }
+
+        function clearSession() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('username');
+        }
+
+        function redirectToLogin(message) {
+            clearSession();
+            if (message) {
+                alert(message);
+            }
+            window.location.href = LOGIN_PAGE_URL;
+        }
+
+        function getCurrentQuestionId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const legacyId = urlParams.get('id');
+            if (legacyId) {
+                return legacyId;
+            }
+
+            const matched = window.location.pathname.match(/^\/questions\/(\d+)\/?$/);
+            return matched ? matched[1] : null;
+        }
+
+        function setFeedbackButtonState(button, isActive) {
+            if (!button) {
+                return;
+            }
+
+            if (isActive) {
+                button.style.borderColor = '#3b82f6';
+                button.style.color = '#3b82f6';
+                button.style.backgroundColor = '#eff6ff';
+            } else {
+                button.style.borderColor = '#cbd5e1';
+                button.style.color = '#64748b';
+                button.style.backgroundColor = 'white';
+            }
+        }
+
+        function applyFeedbackState(answerId, selectedFeedback) {
+            const likeBtn = document.getElementById(`like-btn-${answerId}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-${answerId}`);
+
+            setFeedbackButtonState(likeBtn, selectedFeedback === 'Y');
+            setFeedbackButtonState(dislikeBtn, selectedFeedback === 'N');
+        }
+
         window.onload = async function() {
             // 1. 检查房卡 (就算进详情页也要验票)
             const token = localStorage.getItem('access_token');
             if (!token) {
                 alert('请先登录！');
-                window.location.href = 'login.html';
+                window.location.href = LOGIN_PAGE_URL;
                 return;
             }
 
-            // 2. 从浏览器的地址栏里，把 id 抠出来 (比如 detail.html?id=42，抠出 42)
-            const urlParams = new URLSearchParams(window.location.search);
-            const questionId = urlParams.get('id');
+            // 2. 从浏览器的地址栏里把问题 ID 抠出来
+            const questionId = getCurrentQuestionId();
 
             if (!questionId) {
                 document.getElementById('detail-container').innerHTML = '<div style="color:red">❌ 找不到帖子 ID</div>';
@@ -154,7 +208,7 @@
 
             // 3. 呼叫后端，拿完整数据！
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/questions/${questionId}`, {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}`), {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -162,6 +216,8 @@
                 if (response.ok) {
                     const data = await response.json();
                     renderDetail(data);
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
                     document.getElementById('detail-container').innerHTML = `<div style="color:red">❌ 拉取失败，可能帖子被删了，或者后端没写这个接口 (状态码: ${response.status})</div>`;
                 }
@@ -274,7 +330,7 @@
             }
 
             // 🌟 在页面 HTML 渲染完毕后，立刻去拉取私人状态！
-            const qId = new URLSearchParams(window.location.search).get('id');
+            const qId = getCurrentQuestionId();
             if (qId) {
                 loadMyFeedbacks(qId);
             }
@@ -304,12 +360,8 @@
                 return;
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const questionId = urlParams.get('id');
+            const questionId = getCurrentQuestionId();
             const token = localStorage.getItem('access_token');
-
-            // 🌟 关键新增：从本地保险箱拿出我们登录时存好的 user_id，并确保它是数字
-            const userId = parseInt(localStorage.getItem('user_id'));
 
             // 按钮变灰，防止用户狂点
             const btn = document.querySelector('button[onclick="submitAnswer()"]');
@@ -319,15 +371,13 @@
 
             try {
                 // 拿着房卡去敲原作者真正的大门
-                const response = await fetch(`http://127.0.0.1:8000/api/questions/${questionId}/answers`, {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}/answers`), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    // 🌟 核心修复：完全按照原作者的标准，把 user_id 也装进快递盒子里！
                     body: JSON.stringify({
-                        user_id: userId,
                         content: content
                     })
                 });
@@ -335,6 +385,8 @@
                 if (response.ok) {
                     // 发布成功，直接刷新当前页面！
                     window.location.reload();
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
                     const errorData = await response.json();
                     alert("❌ 发布失败: " + JSON.stringify(errorData));
@@ -352,13 +404,11 @@
         // 🌟 商业级反馈交互：无刷新、带变色动画、局部 DOM 更新
         async function toggleFeedback(answerId, isLike) {
             const token = localStorage.getItem('access_token');
-            const likeBtn = document.getElementById(`like-btn-${answerId}`);
-            const dislikeBtn = document.getElementById(`dislike-btn-${answerId}`);
             const likeCountSpan = document.getElementById(`like-count-${answerId}`);
             const dislikeCountSpan = document.getElementById(`dislike-count-${answerId}`);
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/questions/answers/${answerId}/feedback`, {
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}/feedback`), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -368,60 +418,12 @@
                 });
 
                 if (response.ok) {
-                    // 解析后端传回来的具体动作
                     const data = await response.json();
-                    const action = data.action; // "ADDED", "CANCELED" 或 "SWITCHED"
-
-                    // 拿到当前的数字
-                    let currentLikes = parseInt(likeCountSpan.innerText) || 0;
-                    let currentDislikes = parseInt(dislikeCountSpan.innerText) || 0;
-
-                    // 定义两个变色小工具
-                    const setActive = (btn) => {
-                        btn.style.borderColor = '#3b82f6';
-                        btn.style.color = '#3b82f6';
-                        btn.style.backgroundColor = '#eff6ff'; // 亮蓝色
-                    };
-                    const setInactive = (btn) => {
-                        btn.style.borderColor = '#cbd5e1';
-                        btn.style.color = '#64748b';
-                        btn.style.backgroundColor = 'white'; // 恢复高级灰
-                    };
-
-                    // 🌟 见招拆招：根据后端的动作，精准操控 DOM
-                    if (action === "ADDED") {
-                        if (isLike === 'Y') {
-                            likeCountSpan.innerText = currentLikes + 1;
-                            setActive(likeBtn);
-                        } else {
-                            dislikeCountSpan.innerText = currentDislikes + 1;
-                            setActive(dislikeBtn);
-                        }
-                    }
-                    else if (action === "CANCELED") {
-                        if (isLike === 'Y') {
-                            likeCountSpan.innerText = Math.max(0, currentLikes - 1);
-                            setInactive(likeBtn);
-                        } else {
-                            dislikeCountSpan.innerText = Math.max(0, currentDislikes - 1);
-                            setInactive(dislikeBtn);
-                        }
-                    }
-                    else if (action === "SWITCHED") {
-                        if (isLike === 'Y') {
-                            // 踩变赞
-                            likeCountSpan.innerText = currentLikes + 1;
-                            dislikeCountSpan.innerText = Math.max(0, currentDislikes - 1);
-                            setActive(likeBtn);
-                            setInactive(dislikeBtn);
-                        } else {
-                            // 赞变踩
-                            dislikeCountSpan.innerText = currentDislikes + 1;
-                            likeCountSpan.innerText = Math.max(0, currentLikes - 1);
-                            setActive(dislikeBtn);
-                            setInactive(likeBtn);
-                        }
-                    }
+                    likeCountSpan.innerText = data.like_count ?? 0;
+                    dislikeCountSpan.innerText = data.dislike_count ?? 0;
+                    applyFeedbackState(answerId, data.is_like);
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
                     const err = await response.json();
                     alert("❌ 操作失败: " + JSON.stringify(err));
@@ -438,7 +440,7 @@
 
             try {
                 // 去敲我们刚建好的私人通道
-                const response = await fetch(`http://127.0.0.1:8000/api/questions/${questionId}/feedbacks`, {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}/feedbacks`), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -448,22 +450,10 @@
 
                     // 遍历我的账本，见缝插针地修改颜色
                     for (const [ansId, isLike] of Object.entries(feedbacks)) {
-                        if (isLike === 'Y') {
-                            const btn = document.getElementById(`like-btn-${ansId}`);
-                            if (btn) {
-                                btn.style.borderColor = '#3b82f6';
-                                btn.style.color = '#3b82f6';
-                                btn.style.backgroundColor = '#eff6ff';
-                            }
-                        } else if (isLike === 'N') {
-                            const btn = document.getElementById(`dislike-btn-${ansId}`);
-                            if (btn) {
-                                btn.style.borderColor = '#3b82f6';
-                                btn.style.color = '#3b82f6';
-                                btn.style.backgroundColor = '#eff6ff';
-                            }
-                        }
+                        applyFeedbackState(ansId, isLike);
                     }
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
                 }
             } catch (error) {
                 console.error("拉取点赞状态失败", error);

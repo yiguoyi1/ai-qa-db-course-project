@@ -15,10 +15,15 @@ class APIClientError(Exception):
 class APIClient:
     base_url: str
     timeout_seconds: int = 30
+    access_token: str | None = None
 
     def get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         query = self._build_query(params)
-        req = request.Request(url=f"{self.base_url}{path}{query}", method="GET")
+        req = request.Request(
+            url=f"{self.base_url}{path}{query}",
+            headers=self._build_headers(),
+            method="GET",
+        )
         return self._send(req)
 
     def post(
@@ -29,7 +34,7 @@ class APIClient:
     ) -> Any:
         query = self._build_query(params)
         data = None
-        headers: dict[str, str] = {}
+        headers = self._build_headers()
         if payload is not None:
             data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             headers["Content-Type"] = "application/json; charset=utf-8"
@@ -44,7 +49,11 @@ class APIClient:
 
     def delete(self, path: str, params: dict[str, Any] | None = None) -> Any:
         query = self._build_query(params)
-        req = request.Request(url=f"{self.base_url}{path}{query}", method="DELETE")
+        req = request.Request(
+            url=f"{self.base_url}{path}{query}",
+            headers=self._build_headers(),
+            method="DELETE",
+        )
         return self._send(req)
 
     @staticmethod
@@ -55,6 +64,12 @@ class APIClient:
         if not filtered_params:
             return ""
         return "?" + parse.urlencode(filtered_params, doseq=True)
+
+    def _build_headers(self) -> dict[str, str]:
+        headers: dict[str, str] = {}
+        if self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
+        return headers
 
     def _send(self, req: request.Request) -> Any:
         try:

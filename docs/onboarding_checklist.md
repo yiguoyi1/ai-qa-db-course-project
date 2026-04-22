@@ -21,8 +21,8 @@
 
 - 这是“问答社区”，不是纯 AI 问答机器人
 - 当前数据库和后端已经可运行
-- 当前同时有静态网页前端和独立 CLI
-- 当前登录态已经基础落地，但接口层还存在 JWT 与显式 `user_id` 并存的情况
+- 当前同时有网页端入口和独立 CLI
+- 当前受保护写接口已经以 JWT 登录态为主，但仍有少量兼容字段和过渡路由待继续清理
 
 ## 2. 准备本地环境
 
@@ -94,11 +94,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### 5.1 网页前端验证
 
-API 正常后，可直接打开：
+API 正常后，建议直接访问：
 
-- `app/web/login.html`
-- `app/web/home.html`
-- `app/web/detail.html`
+- `http://127.0.0.1:8000/login`
+- `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/questions/62`
 
 建议最少手动验证这几步：
 
@@ -127,6 +127,7 @@ python .\scripts\start_business_test.py --skip-api-start
 你也可以单独跑这些命令确认业务逻辑：
 
 ```powershell
+python -m frontend_cli.main auth login --username your_name --password your_password
 python -m frontend_cli.main categories
 python -m frontend_cli.main tags
 python -m frontend_cli.main questions list
@@ -137,8 +138,8 @@ python -m frontend_cli.main recommendations list --user-id 22
 如果要验证社区行为，再补测：
 
 ```powershell
-python -m frontend_cli.main questions answer --question-id 62 --user-id 22 --content "这是一个人工回答示例"
-python -m frontend_cli.main comments add --answer-id 82 --user-id 22 --content "这是一条评论"
+python -m frontend_cli.main --access-token your_token questions answer --question-id 62 --user-id 22 --content "这是一个人工回答示例"
+python -m frontend_cli.main --access-token your_token comments add --answer-id 82 --user-id 22 --content "这是一条评论"
 python -m frontend_cli.main comments list --answer-id 82
 ```
 
@@ -148,8 +149,8 @@ python -m frontend_cli.main comments list --answer-id 82
 
 - `POST /api/questions/ask` 会自动触发 AI 首答，不是纯提问
 - `POST /api/questions` 是纯社区发帖入口
-- 当前网页前端已经使用 JWT 登录态
-- 当前仍有一部分接口保留显式 `user_id`
+- 当前网页前端和受保护写接口已经使用 JWT 登录态
+- 少量 `user_id` 字段仍保留作兼容，但服务端会校验它必须与当前登录用户一致
 - `MANUAL` 回答必须带真实 `user_id`
 - `AI` / `SYSTEM` 回答不带 `user_id`
 - 评论挂在回答下，不直接挂在问题下
@@ -222,9 +223,9 @@ python -m frontend_cli.main comments list --answer-id 82
 
 如果你是新加入的协作者，最适合接着推进的是：
 
-1. 统一接口契约与鉴权方式
-2. 把网页前端纳入 FastAPI 统一托管
-3. 修正首页发帖体验与后端校验错位
+1. 修正首页发帖体验与后端校验错位
+2. 收口安全配置与登录审计
+3. 清理鉴权过渡接口
 4. 采纳答案
 5. 用户中心
 
@@ -241,7 +242,7 @@ python -m frontend_cli.main comments list --answer-id 82
 - 能独立跑起 Oracle 容器
 - 能独立启动 FastAPI
 - 能至少用网页前端或 CLI 跑通一条业务链
-- 知道当前 JWT 和显式 `user_id` 是并存状态
+- 知道当前受保护写接口已经以 JWT 为主，兼容 `user_id` 仅用于过渡校验
 - 知道评论和推荐的关键规则
 - 知道改数据库要同步改文档
 - 知道当前下一阶段优先级是什么

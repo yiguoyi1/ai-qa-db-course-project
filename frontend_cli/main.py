@@ -192,6 +192,31 @@ def handle_health(_: argparse.Namespace, client: APIClient) -> None:
     print_json(client.get("/health"))
 
 
+def handle_auth_register(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(
+        client.post(
+            "/api/auth/register",
+            payload={
+                "username": args.username,
+                "password": args.password,
+                "nickname": args.nickname,
+            },
+        )
+    )
+
+
+def handle_auth_login(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(
+        client.post(
+            "/api/auth/login",
+            payload={
+                "username": args.username,
+                "password": args.password,
+            },
+        )
+    )
+
+
 def handle_categories(_: argparse.Namespace, client: APIClient) -> None:
     print_json(client.get("/api/categories"))
 
@@ -473,7 +498,11 @@ def _set_handler(parser: argparse.ArgumentParser, handler: Handler) -> None:
     parser.set_defaults(handler=handler)
 
 
-def build_parser(default_base_url: str, default_timeout: int) -> argparse.ArgumentParser:
+def build_parser(
+    default_base_url: str,
+    default_timeout: int,
+    default_access_token: str | None,
+) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m frontend_cli.main",
         description="CLI frontend for the AI QA platform API.",
@@ -485,10 +514,29 @@ def build_parser(default_base_url: str, default_timeout: int) -> argparse.Argume
         default=default_timeout,
         help="HTTP timeout in seconds",
     )
+    parser.add_argument(
+        "--access-token",
+        default=default_access_token,
+        help="Bearer token for authenticated requests",
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     health_parser = subparsers.add_parser("health", help="Call GET /health")
     _set_handler(health_parser, handle_health)
+
+    auth_parser = subparsers.add_parser("auth", help="Authentication commands")
+    auth_subparsers = auth_parser.add_subparsers(dest="auth_command")
+
+    auth_register = auth_subparsers.add_parser("register", help="Register a new user")
+    auth_register.add_argument("--username", required=True)
+    auth_register.add_argument("--password", required=True)
+    auth_register.add_argument("--nickname")
+    _set_handler(auth_register, handle_auth_register)
+
+    auth_login = auth_subparsers.add_parser("login", help="Login and get an access token")
+    auth_login.add_argument("--username", required=True)
+    auth_login.add_argument("--password", required=True)
+    _set_handler(auth_login, handle_auth_login)
 
     categories_parser = subparsers.add_parser("categories", help="List categories")
     _set_handler(categories_parser, handle_categories)
@@ -643,7 +691,11 @@ def build_parser(default_base_url: str, default_timeout: int) -> argparse.Argume
 
 def main() -> int:
     settings = get_cli_settings()
-    parser = build_parser(settings.base_url, settings.timeout_seconds)
+    parser = build_parser(
+        settings.base_url,
+        settings.timeout_seconds,
+        settings.access_token,
+    )
     args = parser.parse_args()
 
     handler: Handler | None = getattr(args, "handler", None)
@@ -651,7 +703,11 @@ def main() -> int:
         parser.print_help()
         return 1
 
-    client = APIClient(base_url=args.base_url.rstrip("/"), timeout_seconds=args.timeout)
+    client = APIClient(
+        base_url=args.base_url.rstrip("/"),
+        timeout_seconds=args.timeout,
+        access_token=args.access_token,
+    )
     try:
         handler(args, client)
     except APIClientError as exc:

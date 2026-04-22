@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class CreateFavoriteRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: int | None = Field(default=None, gt=0)
 
 
 class FavoriteRecordResponse(BaseModel):

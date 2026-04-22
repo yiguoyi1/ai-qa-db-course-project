@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.api.auth_deps import get_current_user_id, resolve_authenticated_user_id
 from app.api.deps import get_favorite_service
 from app.core.errors import AppError
 from app.schemas.favorite import (
@@ -21,10 +22,19 @@ router = APIRouter(prefix="/questions", tags=["favorites"])
 def create_favorite(
     question_id: int,
     payload: CreateFavoriteRequest,
+    current_user_id: int = Depends(get_current_user_id),
     service: FavoriteService = Depends(get_favorite_service),
 ) -> FavoriteRecordResponse:
     try:
-        return service.create_favorite(question_id=question_id, payload=payload)
+        normalized_payload = payload.model_copy(
+            update={
+                "user_id": resolve_authenticated_user_id(
+                    current_user_id=current_user_id,
+                    requested_user_id=payload.user_id,
+                )
+            }
+        )
+        return service.create_favorite(question_id=question_id, payload=normalized_payload)
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
@@ -36,10 +46,17 @@ def create_favorite(
 )
 def delete_favorite(
     question_id: int,
-    user_id: int = Query(..., gt=0),
+    user_id: int | None = Query(default=None, gt=0),
+    current_user_id: int = Depends(get_current_user_id),
     service: FavoriteService = Depends(get_favorite_service),
 ) -> FavoriteDeleteResponse:
     try:
-        return service.delete_favorite(question_id=question_id, user_id=user_id)
+        return service.delete_favorite(
+            question_id=question_id,
+            user_id=resolve_authenticated_user_id(
+                current_user_id=current_user_id,
+                requested_user_id=user_id,
+            ),
+        )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

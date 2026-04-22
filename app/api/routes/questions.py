@@ -1,23 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Header
-from jose import jwt # 👈 用于解析 Token
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.services.auth_service import SECRET_KEY, ALGORITHM # 👈 引入解密钥匙
-from app.schemas.question import QuestionCreate # 👈 引入新标准
+from app.api.auth_deps import get_current_user_id, resolve_authenticated_user_id
 from app.api.deps import get_question_service
 from app.core.errors import AppError
 from app.schemas.question import (
     AskQuestionRequest,
+    FeedbackRequest,
+    QuestionCreate,
     QuestionDetailResponse,
+    QuestionListItem,
     QuestionListResponse,
 )
-from app.services.question_service import QuestionService
-from app.schemas.question import QuestionListItem
-
-from pydantic import BaseModel
 from app.services.answer_service import AnswerService
-from app.schemas.answer import CreateManualAnswerRequest
-
-from app.schemas.question import FeedbackRequest # 记得在顶部或者这里引入一下
+from app.services.question_service import QuestionService
 
 router = APIRouter(prefix="/questions", tags=["questions"])
 
@@ -29,10 +24,19 @@ router = APIRouter(prefix="/questions", tags=["questions"])
 )
 def ask_question(
     payload: AskQuestionRequest,
+    current_user_id: int = Depends(get_current_user_id),
     service: QuestionService = Depends(get_question_service),
 ) -> QuestionDetailResponse:
     try:
-        return service.ask_question(payload)
+        normalized_payload = payload.model_copy(
+            update={
+                "user_id": resolve_authenticated_user_id(
+                    current_user_id=current_user_id,
+                    requested_user_id=payload.user_id,
+                )
+            }
+        )
+        return service.ask_question(normalized_payload)
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
@@ -81,24 +85,14 @@ def get_question_detail(
 def list_questions(question_service: QuestionService = Depends(get_question_service)):
     return question_service.get_questions()
 
-# 🌟 验票保安：负责把 Token 还原成 user_id
-def get_current_user_id(authorization: str = Header(...)) -> int:
-    try:
-        token = authorization.split(" ")[1]
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return int(payload.get("sub"))
-    except:
-        raise HTTPException(status_code=401, detail="房卡无效或已过期，请重新登录")
-
-
 # 🌟 终于！开设接收纯社区发帖的 POST 大门 🌟
 @router.post("")
 def create_community_question(
     payload: QuestionCreate,
-    user_id: int = Depends(get_current_user_id), # 先过验票保安
-    service: QuestionService = Depends(get_question_service)
+    current_user_id: int = Depends(get_current_user_id),
+    service: QuestionService = Depends(get_question_service),
 ):
-    return service.publish_question(user_id, payload)
+    return service.publish_question(current_user_id, payload)
 
 
 
@@ -107,17 +101,17 @@ def create_community_question(
 def submit_answer_feedback(
     answer_id: int,
     payload: FeedbackRequest,
-    user_id: int = Depends(get_current_user_id)
+    current_user_id: int = Depends(get_current_user_id),
 ):
     service = AnswerService()
-    return service.submit_feedback(answer_id, user_id, payload.is_like)
+    return service.submit_feedback(answer_id, current_user_id, payload.is_like)
 
 
 
 @router.get("/{question_id}/feedbacks")
 def get_my_feedbacks(
     question_id: int,
-    user_id: int = Depends(get_current_user_id) # 必须拿着房卡才能查自己的私账
+    current_user_id: int = Depends(get_current_user_id),
 ):
     service = AnswerService()
-    return service.get_user_feedbacks(question_id, user_id)
+    return service.get_user_feedbacks(question_id, current_user_id)

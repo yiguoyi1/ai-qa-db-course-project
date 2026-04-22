@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class CreateCommentRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: int | None = Field(default=None, gt=0)
     content: str = Field(min_length=1)
     parent_comment_id: int | None = Field(default=None, gt=0)
 

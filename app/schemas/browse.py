@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class CreateBrowseRecordRequest(BaseModel):
-    user_id: int = Field(gt=0)
+    user_id: int | None = Field(default=None, gt=0)
     duration: int = Field(default=0, ge=0)
     click_depth: int = Field(default=1, ge=1)
 

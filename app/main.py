@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.api.routes import auth
 from app.core.settings import get_settings
-from app.api.routes import auth, questions
+from app.web_routes import web_router
 
 settings = get_settings()
 
@@ -13,6 +14,7 @@ app = FastAPI(
     description="Minimal single-turn AI QA loop backed by Oracle 26ai and DeepSeek.",
 )
 
+app.include_router(web_router)
 app.include_router(auth.router)
 
 app.add_middleware(
