@@ -11,6 +11,49 @@ def _normalize_returning_value(value: Any) -> int:
 
 class QuestionRepository:
     @staticmethod
+    def _attach_favorite_state(
+        connection: oracledb.Connection,
+        items: list[dict[str, Any]],
+        *,
+        question_id_getter,
+        current_user_id: int | None,
+    ) -> None:
+        if not items:
+            return
+
+        if current_user_id is None:
+            for item in items:
+                item["is_favorited"] = False
+            return
+
+        question_ids = list(dict.fromkeys(question_id_getter(item) for item in items))
+        binds = {"user_id": current_user_id}
+        binds.update(
+            {
+                f"question_id_{index}": question_id
+                for index, question_id in enumerate(question_ids)
+            }
+        )
+        placeholders = ", ".join(
+            f":question_id_{index}" for index in range(len(question_ids))
+        )
+
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT question_id
+            FROM favorites
+            WHERE user_id = :user_id
+              AND question_id IN ({placeholders})
+            """,
+            binds,
+        )
+        favorited_question_ids = {int(row[0]) for row in cursor.fetchall()}
+
+        for item in items:
+            item["is_favorited"] = question_id_getter(item) in favorited_question_ids
+
+    @staticmethod
     def _build_question_filters(
         category_id: int | None,
         tag_id: int | None,
@@ -111,6 +154,7 @@ class QuestionRepository:
         self,
         connection: oracledb.Connection,
         question_id: int,
+        current_user_id: int | None = None,
     ) -> dict[str, Any] | None:
         cursor = connection.cursor()
         cursor.execute(
@@ -122,12 +166,13 @@ class QuestionRepository:
                    q.content,
                    q.ask_time,
                    q.status,
+                   q.accepted_answer_id,
                    q.view_count,
                    q.favorite_count,
                    q.answer_count,
-                   u.username -- 🌟 1. SELECT 里加上 username
+                   u.username
             FROM questions q
-                     LEFT JOIN users u ON q.user_id = u.user_id -- 🌟 2. 加上连表查询
+                     LEFT JOIN users u ON q.user_id = u.user_id
             WHERE q.question_id = :question_id
             """,
             {"question_id": question_id},
@@ -144,10 +189,12 @@ class QuestionRepository:
             "content": row[4].read() if hasattr(row[4], "read") else row[4],
             "ask_time": row[5],
             "status": row[6],
-            "view_count": int(row[7]),
-            "favorite_count": int(row[8]),
-            "answer_count": int(row[9]),
-            "username": row[10],  # 🌟 3. 新增这行：把查出的名字装进去
+            "accepted_answer_id": int(row[7]) if row[7] is not None else None,
+            "view_count": int(row[8]),
+            "favorite_count": int(row[9]),
+            "answer_count": int(row[10]),
+            "username": row[11],
+            "is_favorited": False,
         }
 
         cursor.execute(
@@ -165,8 +212,65 @@ class QuestionRepository:
             {"tag_id": int(tag_row[0]), "tag_name": tag_row[1]}
             for tag_row in cursor.fetchall()
         ]
+        self._attach_favorite_state(
+            connection,
+            [question],
+            question_id_getter=lambda item: item["question_id"],
+            current_user_id=current_user_id,
+        )
 
         return question
+
+    def get_question_acceptance_context(
+        self,
+        connection: oracledb.Connection,
+        question_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                question_id,
+                user_id,
+                status,
+                accepted_answer_id
+            FROM questions
+            WHERE question_id = :question_id
+            """,
+            {"question_id": question_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "question_id": int(row[0]),
+            "user_id": int(row[1]),
+            "status": row[2],
+            "accepted_answer_id": int(row[3]) if row[3] is not None else None,
+        }
+
+    def accept_answer(
+        self,
+        connection: oracledb.Connection,
+        *,
+        question_id: int,
+        answer_id: int,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE questions
+            SET accepted_answer_id = :answer_id,
+                status = 'RESOLVED'
+            WHERE question_id = :question_id
+            """,
+            {
+                "question_id": question_id,
+                "answer_id": answer_id,
+            },
+        )
+        return int(cursor.rowcount or 0)
 
     def count_questions(
         self,
@@ -203,6 +307,7 @@ class QuestionRepository:
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = None,
+        current_user_id: int | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_question_filters(
             category_id=category_id,
@@ -229,9 +334,9 @@ class QuestionRepository:
                 q.view_count,
                 q.favorite_count,
                 q.answer_count,
-                u.username  -- 🌟 1. SELECT 里加上这行
+                u.username
             FROM questions q
-            LEFT JOIN users u ON q.user_id = u.user_id  -- 🌟 2. FROM 后面加上连表查询
+            LEFT JOIN users u ON q.user_id = u.user_id
             WHERE {' AND '.join(where_clauses)}
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -254,7 +359,8 @@ class QuestionRepository:
                 "view_count": int(row[6]),
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
-                "username": row[9],  # 🌟 3. 新增这行：把第10个字段（索引为9）装进 username
+                "username": row[9],
+                "is_favorited": False,
                 "tags": [],
             }
             for row in rows
@@ -295,5 +401,12 @@ class QuestionRepository:
 
         for question in questions:
             question["tags"] = tags_by_question_id.get(question["question_id"], [])
+
+        self._attach_favorite_state(
+            connection,
+            questions,
+            question_id_getter=lambda item: item["question_id"],
+            current_user_id=current_user_id,
+        )
 
         return questions

@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的中心 - AI 问答社区</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-soft: #dbeafe;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --success-bg: #ecfdf5;
+            --success-text: #047857;
+            --error-bg: #fef2f2;
+            --error-text: #b91c1c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 180px, var(--bg-color) 360px);
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 0 40px;
+            min-height: 68px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .user-greeting {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .btn-primary,
+        .btn-outline {
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            border: none;
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-inline {
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 999px;
+        }
+
+        .page-shell {
+            max-width: 1240px;
+            margin: 32px auto 48px;
+            padding: 0 20px;
+        }
+
+        .message {
+            display: none;
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message.success {
+            display: block;
+            background: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid #a7f3d0;
+        }
+
+        .message.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid #fecaca;
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(59, 130, 246, 0.88));
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 45px rgba(37, 99, 235, 0.16);
+            margin-bottom: 22px;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .profile-head {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-meta h1 {
+            margin: 0 0 8px 0;
+            font-size: 30px;
+            letter-spacing: -0.02em;
+        }
+
+        .profile-meta p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.84);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions .btn-primary,
+        .hero-actions .btn-outline {
+            box-shadow: none;
+        }
+
+        .hero-actions .btn-outline {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .hero-actions .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .stat-grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .stat-card .label {
+            display: block;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .module-shell {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        .module-tab-bar {
+            position: sticky;
+            top: 82px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 0 18px;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid #edf2f7;
+            backdrop-filter: blur(8px);
+        }
+
+        .module-tab-bar::-webkit-scrollbar {
+            height: 0;
+        }
+
+        .module-tab {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            padding: 18px 14px 15px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        .module-tab:hover {
+            color: var(--text-main);
+        }
+
+        .module-tab.active {
+            color: var(--text-main);
+        }
+
+        .module-tab.active::after {
+            content: "";
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 0;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 999px;
+        }
+
+        .module-tab-count {
+            margin-left: 6px;
+            color: #9ca3af;
+            font-weight: 700;
+        }
+
+        .module-tab.active .module-tab-count {
+            color: #6b7280;
+        }
+
+        .module-content {
+            padding: 0;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel {
+            min-height: 520px;
+        }
+
+        .panel-header {
+            padding: 28px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: -0.01em;
+        }
+
+        .panel-header p {
+            margin: 6px 0 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .panel-body {
+            padding: 20px 28px 28px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .item-card {
+            border: 1px solid #edf2f7;
+            border-radius: 16px;
+            padding: 16px;
+            background: #f8fafc;
+        }
+
+        .item-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .item-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .meta-row {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .tag {
+            background: #e0e7ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .plain-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .plain-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #eef2f7;
+        }
+
+        .plain-row .title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .plain-row .subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .empty-state {
+            padding: 64px 18px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            background: #f8fafc;
+            border: 1px dashed #dbe4f0;
+            border-radius: 16px;
+        }
+
+        .loading-state {
+            color: #94a3b8;
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        .item-actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-link {
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            padding: 0;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1080px) {
+            .stat-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .navbar {
+                padding: 14px 18px;
+            }
+
+            .hero-card {
+                padding: 24px;
+            }
+
+            .profile-head {
+                align-items: flex-start;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .page-shell {
+                margin-top: 20px;
+                padding: 0 14px 24px;
+            }
+
+            .module-tab-bar {
+                top: 76px;
+                padding: 0 10px;
+            }
+
+            .panel-header,
+            .panel-body {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .plain-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
+    <div class="navbar-user">
+        <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
+        <button class="btn-outline" onclick="goHome()">返回首页</button>
+        <button class="btn-outline" onclick="logout()">退出登录</button>
+    </div>
+</nav>
+
+<div class="page-shell">
+    <div id="page-message" class="message"></div>
+
+    <section class="hero-card">
+        <div class="hero-top">
+            <div class="profile-head">
+                <div class="avatar" id="profile-avatar">我</div>
+                <div class="profile-meta">
+                    <h1 id="profile-title">我的用户中心</h1>
+                    <p id="profile-subtitle">正在整理你的提问、回答、收藏、推荐与历史记录...</p>
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="btn-outline" onclick="rebuildProfile()">重建兴趣画像</button>
+                <button class="btn-primary" onclick="generateRecommendations()">刷新推荐</button>
+            </div>
+        </div>
+
+        <div class="stat-grid" id="stat-grid">
+            <div class="stat-card"><span class="label">我提出的问题</span><div class="value">-</div></div>
+            <div class="stat-card"><span class="label">我提交的回答</span><div class="value">-</div></div>
+            <div class="stat-card"><span class="label">我收藏的问题</span><div class="value">-</div></div>
+            <div class="stat-card"><span class="label">回答被采纳次数</span><div class="value">-</div></div>
+            <div class="stat-card"><span class="label">账号状态</span><div class="value" style="font-size:18px;">-</div></div>
+        </div>
+    </section>
+
+    <section class="module-shell">
+        <div class="module-tab-bar" id="module-tab-bar">
+            <button class="module-tab active" type="button" data-tab="answers">
+                回答 <span class="module-tab-count" id="tab-count-answers">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="questions">
+                提问 <span class="module-tab-count" id="tab-count-questions">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="favorites">
+                收藏 <span class="module-tab-count" id="tab-count-favorites">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="recommendations">
+                推荐 <span class="module-tab-count" id="tab-count-recommendations">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="browse">
+                浏览 <span class="module-tab-count" id="tab-count-browse">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="search">
+                搜索 <span class="module-tab-count" id="tab-count-search">-</span>
+            </button>
+            <button class="module-tab" type="button" data-tab="tags">
+                画像 <span class="module-tab-count" id="tab-count-tags">-</span>
+            </button>
+        </div>
+
+        <div class="module-content">
+            <section class="tab-panel active" data-tab="answers">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>我的回答</h2>
+                            <p>查看你已经发布过的回答，以及是否已经被采纳。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="answers-panel">
+                        <div class="loading-state">正在加载回答列表...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="questions">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>我的提问</h2>
+                            <p>最近发布的问题与当前状态。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="questions-panel">
+                        <div class="loading-state">正在加载问题列表...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="favorites">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>我的收藏</h2>
+                            <p>在这里可以直接回看问题，也可以取消收藏。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="favorites-panel">
+                        <div class="loading-state">正在加载收藏列表...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="recommendations">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>推荐给我的内容</h2>
+                            <p>根据兴趣画像和历史行为生成的候选问题。</p>
+                        </div>
+                        <button class="btn-primary btn-inline" type="button" onclick="generateRecommendations()">刷新推荐</button>
+                    </div>
+                    <div class="panel-body" id="recommendations-panel">
+                        <div class="loading-state">正在加载推荐内容...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="browse">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>最近浏览</h2>
+                            <p>你最近看过的问题会集中展示在这里。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="browse-panel">
+                        <div class="loading-state">正在加载浏览历史...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="search">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>最近搜索</h2>
+                            <p>你最近搜索过的关键词，可以帮助快速回到之前的兴趣方向。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="search-panel">
+                        <div class="loading-state">正在加载搜索历史...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="tags">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>兴趣画像</h2>
+                            <p>点击“重建兴趣画像”后展示当前标签偏好，用于支撑推荐。</p>
+                        </div>
+                        <button class="btn-outline btn-inline" type="button" onclick="rebuildProfile()">重建兴趣画像</button>
+                    </div>
+                    <div class="panel-body" id="profile-tags-panel">
+                        <div class="empty-state">当前还没有展示画像标签，点击上方按钮即可立即重建。</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+</div>
+
+<script>
+    const LOGIN_PAGE_URL = '/login';
+    const HOME_PAGE_URL = '/home';
+    const USER_CENTER_TAB_KEY = 'user_center_active_tab';
+    const DEFAULT_ACTIVE_TAB = 'answers';
+    const VALID_TABS = new Set([
+        'answers',
+        'questions',
+        'favorites',
+        'recommendations',
+        'browse',
+        'search',
+        'tags',
+    ]);
+
+    function buildApiUrl(path, params = {}) {
+        const url = new URL(path, window.location.origin);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                url.searchParams.set(key, String(value));
+            }
+        });
+        return url.toString();
+    }
+
+    function clearSession() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        localStorage.removeItem('user_role');
+    }
+
+    function redirectToLogin(message) {
+        clearSession();
+        if (message) {
+            alert(message);
+        }
+        window.location.href = LOGIN_PAGE_URL;
+    }
+
+    function logout() {
+        redirectToLogin();
+    }
+
+    function goHome() {
+        window.location.href = HOME_PAGE_URL;
+    }
+
+    function goToQuestion(questionId) {
+        window.location.href = `/questions/${questionId}`;
+    }
+
+    function getCurrentUserId() {
+        const raw = localStorage.getItem('user_id');
+        const parsed = raw ? Number(raw) : NaN;
+        return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+    }
+
+    function getAccessToken() {
+        return localStorage.getItem('access_token');
+    }
+
+    function initializeTabs() {
+        document.querySelectorAll('.module-tab').forEach(button => {
+            button.addEventListener('click', () => {
+                setActiveTab(button.dataset.tab);
+            });
+        });
+
+        const storedTab = localStorage.getItem(USER_CENTER_TAB_KEY);
+        const preferredTab = VALID_TABS.has(storedTab) ? storedTab : DEFAULT_ACTIVE_TAB;
+        setActiveTab(preferredTab, false);
+    }
+
+    function setActiveTab(tabKey, persist = true) {
+        if (!VALID_TABS.has(tabKey)) {
+            return;
+        }
+
+        document.querySelectorAll('.module-tab').forEach(button => {
+            const isActive = button.dataset.tab === tabKey;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.dataset.tab === tabKey);
+        });
+
+        if (persist) {
+            localStorage.setItem(USER_CENTER_TAB_KEY, tabKey);
+        }
+    }
+
+    function setTabCount(tabKey, count) {
+        const el = document.getElementById(`tab-count-${tabKey}`);
+        if (!el) {
+            return;
+        }
+        el.innerText = String(count);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) {
+            return '暂无';
+        }
+        return new Date(dateString).toLocaleString();
+    }
+
+    function truncateText(value, length = 140) {
+        const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+        if (text.length <= length) {
+            return text || '暂无内容';
+        }
+        return `${text.slice(0, length)}...`;
+    }
+
+    function showMessage(message, isSuccess = true) {
+        const box = document.getElementById('page-message');
+        box.className = isSuccess ? 'message success' : 'message error';
+        box.textContent = message;
+        box.style.display = 'block';
+
+        window.clearTimeout(showMessage._timer);
+        showMessage._timer = window.setTimeout(() => {
+            box.style.display = 'none';
+        }, 3200);
+    }
+
+    function getQuestionStatusMeta(status) {
+        switch (status) {
+            case 'RESOLVED':
+                return {
+                    label: '已解决',
+                    style: 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;'
+                };
+            case 'CLOSED':
+                return {
+                    label: '已关闭',
+                    style: 'background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db;'
+                };
+            case 'ARCHIVED':
+                return {
+                    label: '已归档',
+                    style: 'background:#fff7ed; color:#c2410c; border:1px solid #fdba74;'
+                };
+            default:
+                return {
+                    label: '开放中',
+                    style: 'background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;'
+                };
+        }
+    }
+
+    function getAccountStatusMeta(status) {
+        switch (status) {
+            case 'ACTIVE':
+                return { label: '正常', style: 'background:#dcfce7; color:#166534; border:1px solid #86efac;' };
+            case 'LOCKED':
+                return { label: '已锁定', style: 'background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;' };
+            case 'DISABLED':
+                return { label: '已停用', style: 'background:#fef3c7; color:#b45309; border:1px solid #fde68a;' };
+            default:
+                return { label: status || '未知', style: 'background:#e5e7eb; color:#374151; border:1px solid #d1d5db;' };
+        }
+    }
+
+    function buildTagHtml(tags) {
+        if (!Array.isArray(tags) || tags.length === 0) {
+            return '';
+        }
+        return `
+            <div class="tag-list">
+                ${tags.map(tag => `<span class="tag">${escapeHtml(tag.tag_name)}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    async function fetchJson(path, params = {}, options = {}) {
+        const token = getAccessToken();
+        const response = await fetch(buildApiUrl(path, params), {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...(options.headers || {})
+            }
+        });
+
+        if (response.ok) {
+            return response.status === 204 ? null : response.json();
+        }
+
+        let detail = `请求失败（${response.status}）`;
+        try {
+            const err = await response.json();
+            detail = err.detail || detail;
+        } catch (error) {
+            console.error('解析错误响应失败:', error);
+        }
+
+        if ([401, 403, 423].includes(response.status)) {
+            redirectToLogin(detail);
+            throw new Error(detail);
+        }
+
+        throw new Error(detail);
+    }
+
+    async function loadProfile() {
+        const userId = getCurrentUserId();
+        const profile = await fetchJson(`/api/users/${userId}/profile`);
+        renderProfile(profile);
+    }
+
+    async function loadQuestions() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/questions`, { page: 1, page_size: 8 });
+        renderQuestions(data);
+    }
+
+    async function loadAnswers() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/answers`, { page: 1, page_size: 8 });
+        renderAnswers(data);
+    }
+
+    async function loadFavorites() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/favorites`, { page: 1, page_size: 8 });
+        renderFavorites(data);
+    }
+
+    async function loadBrowseHistory() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/browse-history`, { limit: 8 });
+        renderBrowseHistory(data);
+    }
+
+    async function loadSearchHistory() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/search-history`, { limit: 8 });
+        renderSearchHistory(data);
+    }
+
+    async function loadRecommendations() {
+        const userId = getCurrentUserId();
+        const data = await fetchJson(`/api/users/${userId}/recommendations`, { status: 'ACTIVE' });
+        renderRecommendations(data);
+    }
+
+    async function loadUserCenter() {
+        const tasks = [
+            ['profile', loadProfile()],
+            ['questions', loadQuestions()],
+            ['answers', loadAnswers()],
+            ['favorites', loadFavorites()],
+            ['browse', loadBrowseHistory()],
+            ['search', loadSearchHistory()],
+            ['recommendations', loadRecommendations()]
+        ];
+
+        const results = await Promise.allSettled(tasks.map(([, promise]) => promise));
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                const key = tasks[index][0];
+                console.error(`加载 ${key} 失败:`, result.reason);
+                renderLoadError(key, result.reason?.message || '加载失败，请稍后重试。');
+            }
+        });
+
+        if (document.getElementById('tab-count-tags').innerText === '-') {
+            setTabCount('tags', 0);
+        }
+    }
+
+    function renderLoadError(sectionKey, message) {
+        const mapping = {
+            questions: 'questions-panel',
+            answers: 'answers-panel',
+            favorites: 'favorites-panel',
+            browse: 'browse-panel',
+            search: 'search-panel',
+            recommendations: 'recommendations-panel',
+        };
+        const panelId = mapping[sectionKey];
+        if (!panelId) {
+            return;
+        }
+
+        const container = document.getElementById(panelId);
+        if (container) {
+            container.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
+        }
+    }
+
+    function renderProfile(profile) {
+        const displayName = profile.nickname || profile.username;
+        const accountStatus = getAccountStatusMeta(profile.status);
+        const avatar = (displayName || '我').trim().slice(0, 1).toUpperCase();
+
+        document.getElementById('profile-avatar').innerText = avatar || '我';
+        document.getElementById('profile-title').innerText = `${displayName} 的用户中心`;
+        document.getElementById('profile-subtitle').innerText =
+            `用户名：${profile.username} · 角色：${profile.role} · 注册时间：${formatDate(profile.register_time)} · 最近登录：${formatDate(profile.last_login_time)}`;
+        document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+
+        setTabCount('questions', profile.question_count);
+        setTabCount('answers', profile.answer_count);
+        setTabCount('favorites', profile.favorite_count);
+
+        document.getElementById('stat-grid').innerHTML = `
+            <div class="stat-card"><span class="label">我提出的问题</span><div class="value">${profile.question_count}</div></div>
+            <div class="stat-card"><span class="label">我提交的回答</span><div class="value">${profile.answer_count}</div></div>
+            <div class="stat-card"><span class="label">我收藏的问题</span><div class="value">${profile.favorite_count}</div></div>
+            <div class="stat-card"><span class="label">回答被采纳次数</span><div class="value">${profile.accepted_answer_count}</div></div>
+            <div class="stat-card"><span class="label">账号状态</span><div class="value" style="font-size:18px;"><span class="pill" style="${accountStatus.style}">${accountStatus.label}</span></div></div>
+        `;
+    }
+
+    function renderQuestions(data) {
+        const container = document.getElementById('questions-panel');
+        setTabCount('questions', data.total ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">你还没有发布过问题，去首页发起第一个提问吧。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="item-list">
+                ${data.items.map(item => {
+                    const status = getQuestionStatusMeta(item.status);
+                    return `
+                        <div class="item-card">
+                            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                                <h3>${escapeHtml(item.title)}</h3>
+                                <span class="pill" style="${status.style}">${status.label}</span>
+                            </div>
+                            <p>提问时间：${formatDate(item.ask_time)}</p>
+                            ${buildTagHtml(item.tags)}
+                            <div class="meta-row">
+                                <span>💬 ${item.answer_count || 0} 个回答</span>
+                                <span>⭐ ${item.favorite_count || 0} 次收藏</span>
+                                <span>👀 ${item.view_count || 0} 次浏览</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn-link" onclick="goToQuestion(${item.question_id})">查看详情</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function renderAnswers(data) {
+        const container = document.getElementById('answers-panel');
+        setTabCount('answers', data.total ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">你还没有发布过回答，可以先去详情页参与讨论。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="item-list">
+                ${data.items.map(item => {
+                    const status = getQuestionStatusMeta(item.question.status);
+                    const acceptedBadge = item.is_accepted
+                        ? '<span class="pill" style="background:#ecfdf5; color:#047857; border:1px solid #86efac;">✅ 已采纳</span>'
+                        : '';
+                    return `
+                        <div class="item-card">
+                            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                                <h3>${escapeHtml(item.question.title)}</h3>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <span class="pill" style="${status.style}">${status.label}</span>
+                                    ${acceptedBadge}
+                                </div>
+                            </div>
+                            <p>${escapeHtml(truncateText(item.content, 150))}</p>
+                            ${buildTagHtml(item.question.tags)}
+                            <div class="meta-row">
+                                <span>🕒 ${formatDate(item.generate_time)}</span>
+                                <span>👍 ${item.like_count || 0}</span>
+                                <span>👎 ${item.dislike_count || 0}</span>
+                                <span>✍️ ${escapeHtml(item.answer_type)}</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">回到问题详情</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function renderFavorites(data) {
+        const container = document.getElementById('favorites-panel');
+        setTabCount('favorites', data.total ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">你还没有收藏任何问题，看到值得追踪的话题就点一下收藏吧。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="item-list">
+                ${data.items.map(item => {
+                    const status = getQuestionStatusMeta(item.question.status);
+                    return `
+                        <div class="item-card">
+                            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                                <h3>${escapeHtml(item.question.title)}</h3>
+                                <span class="pill" style="${status.style}">${status.label}</span>
+                            </div>
+                            <p>收藏于 ${formatDate(item.favorite_time)} · 作者 ${escapeHtml(item.question.username || `社区用户 ${item.question.user_id}`)}</p>
+                            ${buildTagHtml(item.question.tags)}
+                            <div class="meta-row">
+                                <span>💬 ${item.question.answer_count || 0} 个回答</span>
+                                <span>⭐ ${item.question.favorite_count || 0} 次收藏</span>
+                                <span>👀 ${item.question.view_count || 0} 次浏览</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">查看详情</button>
+                                <button class="btn-link" onclick="removeFavorite(${item.question.question_id})">取消收藏</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function renderRecommendations(data) {
+        const container = document.getElementById('recommendations-panel');
+        setTabCount('recommendations', data.total ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">当前还没有可展示的推荐内容，先重建画像再刷新推荐会更有效。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="item-list">
+                ${data.items.map(item => {
+                    const status = getQuestionStatusMeta(item.question.status);
+                    return `
+                        <div class="item-card">
+                            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                                <h3>${escapeHtml(item.question.title)}</h3>
+                                <span class="pill" style="${status.style}">${status.label}</span>
+                            </div>
+                            <p>${escapeHtml(item.rec_reason || '系统根据你的兴趣画像和历史行为进行了推荐。')}</p>
+                            ${buildTagHtml(item.question.tags)}
+                            <div class="meta-row">
+                                <span>🎯 分值 ${Number(item.rec_score || 0).toFixed(2)}</span>
+                                <span>🕒 ${formatDate(item.rec_time)}</span>
+                                <span>📌 ${escapeHtml(item.rec_type)}</span>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">查看推荐问题</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function renderBrowseHistory(data) {
+        const container = document.getElementById('browse-panel');
+        setTabCount('browse', data.item_count ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">最近还没有浏览记录，进入问题详情后这里会自动累计。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="plain-list">
+                ${data.items.map(item => {
+                    const status = getQuestionStatusMeta(item.question_status);
+                    return `
+                        <div class="plain-row">
+                            <div>
+                                <div class="title">${escapeHtml(item.question_title)}</div>
+                                <div class="subtitle">浏览于 ${formatDate(item.browse_time)} · 停留 ${item.duration || 0} 秒</div>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <span class="pill" style="${status.style}">${status.label}</span>
+                                <button class="btn-link" onclick="goToQuestion(${item.question_id})">再次查看</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function renderSearchHistory(data) {
+        const container = document.getElementById('search-panel');
+        setTabCount('search', data.item_count ?? data.items.length ?? 0);
+
+        if (!data.items.length) {
+            container.innerHTML = '<div class="empty-state">最近还没有搜索记录，首页搜索过的问题会出现在这里。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="plain-list">
+                ${data.items.map(item => `
+                    <div class="plain-row">
+                        <div>
+                            <div class="title">${escapeHtml(item.keyword)}</div>
+                            <div class="subtitle">最近搜索时间：${formatDate(item.last_search_time)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderProfileTags(items) {
+        const container = document.getElementById('profile-tags-panel');
+        setTabCount('tags', Array.isArray(items) ? items.length : 0);
+
+        if (!Array.isArray(items) || items.length === 0) {
+            container.innerHTML = '<div class="empty-state">画像已重建，但暂时没有形成可展示的标签偏好。</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="item-list">
+                ${items.map(item => `
+                    <div class="item-card">
+                        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+                            <h3 style="margin:0;">${escapeHtml(item.tag_name)}</h3>
+                            <span class="pill" style="background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;">权重 ${Number(item.weight || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span>最近更新时间：${formatDate(item.update_time)}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    async function rebuildProfile() {
+        const userId = getCurrentUserId();
+        try {
+            const data = await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            renderProfileTags(data.items || []);
+            setActiveTab('tags');
+            showMessage(`画像重建完成，当前命中 ${data.item_count} 个兴趣标签。`, true);
+        } catch (error) {
+            console.error('重建画像失败:', error);
+            showMessage(error.message || '重建画像失败，请稍后重试。', false);
+        }
+    }
+
+    async function generateRecommendations() {
+        const userId = getCurrentUserId();
+        try {
+            const data = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: 10 }, {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            await loadRecommendations();
+            setActiveTab('recommendations');
+            showMessage(`推荐已刷新，当前共有 ${data.active_count} 条活跃推荐。`, true);
+        } catch (error) {
+            console.error('刷新推荐失败:', error);
+            showMessage(error.message || '刷新推荐失败，请稍后重试。', false);
+        }
+    }
+
+    async function removeFavorite(questionId) {
+        if (!window.confirm('确认取消收藏这个问题吗？')) {
+            return;
+        }
+
+        try {
+            const userId = getCurrentUserId();
+            await fetchJson(`/api/questions/${questionId}/favorite`, { user_id: userId }, {
+                method: 'DELETE'
+            });
+            await Promise.all([loadFavorites(), loadProfile()]);
+            setActiveTab('favorites');
+            showMessage('已取消收藏。', true);
+        } catch (error) {
+            console.error('取消收藏失败:', error);
+            showMessage(error.message || '取消收藏失败，请稍后重试。', false);
+        }
+    }
+
+    window.onload = async function() {
+        const token = getAccessToken();
+        const userId = getCurrentUserId();
+        const username = localStorage.getItem('username');
+
+        if (!token || !userId) {
+            redirectToLogin('请先登录后再进入用户中心。');
+            return;
+        }
+
+        initializeTabs();
+        document.getElementById('user-greeting').innerText = username
+            ? `欢迎回来, ${username}`
+            : '欢迎回来';
+
+        await loadUserCenter();
+    };
+</script>
+</body>
+</html>

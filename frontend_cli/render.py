@@ -24,6 +24,8 @@ def print_question_detail(data: dict[str, Any]) -> None:
         f"用户={data['user_id']} 分类={data['category_id']} 状态={data['status']} "
         f"浏览={data['view_count']} 收藏={data['favorite_count']} 回答={data['answer_count']}"
     )
+    if data.get("accepted_answer_id") is not None:
+        print(f"已采纳回答: {data['accepted_answer_id']}")
     print(f"提问时间: {data['ask_time']}")
     print(f"标签: {', '.join(tag['tag_name'] for tag in data.get('tags', [])) or '-'}")
     print("内容:")
@@ -36,8 +38,9 @@ def print_question_detail(data: dict[str, Any]) -> None:
             source += f" by {answer['author_username']}"
         elif answer.get("provider_name"):
             source += f" via {answer['provider_name']}"
+        accepted_marker = " [已采纳]" if answer.get("is_accepted") else ""
         print(
-            f"[{answer['answer_id']}] source={source} "
+            f"[{answer['answer_id']}] source={source}{accepted_marker} "
             f"model={answer.get('model_name')} 赞={answer['like_count']} 踩={answer['dislike_count']} "
             f"评分={answer.get('avg_rating')}"
         )

@@ -110,12 +110,22 @@ class AnswerRepository:
                 a.dislike_count,
                 a.avg_rating,
                 u.username,
-                u.nickname
+                u.nickname,
+                CASE
+                    WHEN q.accepted_answer_id = a.answer_id THEN 1
+                    ELSE 0
+                END AS is_accepted
             FROM answers a
+            JOIN questions q
+              ON q.question_id = a.question_id
             LEFT JOIN users u
               ON u.user_id = a.user_id
             WHERE a.question_id = :question_id
             ORDER BY
+                CASE
+                    WHEN q.accepted_answer_id = a.answer_id THEN 0
+                    ELSE 1
+                END,
                 CASE a.answer_type
                     WHEN 'MANUAL' THEN 0
                     WHEN 'AI' THEN 1
@@ -147,7 +157,35 @@ class AnswerRepository:
                     "avg_rating": float(row[11]) if row[11] is not None else None,
                     "author_username": row[12],
                     "author_nickname": row[13],
+                    "is_accepted": bool(row[14]),
                 }
             )
 
         return answers
+
+    def get_answer_context(
+        self,
+        connection: oracledb.Connection,
+        answer_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                answer_id,
+                question_id,
+                answer_type
+            FROM answers
+            WHERE answer_id = :answer_id
+            """,
+            {"answer_id": answer_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "answer_id": int(row[0]),
+            "question_id": int(row[1]),
+            "answer_type": row[2],
+        }

@@ -30,6 +30,7 @@ class AnswerItem(BaseModel):
     like_count: int
     dislike_count: int
     avg_rating: float | None = None
+    is_accepted: bool = False
 
 
 class QuestionSummaryItem(BaseModel):
@@ -42,6 +43,7 @@ class QuestionSummaryItem(BaseModel):
     view_count: int
     favorite_count: int
     answer_count: int
+    is_favorited: bool = False
     tags: list[TagItem] = Field(default_factory=list)
     username: str | None = None  # 🌟 新增这一行：让标准里允许带上名字
 
@@ -61,9 +63,11 @@ class QuestionDetailResponse(BaseModel):
     content: str
     ask_time: datetime
     status: str
+    accepted_answer_id: int | None = None
     view_count: int
     favorite_count: int
     answer_count: int
+    is_favorited: bool = False
     tags: list[TagItem] = Field(default_factory=list)
     answers: list[AnswerItem] = Field(default_factory=list)
     username: str | None = None  # 🌟 新增这一行：让详情页标准也允许带名字

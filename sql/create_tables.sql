@@ -49,6 +49,7 @@ CREATE TABLE questions (
     content          CLOB               NOT NULL,
     ask_time         DATE               DEFAULT SYSDATE NOT NULL,
     status           VARCHAR2(20 CHAR)  DEFAULT 'OPEN' NOT NULL,
+    accepted_answer_id NUMBER,
     view_count       NUMBER             DEFAULT 0       NOT NULL,
     favorite_count   NUMBER             DEFAULT 0       NOT NULL,
     answer_count     NUMBER             DEFAULT 0       NOT NULL,
@@ -96,6 +97,10 @@ CREATE TABLE answers (
         avg_rating IS NULL OR (avg_rating >= 0 AND avg_rating <= 5)
     )
 );
+
+ALTER TABLE questions
+    ADD CONSTRAINT fk_questions_accepted_answer
+        FOREIGN KEY (accepted_answer_id) REFERENCES answers (answer_id);
 
 PROMPT Creating QUESTION_TAGS...
 CREATE TABLE question_tags (

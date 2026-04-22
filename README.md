@@ -39,6 +39,9 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 纯社区发帖：`POST /api/questions`
 - 问题列表 / 详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
+- 采纳答案：`POST /api/questions/{question_id}/accept-answer`
+- 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
+- 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 分类、标签、搜索、搜索历史
 - 浏览、收藏、反馈、评论
 - 用户画像重建与推荐生成
@@ -50,11 +53,13 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - [app/web/login.html](app/web/login.html)
 - [app/web/home.html](app/web/home.html)
 - [app/web/detail.html](app/web/detail.html)
+- [app/web/profile.html](app/web/profile.html)
 
 当前推荐访问入口：
 
 - `/login`
 - `/home`
+- `/me`
 - `/questions/{question_id}`
 
 当前网页端已经实现：
@@ -71,7 +76,14 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 问题详情查看
 - Markdown 回答渲染与代码高亮
 - 发布人工回答
+- 采纳答案与已采纳答案高亮
 - 点赞 / 点踩与当前用户反馈状态回显
+- 首页与详情页收藏 / 取消收藏
+- 收藏状态与收藏数量回显
+- 用户中心总览页
+- 我的问题 / 我的回答 / 我的收藏 / 我的推荐
+- 最近浏览 / 最近搜索
+- 兴趣画像重建与推荐刷新入口
 - 登录态展示与退出登录
 
 ### 4. CLI 测试前端
@@ -101,11 +113,12 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 - 回答反馈写入口只保留 `POST /api/answers/{answer_id}/feedback`
 - `questions.py` 已只保留问题资源本身
 - 搜索读接口不再接受历史 `user_id` 查询参数
+- 采纳答案已经完成前后端闭环
 
 接下来最值得继续推进的是：
 
 1. 补齐社区核心能力
-   采纳答案、用户中心、网页端评论 / 收藏 / 推荐入口仍待完善。
+   网页端评论入口与更细的互动操作仍待补齐，用户中心已完成主链路。
 2. 完善后台管理与审计查询
    登录审计已经落库，用户状态口径也已生效，但还缺少后台管理入口和审计查询页面。
 3. 继续压缩写接口里的兼容字段
@@ -194,6 +207,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
 
 ```powershell
 .\scripts\load-oracle-schema.ps1
+```
+
+如果你的数据库不是刚初始化的新库，而是基于之前版本继续开发，还需要补跑一次采纳答案迁移：
+
+```sql
+@sql/migrations/20260422_add_question_acceptance.sql
 ```
 
 5. 导入固定演示数据：

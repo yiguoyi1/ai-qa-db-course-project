@@ -9,6 +9,7 @@ class UserRepository:
             "username": row[1],
             "password_hash": row[2],
             "status": row[3],
+            "role": row[4],
         }
 
     # 动作 1：根据用户名找人（用于登录和防重复注册）
@@ -16,7 +17,7 @@ class UserRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, password_hash, status
+            SELECT user_id, username, password_hash, status, role
             FROM users
             WHERE username = :1
             """,
@@ -31,7 +32,7 @@ class UserRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, password_hash, status
+            SELECT user_id, username, password_hash, status, role
             FROM users
             WHERE user_id = :1
             """,

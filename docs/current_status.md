@@ -47,11 +47,14 @@
 - 纯社区式发帖：`POST /api/questions`
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
+- 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/search/questions`
 - 搜索历史：`GET /api/search/history`
 - 浏览、收藏：`POST /api/questions/{question_id}/browse`、`POST /api/questions/{question_id}/favorite`、`DELETE /api/questions/{question_id}/favorite`
 - 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
 - 评论与楼中楼：`POST /api/answers/{answer_id}/comments`、`GET /api/answers/{answer_id}/comments`、`DELETE /api/comments/{comment_id}`
+- 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
+- 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
 
 ### 2.3 网页前端
@@ -66,6 +69,8 @@
   - 首页问题流
   - 搜索问题
   - 搜索历史下拉
+  - 首页问题流中的收藏 / 取消收藏
+  - 收藏数量回显
   - 发帖弹窗
   - 纯社区发帖与 AI 发帖都要求填写正文
   - 可切换“纯社区发帖”与“发帖并触发 AI 首答”
@@ -76,13 +81,23 @@
   - 回答列表
   - Markdown 渲染与代码高亮
   - 发布人工回答
+  - 收藏 / 取消收藏
+  - 收藏状态与收藏数量回显
+  - 采纳答案与已采纳答案高亮
   - 点赞 / 点踩
   - 当前用户反馈状态回显
+- [app/web/profile.html](../app/web/profile.html)
+  - 用户中心总览
+  - 我的问题 / 我的回答 / 我的收藏
+  - 我的推荐、最近浏览、最近搜索
+  - 兴趣画像重建与推荐刷新
+  - 收藏列表里直接取消收藏
 
 当前推荐访问入口：
 
 - `/login`
 - `/home`
+- `/me`
 - `/questions/{question_id}`
 
 ### 2.4 CLI 测试前端
@@ -162,20 +177,38 @@
 3. 搜索读接口不再接受历史 `user_id` 查询参数，搜索历史改为仅依据当前 JWT 登录态记录
 4. CLI 与文档已同步到新的接口口径
 
-### 3.6 当前第一优先级：补齐社区核心能力
+### 3.6 已完成阶段：采纳答案主链路（第五阶段）
+
+这一阶段已经完成到“前后端闭环可演示”的状态，主要包括：
+
+1. 数据库已支持 `accepted_answer_id`
+2. 后端已提供 `POST /api/questions/{question_id}/accept-answer`
+3. 只有提问者或管理员可以采纳答案
+4. 采纳后问题状态自动变为 `RESOLVED`
+5. 问题详情页会高亮已采纳答案，并禁止继续发布新回答
+6. 首页和搜索页默认会继续展示 `RESOLVED` 问题，不会在采纳后从列表里“消失”
+
+### 3.7 已完成阶段：用户中心主链路（第六阶段）
+
+这一阶段已经完成到“前后端可直接演示”的状态，主要包括：
+
+1. 后端已提供用户中心聚合接口：个人概览、我的问题、我的回答、我的收藏、最近浏览、最近搜索
+2. 网页端新增 `/me` 页面，并从首页、详情页统一进入
+3. 用户中心已接入推荐列表、兴趣画像重建和推荐刷新动作
+4. 收藏列表支持直接取消收藏
+5. 详情页已补记浏览历史，最近浏览链路在网页端可闭环
+
+### 3.8 当前第一优先级：补齐剩余网页互动入口
 
 当前最适合继续做的业务能力仍然是：
 
-1. 采纳答案
-2. 用户中心
-3. 收藏、评论、推荐等功能的网页端入口
-4. 多轮对话正式业务链
+1. 网页端评论与楼中楼入口
+2. 后台用户状态管理与审计查询
+3. 多轮对话正式业务链
 
 ## 4. 当前仍未完成或未完全收口的能力
 
-- 采纳答案
-- 用户中心
-- 网页端的评论、收藏、推荐等完整闭环
+- 网页端评论、楼中楼回复的完整展示与交互入口
 - 后台用户状态管理与审计查询
 - 多轮对话正式业务链
 
@@ -190,6 +223,6 @@
 
 如果后续继续开发，建议优先顺序为：
 
-1. 先补用户中心和采纳答案
-2. 再补网页端评论、收藏、推荐完整闭环
-3. 补后台用户状态管理与审计查询
+1. 先补网页端评论、回复完整闭环
+2. 再补后台用户状态管理与审计查询
+3. 补多轮对话正式业务链

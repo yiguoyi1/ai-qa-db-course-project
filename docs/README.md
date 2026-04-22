@@ -51,18 +51,18 @@
 - AI 首答
 - 纯社区发帖
 - 用户人工回答
+- 采纳答案
 - 分类、标签、搜索、搜索历史
 - 浏览、收藏、回答反馈
 - 评论与楼中楼回复
 - 用户画像重建与推荐生成
-- 由 FastAPI 提供入口的网页登录页、首页、详情页
+- 用户中心聚合接口与最近浏览 / 搜索历史
+- 由 FastAPI 提供入口的网页登录页、首页、详情页、用户中心页
 - 独立 CLI 业务测试入口
 
 ### 3.2 当前仍未完全收口
 
-- 采纳答案
-- 用户中心
-- 网页端评论、收藏、推荐的完整闭环
+- 网页端评论、楼中楼回复的完整闭环
 - 鉴权过渡接口与历史兼容参数的进一步清理
 - 多轮对话正式业务链
 
@@ -76,10 +76,9 @@
 
 最适合继续推进的仍然是：
 
-1. 采纳答案
-2. 用户中心
-3. 网页端更多互动功能
-4. 多轮对话正式业务链
+1. 网页端评论与回复入口
+2. 后台用户状态管理与审计查询
+3. 多轮对话正式业务链
 
 ### 4.3 完善后台管理与审计查询
 
@@ -112,10 +111,12 @@
 - `app/web/login.html`
 - `app/web/home.html`
 - `app/web/detail.html`
+- `app/web/profile.html`
 
 当前网页前端的作用是：
 
-- 演示登录、首页流和详情页交互
+- 演示登录、首页流、详情页和用户中心交互
+- 覆盖首页、详情页、用户中心的收藏主链路
 - 通过 FastAPI 统一页面入口访问，并用同源 HTTP 调后端接口
 - 验证 JWT 登录态与页面交互是否能跑通
 
@@ -143,6 +144,7 @@
 - `GET /api/questions`
 - `GET /api/questions/{question_id}`
 - `POST /api/questions/{question_id}/answers`
+- `POST /api/questions/{question_id}/accept-answer`
 
 ### 6.3 元数据与搜索
 
@@ -164,6 +166,12 @@
 
 ### 6.5 推荐
 
+- `GET /api/users/{user_id}/profile`
+- `GET /api/users/{user_id}/questions`
+- `GET /api/users/{user_id}/answers`
+- `GET /api/users/{user_id}/favorites`
+- `GET /api/users/{user_id}/browse-history`
+- `GET /api/users/{user_id}/search-history`
 - `POST /api/users/{user_id}/profile/rebuild`
 - `POST /api/users/{user_id}/recommendations/generate`
 - `GET /api/users/{user_id}/recommendations`
@@ -174,6 +182,7 @@
 
 - `POST /api/questions/ask` 不是“纯提问”，它会触发 AI 首答
 - `POST /api/questions` 是纯社区发帖入口
+- `POST /api/questions/{question_id}/accept-answer` 只允许提问者或管理员执行，并会把问题状态改成 `RESOLVED`
 - 这两类发帖当前都要求正文 `content` 必填
 - 当前网页前端和受保护写接口已经以 JWT 登录态为主
 - 登录时会写 `LOGIN_LOG`，成功记 `SUCCESS`，密码错误/停用/未激活记 `FAILURE`，锁定账号记 `LOCKED`

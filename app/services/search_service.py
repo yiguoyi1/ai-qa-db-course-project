@@ -59,6 +59,7 @@ class SearchService:
                     keyword=keyword,
                     page=page,
                     page_size=page_size,
+                    current_user_id=user_id,
                     category_id=category_id,
                     tag_id=tag_id,
                     status=normalized_status,

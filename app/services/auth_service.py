@@ -114,7 +114,8 @@ class AuthService:
             return TokenResponse(
                 access_token=encoded_jwt,
                 user_id=user["user_id"],
-                username=user["username"]
+                username=user["username"],
+                role=user["role"],
             )
 
     def _log_login_attempt(

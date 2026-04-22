@@ -23,7 +23,7 @@ def search_questions(
     page_size: int = Query(default=10, ge=1, le=50),
     category_id: int | None = Query(default=None, gt=0),
     tag_id: int | None = Query(default=None, gt=0),
-    status_filter: str | None = Query(default="OPEN", alias="status"),
+    status_filter: str | None = Query(default=None, alias="status"),
     current_user_id: int | None = Depends(get_optional_current_user_id),
     service: SearchService = Depends(get_search_service),
 ) -> QuestionListResponse:

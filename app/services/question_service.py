@@ -5,11 +5,12 @@ from app.db.connection import get_connection
 from app.repositories.answer_repository import AnswerRepository
 from app.repositories.log_repository import LogRepository
 from app.repositories.question_repository import QuestionRepository
+from app.repositories.user_repository import UserRepository
 from app.schemas.question import (
     AskQuestionRequest,
+    QuestionCreate,
     QuestionDetailResponse,
     QuestionListResponse,
-    QuestionCreate,
 )
 from app.services.ai_answer_service import AIAnswerService
 
@@ -22,11 +23,13 @@ class QuestionService:
         question_repository: QuestionRepository | None = None,
         answer_repository: AnswerRepository | None = None,
         log_repository: LogRepository | None = None,
+        user_repository: UserRepository | None = None,
         ai_answer_service: AIAnswerService | None = None,
     ) -> None:
         self._question_repository = question_repository or QuestionRepository()
         self._answer_repository = answer_repository or AnswerRepository()
         self._log_repository = log_repository or LogRepository()
+        self._user_repository = user_repository or UserRepository()
         self._ai_answer_service = ai_answer_service or AIAnswerService()
 
     def ask_question(self, payload: AskQuestionRequest) -> QuestionDetailResponse:
@@ -83,12 +86,20 @@ class QuestionService:
             )
             return QuestionDetailResponse(**question)
 
-    def get_question_detail(self, question_id: int) -> QuestionDetailResponse:
+    def get_question_detail(
+        self,
+        question_id: int,
+        current_user_id: int | None = None,
+    ) -> QuestionDetailResponse:
         if question_id <= 0:
             raise ValidationError("question_id must be greater than 0.")
 
         with get_connection() as connection:
-            question = self._question_repository.get_question_detail(connection, question_id)
+            question = self._question_repository.get_question_detail(
+                connection,
+                question_id,
+                current_user_id=current_user_id,
+            )
             if question is None:
                 raise NotFoundError(f"Question {question_id} was not found.")
 
@@ -106,6 +117,7 @@ class QuestionService:
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = "OPEN",
+        current_user_id: int | None = None,
     ) -> QuestionListResponse:
         if page <= 0:
             raise ValidationError("page must be greater than 0.")
@@ -136,6 +148,7 @@ class QuestionService:
                 category_id=category_id,
                 tag_id=tag_id,
                 status=normalized_status,
+                current_user_id=current_user_id,
             )
             total = self._question_repository.count_questions(
                 connection=connection,
@@ -176,3 +189,77 @@ class QuestionService:
             )
             connection.commit()
             return {"question_id": q_id, "message": "发布成功"}
+
+    def accept_answer(
+        self,
+        *,
+        question_id: int,
+        answer_id: int,
+        current_user_id: int,
+    ) -> QuestionDetailResponse:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+        if answer_id <= 0:
+            raise ValidationError("answer_id must be greater than 0.")
+        if current_user_id <= 0:
+            raise ValidationError("current_user_id must be greater than 0.")
+
+        with get_connection() as connection:
+            question = self._question_repository.get_question_acceptance_context(
+                connection,
+                question_id,
+            )
+            if question is None:
+                raise NotFoundError(f"Question {question_id} was not found.")
+
+            current_user = self._user_repository.get_user_by_id(connection, current_user_id)
+            if current_user is None:
+                raise AppError("当前登录用户不存在，请重新登录。", status_code=401)
+
+            is_owner = question["user_id"] == current_user_id
+            is_admin = current_user["role"] == "ADMIN"
+            if not (is_owner or is_admin):
+                raise AppError("只有提问者或管理员可以采纳答案。", status_code=403)
+
+            if question["status"] in {"CLOSED", "ARCHIVED"}:
+                raise ValidationError("CLOSED 或 ARCHIVED 状态的问题不能再采纳答案。")
+
+            answer = self._answer_repository.get_answer_context(connection, answer_id)
+            if answer is None:
+                raise NotFoundError(f"Answer {answer_id} was not found.")
+            if answer["question_id"] != question_id:
+                raise ValidationError("answer_id 不属于当前问题，不能被采纳。")
+            if answer["answer_type"] == "SYSTEM":
+                raise ValidationError("SYSTEM 类型回答不能被采纳。")
+
+            try:
+                updated_count = self._question_repository.accept_answer(
+                    connection=connection,
+                    question_id=question_id,
+                    answer_id=answer_id,
+                )
+                connection.commit()
+            except oracledb.DatabaseError as exc:
+                connection.rollback()
+                raise self._translate_database_error(exc) from exc
+            except Exception:
+                connection.rollback()
+                raise
+
+            if updated_count == 0:
+                raise NotFoundError(f"Question {question_id} could not be updated.")
+
+            refreshed_question = self._question_repository.get_question_detail(
+                connection,
+                question_id,
+                current_user_id=current_user_id,
+            )
+            if refreshed_question is None:
+                raise NotFoundError("Answer was accepted but the question could not be reloaded.")
+
+            refreshed_question["answers"] = self._answer_repository.list_answers_by_question(
+                connection,
+                question_id,
+            )
+
+        return QuestionDetailResponse(**refreshed_question)

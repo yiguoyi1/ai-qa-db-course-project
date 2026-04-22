@@ -61,6 +61,12 @@ Copy-Item .env.example .env
 .\scripts\load-seed-data.ps1
 ```
 
+如果你接到的不是全新数据库，而是之前已经跑过的老库，还需要补跑一次采纳答案迁移：
+
+```sql
+@sql/migrations/20260422_add_question_acceptance.sql
+```
+
 如果是第一次接手，建议再执行一次结构验证：
 
 ```powershell
@@ -228,10 +234,10 @@ python -m frontend_cli.main comments list --answer-id 82
 
 如果你是新加入的协作者，最适合接着推进的是：
 
-1. 清理鉴权过渡接口
-2. 采纳答案
-3. 用户中心
-4. 后台用户状态管理与审计查询
+1. 网页端评论与回复入口
+2. 后台用户状态管理与审计查询
+3. 多轮对话正式业务链
+4. 少量写接口兼容字段的继续清理
 
 如果你只想先熟悉系统，不建议一上来就碰：
 

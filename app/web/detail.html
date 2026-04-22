@@ -15,6 +15,18 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-main); }
         .navbar { background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 0 40px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }
         .navbar-brand { font-size: 20px; font-weight: 700; color: var(--primary); cursor: pointer; text-decoration: none; }
+        .navbar-user { display: flex; align-items: center; gap: 12px; }
+        .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .btn-outline {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: #f9fafb; border-color: #d1d5db; }
 
         /* 🌟 修改容器：加宽，并采用 1fr 和 300px 的左右分栏布局 */
         .container {
@@ -111,6 +123,11 @@
 
     <nav class="navbar">
         <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
+        <div class="navbar-user">
+            <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
+            <button class="btn-outline" onclick="goToProfile()">我的中心</button>
+            <button class="btn-outline" onclick="logout()">退出登录</button>
+        </div>
     </nav>
 
     <div class="container">
@@ -125,25 +142,35 @@
         <div class="sidebar-sticky">
             <div class="detail-card" style="padding: 24px;">
                 <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; color: #111827;">💡 撰写你的回答</h3>
+                <p id="answer-composer-hint" style="margin: 0 0 12px 0; color: #6b7280; font-size: 13px; line-height: 1.5;">当前问题开放回答中，可以继续补充你的思路。</p>
 
                 <textarea id="my-answer-content" rows="6" placeholder="分享你的知识和见解..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 14px; font-family: inherit; margin-bottom: 16px; transition: border-color 0.2s;"></textarea>
 
-                <button onclick="submitAnswer()" style="width: 100%; padding: 10px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">发 布 回 答</button>
+                <button id="submit-answer-btn" onclick="submitAnswer()" style="width: 100%; padding: 10px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">发 布 回 答</button>
             </div>
         </div>
     </div>
 
     <script>
         const LOGIN_PAGE_URL = '/login';
+        let detailOpenedAt = Date.now();
+        let browseHistoryRecorded = false;
 
-        function buildApiUrl(path) {
-            return new URL(path, window.location.origin).toString();
+        function buildApiUrl(path, params = {}) {
+            const url = new URL(path, window.location.origin);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return url.toString();
         }
 
         function clearSession() {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_id');
             localStorage.removeItem('username');
+            localStorage.removeItem('user_role');
         }
 
         function redirectToLogin(message) {
@@ -152,6 +179,14 @@
                 alert(message);
             }
             window.location.href = LOGIN_PAGE_URL;
+        }
+
+        function logout() {
+            redirectToLogin();
+        }
+
+        function goToProfile() {
+            window.location.href = '/me';
         }
 
         function getCurrentQuestionId() {
@@ -163,6 +198,98 @@
 
             const matched = window.location.pathname.match(/^\/questions\/(\d+)\/?$/);
             return matched ? matched[1] : null;
+        }
+
+        function getCurrentUserId() {
+            const raw = localStorage.getItem('user_id');
+            const parsed = raw ? Number(raw) : NaN;
+            return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+        }
+
+        function getCurrentUserRole() {
+            return localStorage.getItem('user_role') || '';
+        }
+
+        function getQuestionStatusMeta(status) {
+            switch (status) {
+                case 'RESOLVED':
+                    return {
+                        label: '已解决',
+                        style: 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;'
+                    };
+                case 'CLOSED':
+                    return {
+                        label: '已关闭',
+                        style: 'background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db;'
+                    };
+                case 'ARCHIVED':
+                    return {
+                        label: '已归档',
+                        style: 'background:#fff7ed; color:#c2410c; border:1px solid #fdba74;'
+                    };
+                default:
+                    return {
+                        label: '开放中',
+                        style: 'background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;'
+                    };
+            }
+        }
+
+        function buildQuestionStatusBadge(status) {
+            const meta = getQuestionStatusMeta(status);
+            return `<span style="${meta.style} padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;">${meta.label}</span>`;
+        }
+
+        function getFavoriteButtonMeta(isFavorited) {
+            if (isFavorited) {
+                return {
+                    label: '已收藏',
+                    style: 'background:#eff6ff; color:#1d4ed8; border:1px solid #93c5fd;'
+                };
+            }
+
+            return {
+                label: '收藏问题',
+                style: 'background:#ffffff; color:#475569; border:1px solid #cbd5e1;'
+            };
+        }
+
+        function canCurrentUserAccept(question) {
+            const currentUserId = getCurrentUserId();
+            const currentUserRole = getCurrentUserRole();
+            return currentUserId === question.user_id || currentUserRole === 'ADMIN';
+        }
+
+        function syncAnswerComposer(question) {
+            const textarea = document.getElementById('my-answer-content');
+            const submitButton = document.getElementById('submit-answer-btn');
+            const hint = document.getElementById('answer-composer-hint');
+            if (!textarea || !submitButton || !hint) {
+                return;
+            }
+
+            const isOpen = question.status === 'OPEN';
+            textarea.disabled = !isOpen;
+            submitButton.disabled = !isOpen;
+
+            if (isOpen) {
+                hint.innerText = '当前问题开放回答中，可以继续补充你的思路。';
+                textarea.placeholder = '分享你的知识和见解...';
+                submitButton.innerText = '发 布 回 答';
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+                return;
+            }
+
+            const lockedMessage = question.status === 'RESOLVED'
+                ? '该问题已采纳答案，当前不再接受新回答。'
+                : '该问题当前不可继续回答。';
+            hint.innerText = lockedMessage;
+            textarea.placeholder = lockedMessage;
+            textarea.value = '';
+            submitButton.innerText = '当前不可回答';
+            submitButton.style.opacity = '0.65';
+            submitButton.style.cursor = 'not-allowed';
         }
 
         function setFeedbackButtonState(button, isActive) {
@@ -189,16 +316,8 @@
             setFeedbackButtonState(dislikeBtn, selectedFeedback === 'N');
         }
 
-        window.onload = async function() {
-            // 1. 检查房卡 (就算进详情页也要验票)
+        async function loadQuestionDetail(resetBrowseSession = false) {
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                alert('请先登录！');
-                window.location.href = LOGIN_PAGE_URL;
-                return;
-            }
-
-            // 2. 从浏览器的地址栏里把问题 ID 抠出来
             const questionId = getCurrentQuestionId();
 
             if (!questionId) {
@@ -206,7 +325,6 @@
                 return;
             }
 
-            // 3. 呼叫后端，拿完整数据！
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}`), {
                     method: 'GET',
@@ -215,9 +333,14 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    if (resetBrowseSession) {
+                        detailOpenedAt = Date.now();
+                        browseHistoryRecorded = false;
+                    }
                     renderDetail(data);
-                } else if (response.status === 401) {
-                    redirectToLogin('登录状态已失效，请重新登录。');
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
                 } else {
                     document.getElementById('detail-container').innerHTML = `<div style="color:red">❌ 拉取失败，可能帖子被删了，或者后端没写这个接口 (状态码: ${response.status})</div>`;
                 }
@@ -225,6 +348,20 @@
                 console.error(error);
                 document.getElementById('detail-container').innerHTML = '<div style="color:red">❌ 网络错误，后端服务挂了吗？</div>';
             }
+        }
+
+        window.onload = async function() {
+            const token = localStorage.getItem('access_token');
+            const username = localStorage.getItem('username');
+            if (!token) {
+                alert('请先登录！');
+                window.location.href = LOGIN_PAGE_URL;
+                return;
+            }
+            document.getElementById('detail-user-greeting').innerText = username
+                ? `欢迎回来, ${username}`
+                : '已登录用户';
+            await loadQuestionDetail(true);
         };
 
         function renderDetail(q) {
@@ -232,6 +369,12 @@
             const date = new Date(q.ask_time).toLocaleString();
             const author = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
             const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
+            const statusBadge = buildQuestionStatusBadge(q.status);
+            const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
+            const canAcceptAnswers = canCurrentUserAccept(q);
+            const resolutionText = q.accepted_answer_id
+                ? '✅ 已采纳最佳答案'
+                : (q.status === 'OPEN' ? '🟦 仍在征集回答' : '📌 当前暂无已采纳答案');
 
             // 🌟 告诉 marked.js：当你遇到代码块时，请叫 highlight.js 来涂色！
             marked.setOptions({
@@ -251,6 +394,23 @@
                 q.answers.forEach(ans => {
                     const ansDate = new Date(ans.generate_time).toLocaleString();
                     const ansId = ans.answer_id; // 拿一个唯一 ID，用来控制开关
+                    const acceptedBadge = ans.is_accepted
+                        ? '<span style="background:#ecfdf5; color:#047857; border:1px solid #86efac; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700;">✅ 已采纳答案</span>'
+                        : '';
+                    const canShowAcceptButton = canAcceptAnswers && ans.answer_type !== 'SYSTEM' && !['CLOSED', 'ARCHIVED'].includes(q.status);
+                    const acceptButtonLabel = ans.is_accepted
+                        ? '当前已采纳'
+                        : (q.accepted_answer_id ? '改为采纳' : '采纳此答案');
+                    const acceptButtonDisabled = ans.is_accepted ? 'disabled' : '';
+                    const acceptButtonStyle = ans.is_accepted
+                        ? 'background:#ecfdf5; color:#047857; border:1px solid #86efac; cursor:not-allowed; opacity:0.9;'
+                        : 'background:#f0fdf4; color:#166534; border:1px solid #86efac; cursor:pointer;';
+                    const acceptButtonHtml = canShowAcceptButton
+                        ? `<button id="accept-btn-${ansId}" onclick="acceptAnswer(${q.question_id}, ${ansId})" ${acceptButtonDisabled} style="${acceptButtonStyle} border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; transition: all 0.2s;">${acceptButtonLabel}</button>`
+                        : '';
+                    const answerCardStyle = ans.is_accepted
+                        ? 'background:#f0fdf4; border:1px solid #86efac; box-shadow: 0 1px 2px rgba(0,0,0,0.02);'
+                        : 'background:#f8fafc; border:1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);';
 
                     // 🌟 智能判断：是人类还是 AI？
                     let authorName = '';
@@ -272,11 +432,14 @@
                     // 组装带高级样式的 HTML
                     // 组装带高级样式的 HTML
                     answersHtml += `
-                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px; margin-top: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                        <div style="${answerCardStyle} padding: 24px; border-radius: 12px; margin-top: 20px;">
 
-                            <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                <span style="${tagColor} padding: 4px 8px; border-radius: 6px; font-size: 12px;">${authorIcon} ${authorName}</span>
-                                <span style="font-weight: normal; font-size: 13px; color: #94a3b8;">回答于 ${ansDate}</span>
+                            <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="${tagColor} padding: 4px 8px; border-radius: 6px; font-size: 12px;">${authorIcon} ${authorName}</span>
+                                    <span style="font-weight: normal; font-size: 13px; color: #94a3b8;">回答于 ${ansDate}</span>
+                                </div>
+                                ${acceptedBadge}
                             </div>
 
                             <div id="wrapper-${ansId}" class="answer-wrapper">
@@ -288,13 +451,14 @@
 
                             <button id="btn-${ansId}" class="toggle-btn" style="margin-bottom: 12px;" onclick="toggleAnswer(${ansId})">阅读全文 ↓</button>
 
-                            <div style="display: flex; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                            <div style="display: flex; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
                                 <button id="like-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'Y')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
                                     👍 <span id="like-count-${ansId}">${ans.like_count || 0}</span>
                                 </button>
                                 <button id="dislike-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'N')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
                                     👎 <span id="dislike-count-${ansId}">${ans.dislike_count || 0}</span>
                                 </button>
+                                ${acceptButtonHtml}
                             </div>
 
                         </div>
@@ -305,13 +469,23 @@
             }
 
             container.innerHTML = `
-                <h1 class="q-title">${q.title}</h1>
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
+                    <h1 class="q-title" style="margin-bottom: 0;">${q.title}</h1>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                        <button onclick="toggleFavorite(${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">${favoriteMeta.label}</button>
+                        ${statusBadge}
+                    </div>
+                </div>
                 <div class="q-meta">
                     <span>👤 ${author}</span>
                     <span>⏱ ${date}</span>
+                    <span>⭐ ${q.favorite_count || 0} 次收藏</span>
+                    <span>💬 ${q.answer_count || 0} 条回答</span>
+                    <span>${resolutionText}</span>
                 </div>
                 <div class="q-content">${content}</div>
                 ${answersHtml} `;
+            syncAnswerComposer(q);
 
             // 🌟 智能检测：如果回答本来就很短，就不显示展开按钮了
             if (q.answers && q.answers.length > 0) {
@@ -333,6 +507,71 @@
             const qId = getCurrentQuestionId();
             if (qId) {
                 loadMyFeedbacks(qId);
+            }
+        }
+
+        async function acceptAnswer(questionId, answerId) {
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}/accept-answer`), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ answer_id: answerId })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    renderDetail(data);
+                    alert('✅ 已更新采纳答案。');
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
+                } else {
+                    const err = await response.json();
+                    alert("❌ 采纳失败: " + JSON.stringify(err));
+                }
+            } catch (error) {
+                console.error("采纳答案失败:", error);
+                alert("❌ 网络错误，请稍后再试。");
+            }
+        }
+
+        async function toggleFavorite(questionId, isFavorited) {
+            const token = localStorage.getItem('access_token');
+            const userId = getCurrentUserId();
+            if (!token || !userId) {
+                redirectToLogin('请先登录后再执行收藏操作。');
+                return;
+            }
+
+            try {
+                const url = isFavorited
+                    ? buildApiUrl(`/api/questions/${questionId}/favorite`, { user_id: userId })
+                    : buildApiUrl(`/api/questions/${questionId}/favorite`);
+                const response = await fetch(url, {
+                    method: isFavorited ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: isFavorited ? undefined : JSON.stringify({ user_id: userId })
+                });
+
+                if (response.ok) {
+                    await loadQuestionDetail(false);
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(`❌ 收藏操作失败: ${err.detail || response.status}`);
+                }
+            } catch (error) {
+                console.error("切换收藏失败:", error);
+                alert("❌ 网络错误，请稍后再试。");
             }
         }
 
@@ -459,6 +698,47 @@
                 console.error("拉取点赞状态失败", error);
             }
         }
+
+        async function recordBrowseHistory(questionId) {
+            if (browseHistoryRecorded) {
+                return;
+            }
+
+            const token = localStorage.getItem('access_token');
+            const userId = getCurrentUserId();
+            if (!token || !userId || !questionId) {
+                return;
+            }
+
+            browseHistoryRecorded = true;
+            const duration = Math.max(0, Math.round((Date.now() - detailOpenedAt) / 1000));
+
+            try {
+                await fetch(buildApiUrl(`/api/questions/${questionId}/browse`), {
+                    method: 'POST',
+                    keepalive: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        duration,
+                        click_depth: 1
+                    })
+                });
+            } catch (error) {
+                console.error("记录浏览历史失败:", error);
+                browseHistoryRecorded = false;
+            }
+        }
+
+        window.addEventListener('pagehide', () => {
+            const questionId = getCurrentQuestionId();
+            if (questionId) {
+                recordBrowseHistory(questionId);
+            }
+        });
 
     </script>
 </body>

@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.auth_deps import get_current_user_id, resolve_authenticated_user_id
+from app.api.auth_deps import (
+    get_current_user_id,
+    get_optional_current_user_id,
+    resolve_authenticated_user_id,
+)
 from app.api.deps import get_question_service
 from app.core.errors import AppError
+from app.schemas.answer import AcceptAnswerRequest
 from app.schemas.question import (
     AskQuestionRequest,
     QuestionCreate,
@@ -48,7 +53,8 @@ def list_questions(
     page_size: int = Query(default=10, ge=1, le=50),
     category_id: int | None = Query(default=None, gt=0),
     tag_id: int | None = Query(default=None, gt=0),
-    status_filter: str | None = Query(default="OPEN", alias="status"),
+    status_filter: str | None = Query(default=None, alias="status"),
+    current_user_id: int | None = Depends(get_optional_current_user_id),
     service: QuestionService = Depends(get_question_service),
 ) -> QuestionListResponse:
     try:
@@ -58,6 +64,7 @@ def list_questions(
             category_id=category_id,
             tag_id=tag_id,
             status=status_filter,
+            current_user_id=current_user_id,
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
@@ -70,10 +77,35 @@ def list_questions(
 )
 def get_question_detail(
     question_id: int,
+    current_user_id: int | None = Depends(get_optional_current_user_id),
     service: QuestionService = Depends(get_question_service),
 ) -> QuestionDetailResponse:
     try:
-        return service.get_question_detail(question_id)
+        return service.get_question_detail(
+            question_id,
+            current_user_id=current_user_id,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.post(
+    "/{question_id}/accept-answer",
+    response_model=QuestionDetailResponse,
+    status_code=status.HTTP_200_OK,
+)
+def accept_answer(
+    question_id: int,
+    payload: AcceptAnswerRequest,
+    current_user_id: int = Depends(get_current_user_id),
+    service: QuestionService = Depends(get_question_service),
+) -> QuestionDetailResponse:
+    try:
+        return service.accept_answer(
+            question_id=question_id,
+            answer_id=payload.answer_id,
+            current_user_id=current_user_id,
+        )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 

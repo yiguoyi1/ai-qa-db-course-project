@@ -144,6 +144,7 @@
 
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
+        <button class="btn-outline" onclick="goToProfile()">我的中心</button>
         <button class="btn-outline" onclick="logout()">退出登录</button>
     </div>
 </nav>
@@ -221,6 +222,7 @@
         localStorage.removeItem('access_token');
         localStorage.removeItem('user_id');
         localStorage.removeItem('username');
+        localStorage.removeItem('user_role');
     }
 
     function redirectToLogin(message) {
@@ -233,6 +235,13 @@
 
     // 🌟 1. 全局变量，记录当前的搜索词
     let currentSearchQuery = '';
+    let currentQuestionPage = 1;
+
+    function getCurrentUserId() {
+        const raw = localStorage.getItem('user_id');
+        const parsed = raw ? Number(raw) : NaN;
+        return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+    }
 
     // 🌟 2. 搜索按钮触发的动作
     function doSearch() {
@@ -244,6 +253,7 @@
     // 🌟 3. 核心：拉取帖子列表的通用函数
     async function loadQuestions(page = 1) {
         const token = localStorage.getItem('access_token');
+        currentQuestionPage = page;
 
         const requestPath = currentSearchQuery ? '/api/search/questions' : '/api/questions';
         const url = buildApiUrl(requestPath, {
@@ -264,8 +274,9 @@
             if (response.ok) {
                 const data = await response.json();
                 renderQuestions(data);
-            } else if (response.status === 401) {
-                redirectToLogin('登录状态已失效，请重新登录。');
+            } else if ([401, 403, 423].includes(response.status)) {
+                const err = await response.json().catch(() => ({}));
+                redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
             } else {
                 console.error("拉取帖子失败");
             }
@@ -324,14 +335,23 @@
             const date = new Date(q.ask_time).toLocaleString();
             const displayContent = '<span style="color:#9ca3af; font-size:13px;">点击查看详情全文...</span>';
             const displayAuthor = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+            const statusMeta = getStatusMeta(q.status);
+            const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
 
             const cardHtml = `
                 <div class="post-card" style="cursor: pointer;" onclick="goToDetail(${q.question_id})">
-                    <h3 class="post-title">${q.title}</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <h3 class="post-title" style="margin-bottom: 0;">${q.title}</h3>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                            <button onclick="toggleFavorite(event, ${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.2s;">${favoriteMeta.label}</button>
+                            <span style="${statusMeta.style} padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;">${statusMeta.label}</span>
+                        </div>
+                    </div>
                     <p class="post-preview">${displayContent}</p>
                     <div class="post-meta">
                         <span>👤 ${displayAuthor}</span>
                         <span>💬 ${q.answer_count || 0} 个回答</span>
+                        <span>⭐ ${q.favorite_count || 0} 次收藏</span>
                         <span>⏱ ${date}</span>
                     </div>
                 </div>
@@ -341,10 +361,97 @@
         });
     }
 
+    function getStatusMeta(status) {
+        switch (status) {
+            case 'RESOLVED':
+                return {
+                    label: '已解决',
+                    style: 'background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;'
+                };
+            case 'CLOSED':
+                return {
+                    label: '已关闭',
+                    style: 'background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db;'
+                };
+            case 'ARCHIVED':
+                return {
+                    label: '已归档',
+                    style: 'background:#fff7ed; color:#c2410c; border:1px solid #fdba74;'
+                };
+            default:
+                return {
+                    label: '开放中',
+                    style: 'background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;'
+                };
+        }
+    }
+
+    function getFavoriteButtonMeta(isFavorited) {
+        if (isFavorited) {
+            return {
+                label: '已收藏',
+                style: 'background:#eff6ff; color:#1d4ed8; border:1px solid #93c5fd; cursor:pointer;'
+            };
+        }
+
+        return {
+            label: '收藏',
+            style: 'background:#ffffff; color:#475569; border:1px solid #cbd5e1; cursor:pointer;'
+        };
+    }
+
+    async function toggleFavorite(event, questionId, isFavorited) {
+        event.stopPropagation();
+
+        const token = localStorage.getItem('access_token');
+        const userId = getCurrentUserId();
+        if (!token || !userId) {
+            redirectToLogin('请先登录后再执行收藏操作。');
+            return;
+        }
+
+        const button = event.currentTarget;
+        if (button) {
+            button.disabled = true;
+            button.style.opacity = '0.7';
+        }
+
+        try {
+            const url = isFavorited
+                ? buildApiUrl(`/api/questions/${questionId}/favorite`, { user_id: userId })
+                : buildApiUrl(`/api/questions/${questionId}/favorite`);
+            const response = await fetch(url, {
+                method: isFavorited ? 'DELETE' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: isFavorited ? undefined : JSON.stringify({ user_id: userId })
+            });
+
+            if (response.ok) {
+                await loadQuestions(currentQuestionPage);
+            } else if ([401, 403, 423].includes(response.status)) {
+                const err = await response.json().catch(() => ({}));
+                redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+            } else {
+                const err = await response.json().catch(() => ({}));
+                alert(`❌ 收藏操作失败: ${err.detail || response.status}`);
+            }
+        } catch (error) {
+            console.error("切换收藏失败:", error);
+            alert("❌ 网络错误，请稍后重试。");
+        }
+    }
+
     // 退出登录逻辑
     function logout() {
         clearSession();
         window.location.href = LOGIN_PAGE_URL;
+    }
+
+    function goToProfile() {
+        window.location.href = '/me';
     }
 
     // 🌟 跳转到详情页的魔法 🌟

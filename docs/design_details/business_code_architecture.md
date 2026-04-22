@@ -454,10 +454,10 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 ### 10.4 用户中心
 
-- 我的问题
-- 我的回答
-- 我的收藏
-- 我的搜索与浏览历史
+- 已提供 `/api/users/{user_id}/profile`
+- 已提供 `/api/users/{user_id}/questions`、`/answers`、`/favorites`
+- 已提供 `/api/users/{user_id}/browse-history`、`/search-history`
+- 网页端已提供 `/me` 用户中心页面
 
 ### 10.5 登录与鉴权收口
 
@@ -505,4 +505,4 @@ scripts/start_business_test.py
 - 继续保持单体后端，同时维护网页前端和独立 CLI 两条验证链路
 - 继续复用 Oracle 里已经写好的约束、触发器和推荐过程
 - 优先收口接口契约、鉴权和网页前端交付方式
-- 等采纳答案、用户中心、登录态稳定后，再考虑多轮对话和更复杂推荐策略
+- 当前采纳答案、用户中心、登录态已经进入可演示状态，下一阶段可继续考虑多轮对话和更复杂推荐策略

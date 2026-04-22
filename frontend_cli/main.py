@@ -104,6 +104,7 @@ def _run_detail_quick_actions(client: APIClient, question_id: int) -> None:
         print("3. 取消收藏")
         print("4. 提交回答反馈")
         print("5. 发布人工回答")
+        print("6. 采纳回答")
         print("0. 返回主菜单")
         quick_choice = input("请选择操作编号: ").strip()
 
@@ -158,6 +159,14 @@ def _run_detail_quick_actions(client: APIClient, question_id: int) -> None:
                     ),
                     client,
                 )
+            elif quick_choice == "6":
+                handle_questions_accept(
+                    argparse.Namespace(
+                        question_id=question_id,
+                        answer_id=_prompt_int("answer_id"),
+                    ),
+                    client,
+                )
             else:
                 print("无效编号，请重新输入。")
         except APIClientError as exc:
@@ -181,9 +190,10 @@ def print_menu() -> None:
     print("10. 取消收藏")
     print("11. 提交/更新回答反馈")
     print("12. 搜索问题")
-    print("13. 重建用户画像")
-    print("14. 生成推荐")
-    print("15. 查看推荐")
+    print("13. 采纳回答")
+    print("14. 重建用户画像")
+    print("15. 生成推荐")
+    print("16. 查看推荐")
     print("0. 退出")
     print()
 
@@ -264,6 +274,16 @@ def handle_questions_answer(args: argparse.Namespace, client: APIClient) -> None
             "user_id": args.user_id,
             "content": args.content,
             "confidence_score": args.confidence_score,
+        },
+    )
+    print_question_detail(data)
+
+
+def handle_questions_accept(args: argparse.Namespace, client: APIClient) -> None:
+    data = client.post(
+        f"/api/questions/{args.question_id}/accept-answer",
+        payload={
+            "answer_id": args.answer_id,
         },
     )
     print_question_detail(data)
@@ -401,7 +421,7 @@ def handle_menu(_: argparse.Namespace, client: APIClient) -> None:
                     page_size=_prompt_int("每页数量", default=10),
                     category_id=_prompt_int("category_id", required=False),
                     tag_id=_prompt_int("tag_id", required=False),
-                    status=_prompt_text("status", required=False, default="OPEN"),
+                    status=_prompt_text("status（留空表示全部）", required=False),
                 )
                 handle_questions_list(args, client)
             elif choice == "5":
@@ -464,21 +484,27 @@ def handle_menu(_: argparse.Namespace, client: APIClient) -> None:
                     page_size=_prompt_int("每页数量", default=10),
                     category_id=_prompt_int("category_id", required=False),
                     tag_id=_prompt_int("tag_id", required=False),
-                    status=_prompt_text("status", required=False, default="OPEN"),
+                    status=_prompt_text("status（留空表示全部）", required=False),
                 )
                 handle_search_questions(args, client)
             elif choice == "13":
                 args = argparse.Namespace(
+                    question_id=_prompt_int("question_id"),
+                    answer_id=_prompt_int("answer_id"),
+                )
+                handle_questions_accept(args, client)
+            elif choice == "14":
+                args = argparse.Namespace(
                     user_id=_prompt_int("user_id"),
                 )
                 handle_profile_rebuild(args, client)
-            elif choice == "14":
+            elif choice == "15":
                 args = argparse.Namespace(
                     user_id=_prompt_int("user_id"),
                     limit=_prompt_int("推荐条数", default=10),
                 )
                 handle_recommendations_generate(args, client)
-            elif choice == "15":
+            elif choice == "16":
                 args = argparse.Namespace(
                     user_id=_prompt_int("user_id"),
                     status=_prompt_text("status", required=False, default="ACTIVE"),
@@ -553,7 +579,7 @@ def build_parser(
     questions_list.add_argument("--page-size", type=int, default=10)
     questions_list.add_argument("--category-id", type=int)
     questions_list.add_argument("--tag-id", type=int)
-    questions_list.add_argument("--status", default="OPEN")
+    questions_list.add_argument("--status")
     _set_handler(questions_list, handle_questions_list)
 
     questions_detail = questions_subparsers.add_parser("detail", help="Get question detail")
@@ -577,6 +603,14 @@ def build_parser(
     questions_answer.add_argument("--content", required=True)
     questions_answer.add_argument("--confidence-score", type=float)
     _set_handler(questions_answer, handle_questions_answer)
+
+    questions_accept = questions_subparsers.add_parser(
+        "accept",
+        help="Accept one answer for a question",
+    )
+    questions_accept.add_argument("--question-id", type=int, required=True)
+    questions_accept.add_argument("--answer-id", type=int, required=True)
+    _set_handler(questions_accept, handle_questions_accept)
 
     questions_browse = questions_subparsers.add_parser(
         "browse",
@@ -649,7 +683,7 @@ def build_parser(
     search_questions.add_argument("--page-size", type=int, default=10)
     search_questions.add_argument("--category-id", type=int)
     search_questions.add_argument("--tag-id", type=int)
-    search_questions.add_argument("--status", default="OPEN")
+    search_questions.add_argument("--status")
     _set_handler(search_questions, handle_search_questions)
 
     recommendations_parser = subparsers.add_parser(

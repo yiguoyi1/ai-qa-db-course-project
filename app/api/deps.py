@@ -7,6 +7,7 @@ from app.services.meta_service import MetaService
 from app.services.question_service import QuestionService
 from app.services.recommendation_service import RecommendationService
 from app.services.search_service import SearchService
+from app.services.user_center_service import UserCenterService
 
 
 def get_question_service() -> QuestionService:
@@ -43,3 +44,7 @@ def get_recommendation_service() -> RecommendationService:
 
 def get_search_service() -> SearchService:
     return SearchService()
+
+
+def get_user_center_service() -> UserCenterService:
+    return UserCenterService()

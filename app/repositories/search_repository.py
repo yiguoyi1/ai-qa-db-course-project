@@ -5,6 +5,48 @@ import oracledb
 
 class SearchRepository:
     @staticmethod
+    def _attach_favorite_state(
+        connection: oracledb.Connection,
+        items: list[dict[str, Any]],
+        *,
+        current_user_id: int | None,
+    ) -> None:
+        if not items:
+            return
+
+        if current_user_id is None:
+            for item in items:
+                item["is_favorited"] = False
+            return
+
+        question_ids = [item["question_id"] for item in items]
+        binds = {"user_id": current_user_id}
+        binds.update(
+            {
+                f"question_id_{index}": question_id
+                for index, question_id in enumerate(question_ids)
+            }
+        )
+        placeholders = ", ".join(
+            f":question_id_{index}" for index in range(len(question_ids))
+        )
+
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT question_id
+            FROM favorites
+            WHERE user_id = :user_id
+              AND question_id IN ({placeholders})
+            """,
+            binds,
+        )
+        favorited_question_ids = {int(row[0]) for row in cursor.fetchall()}
+
+        for item in items:
+            item["is_favorited"] = item["question_id"] in favorited_question_ids
+
+    @staticmethod
     def _build_search_filters(
         *,
         keyword: str,
@@ -107,6 +149,7 @@ class SearchRepository:
         keyword: str,
         page: int,
         page_size: int,
+        current_user_id: int | None = None,
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = None,
@@ -162,6 +205,7 @@ class SearchRepository:
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
                 "username": row[9],  # 🌟 3. 别忘了把第 10 列（索引是9）的名字装进字典里发给前端！
+                "is_favorited": False,
                 "tags": [],
             }
             for row in rows
@@ -204,6 +248,12 @@ class SearchRepository:
 
         for item in items:
             item["tags"] = tags_by_question_id.get(item["question_id"], [])
+
+        self._attach_favorite_state(
+            connection,
+            items,
+            current_user_id=current_user_id,
+        )
 
         return items
 

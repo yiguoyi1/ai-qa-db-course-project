@@ -30,6 +30,12 @@ def home_page() -> FileResponse:
     return _page_response("home.html")
 
 
+@web_router.get("/me")
+@web_router.get("/me.html")
+def profile_page() -> FileResponse:
+    return _page_response("profile.html")
+
+
 @web_router.get("/questions/{question_id}")
 def question_detail_page(question_id: int) -> FileResponse:
     return _page_response("detail.html")
