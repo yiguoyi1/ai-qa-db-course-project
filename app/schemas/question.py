@@ -68,19 +68,6 @@ class QuestionDetailResponse(BaseModel):
     answers: list[AnswerItem] = Field(default_factory=list)
     username: str | None = None  # 🌟 新增这一行：让详情页标准也允许带名字
 
-class QuestionListItem(BaseModel):
-    question_id: int
-    title: str
-    content: str
-    ask_time: datetime
-    answer_count: int
-    username: str = "匿名用户"
-
-# 🌟 新增：前端发帖的标准（不需要传 user_id，因为我们会从 Token 里拿）
 class QuestionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
-
-# 🌟 新增：用户提交反馈（点赞/踩）的标准
-class FeedbackRequest(BaseModel):
-    is_like: str = Field(pattern="^(Y|N)$", description="Y代表赞，N代表踩")

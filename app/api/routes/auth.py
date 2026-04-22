@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.services.auth_service import AuthService
 
@@ -9,12 +9,24 @@ router = APIRouter(prefix="/api/auth", tags=["认证大门"])
 def get_auth_service():
     return AuthService()
 
+
+def _extract_client_ip(request: Request) -> str | None:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+
+    return request.client.host if request.client else None
+
 @router.post("/register")
 def register(payload: RegisterRequest, auth_service: AuthService = Depends(get_auth_service)):
     # 直接把前台收到的表格（payload）交给安全主管去处理
     return auth_service.register(payload)
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
+def login(
+    payload: LoginRequest,
+    request: Request,
+    auth_service: AuthService = Depends(get_auth_service),
+):
     # 登录成功后，返回那张印好的 JWT 房卡
-    return auth_service.login(payload)
+    return auth_service.login(payload, ip_address=_extract_client_ip(request))

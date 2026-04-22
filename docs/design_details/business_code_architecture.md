@@ -151,7 +151,7 @@ tests/
 
 - `AskQuestionRequest`
 - `QuestionDetailResponse`
-- `SubmitFeedbackRequest`
+- `SaveAnswerFeedbackRequest`
 - `RecommendationItem`
 
 ### 4.3 `services/`
@@ -440,7 +440,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 ### 10.1 收口安全配置
 
 - 确保不同环境使用独立且足够强的 JWT 密钥
-- 把登录审计与权限边界继续补齐
+- 继续补后台用户状态管理与审计查询能力
 
 ### 10.2 继续清理鉴权过渡接口
 

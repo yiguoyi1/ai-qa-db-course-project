@@ -60,6 +60,8 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 当前网页端已经实现：
 
 - 登录与注册
+- 登录审计写入 `LOGIN_LOG`
+- 用户状态校验：只有 `ACTIVE` 用户可以登录并继续访问受保护接口
 - 首页问题流
 - 搜索与搜索历史下拉
 - 发布问题
@@ -85,7 +87,7 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 
 ## 当前最值得先改的地方
 
-基于当前代码现状，前三阶段已经完成到可用状态：
+基于当前代码现状，前几轮核心收口已经完成到可用状态：
 
 - 受保护写接口已经以 JWT 登录态为主
 - 少量 `user_id` 字段只保留过渡兼容与一致性校验
@@ -94,14 +96,20 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 - 页面请求已经改为同源 API，不再写死 `127.0.0.1:8000`
 - 首页热门标签已经改为真实标签接口数据
 
-接下来最值得继续收口的是：
+这一轮已经继续收口了接口边界：
 
-1. 收口安全配置
-   JWT 参数已经进入 `.env`，下一步重点是登录审计、用户状态和生产环境密钥管理。
-2. 继续清理鉴权过渡接口
-   回答反馈仍保留兼容入口，`questions.py` 内也还有历史遗留路由需要进一步拆分。
-3. 补齐社区核心能力
+- 回答反馈写入口只保留 `POST /api/answers/{answer_id}/feedback`
+- `questions.py` 已只保留问题资源本身
+- 搜索读接口不再接受历史 `user_id` 查询参数
+
+接下来最值得继续推进的是：
+
+1. 补齐社区核心能力
    采纳答案、用户中心、网页端评论 / 收藏 / 推荐入口仍待完善。
+2. 完善后台管理与审计查询
+   登录审计已经落库，用户状态口径也已生效，但还缺少后台管理入口和审计查询页面。
+3. 继续压缩写接口里的兼容字段
+   CLI 和少量写接口里仍有 `user_id` 过渡参数，可以继续逐步移除。
 
 详细说明见：
 
@@ -295,7 +303,7 @@ CLI 现在支持：
 
 - 公开读接口仍可匿名调用
 - 受保护写接口现在要求 Bearer Token
-- CLI 里的 `user_id` 参数目前只作为过渡兼容字段，服务端会校验它必须和当前登录用户一致
+- CLI 里仍有少量写接口保留 `user_id` 兼容字段，服务端会校验它必须和当前登录用户一致
 
 ## 当前主要接口
 
@@ -327,7 +335,6 @@ CLI 现在支持：
 - `POST /api/questions/{question_id}/favorite`
 - `DELETE /api/questions/{question_id}/favorite`
 - `POST /api/answers/{answer_id}/feedback`
-- `POST /api/questions/answers/{answer_id}/feedback`
 - `GET /api/questions/{question_id}/feedbacks`
 - `POST /api/answers/{answer_id}/comments`
 - `GET /api/answers/{answer_id}/comments`
@@ -344,7 +351,7 @@ CLI 现在支持：
 - 采纳答案
 - 用户中心
 - 网页前端评论 / 收藏 / 推荐完整闭环
-- 登录审计收口
+- 后台审计查询与运维入口
 - 多轮对话正式业务链
 
 ## 文档地图

@@ -68,15 +68,11 @@
 
 ## 4. 当前最值得优先改的点
 
-### 4.1 收口安全与配置
+### 4.1 继续清理鉴权过渡接口
 
-当前 JWT-first 已经落地，JWT 参数也已经进入 `.env`，但登录审计、用户状态约束和生产环境密钥管理还没有完全收口。
+这一轮已经收掉双反馈入口和问题路由混杂逻辑，鉴权过渡层现在主要只剩少量写接口兼容字段。
 
-### 4.2 继续清理鉴权过渡接口
-
-当前仍保留少量兼容逻辑，例如双反馈入口和历史遗留路由拆分不彻底，这部分适合作为鉴权统一后的收尾工程。
-
-### 4.3 继续补齐社区主链路
+### 4.2 继续补齐社区主链路
 
 最适合继续推进的仍然是：
 
@@ -84,6 +80,10 @@
 2. 用户中心
 3. 网页端更多互动功能
 4. 多轮对话正式业务链
+
+### 4.3 完善后台管理与审计查询
+
+当前登录审计已经能写入 `LOGIN_LOG`，用户状态口径也已经生效，但后台还没有直接管理用户状态和查看审计记录的入口。
 
 详细说明见：
 
@@ -157,7 +157,6 @@
 - `POST /api/questions/{question_id}/favorite`
 - `DELETE /api/questions/{question_id}/favorite`
 - `POST /api/answers/{answer_id}/feedback`
-- `POST /api/questions/answers/{answer_id}/feedback`
 - `GET /api/questions/{question_id}/feedbacks`
 - `POST /api/answers/{answer_id}/comments`
 - `GET /api/answers/{answer_id}/comments`
@@ -177,6 +176,8 @@
 - `POST /api/questions` 是纯社区发帖入口
 - 这两类发帖当前都要求正文 `content` 必填
 - 当前网页前端和受保护写接口已经以 JWT 登录态为主
+- 登录时会写 `LOGIN_LOG`，成功记 `SUCCESS`，密码错误/停用/未激活记 `FAILURE`，锁定账号记 `LOCKED`
+- `USERS.STATUS` 当前口径是：`ACTIVE` 允许登录与继续访问，`INACTIVE` / `DISABLED` 拒绝登录与访问，`LOCKED` 拒绝登录与访问且单独记锁定审计
 - 部分请求模型里仍保留 `user_id` 兼容字段，但服务端会校验它必须与当前登录用户一致
 - `MANUAL` 回答代表社区用户回答，必须带真实 `user_id`
 - `AI` / `SYSTEM` 回答不带 `user_id`

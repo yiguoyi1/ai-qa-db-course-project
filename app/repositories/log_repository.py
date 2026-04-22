@@ -2,6 +2,34 @@ import oracledb
 
 
 class LogRepository:
+    def create_login_log(
+        self,
+        connection: oracledb.Connection,
+        *,
+        user_id: int,
+        ip_address: str | None,
+        result: str,
+    ) -> None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            INSERT INTO login_log (
+                user_id,
+                ip_address,
+                result
+            ) VALUES (
+                :user_id,
+                :ip_address,
+                :result
+            )
+            """,
+            {
+                "user_id": user_id,
+                "ip_address": ip_address,
+                "result": result,
+            },
+        )
+
     def create_prompt_log(
         self,
         connection: oracledb.Connection,

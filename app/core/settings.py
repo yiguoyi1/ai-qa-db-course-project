@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+JWT_SECRET_PLACEHOLDER = "please-set-a-strong-random-secret-per-env"
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str

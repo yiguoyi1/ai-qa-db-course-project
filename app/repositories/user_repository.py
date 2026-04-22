@@ -2,6 +2,15 @@ import oracledb
 
 
 class UserRepository:
+    @staticmethod
+    def _build_user_record(row: tuple) -> dict:
+        return {
+            "user_id": int(row[0]),
+            "username": row[1],
+            "password_hash": row[2],
+            "status": row[3],
+        }
+
     # 动作 1：根据用户名找人（用于登录和防重复注册）
     def get_user_by_username(self, connection, username: str) -> dict | None:
         cursor = connection.cursor()
@@ -16,14 +25,22 @@ class UserRepository:
         row = cursor.fetchone()
         cursor.close()
 
-        if row:
-            return {
-                "user_id": row[0],
-                "username": row[1],
-                "password_hash": row[2],
-                "status": row[3]
-            }
-        return None
+        return self._build_user_record(row) if row else None
+
+    def get_user_by_id(self, connection, user_id: int) -> dict | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT user_id, username, password_hash, status
+            FROM users
+            WHERE user_id = :1
+            """,
+            [user_id],
+        )
+        row = cursor.fetchone()
+        cursor.close()
+
+        return self._build_user_record(row) if row else None
 
     # 动作 2：创建新用户（用于注册）
     def create_user(self, connection, username: str, password_hash: str, nickname: str | None) -> int:

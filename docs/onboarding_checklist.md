@@ -153,6 +153,8 @@ python -m frontend_cli.main comments list --answer-id 82
 - `POST /api/questions/ask` 会自动触发 AI 首答，不是纯提问
 - `POST /api/questions` 是纯社区发帖入口
 - 当前网页前端和受保护写接口已经使用 JWT 登录态
+- 登录时会写 `LOGIN_LOG`，成功记 `SUCCESS`，失败记 `FAILURE`，锁定账号记 `LOCKED`
+- `USERS.STATUS` 当前口径是：`ACTIVE` 允许登录和继续访问，`INACTIVE` / `DISABLED` 拒绝登录和继续访问，`LOCKED` 拒绝登录和继续访问并单独记锁定审计
 - 少量 `user_id` 字段仍保留作兼容，但服务端会校验它必须与当前登录用户一致
 - `MANUAL` 回答必须带真实 `user_id`
 - `AI` / `SYSTEM` 回答不带 `user_id`
@@ -226,11 +228,10 @@ python -m frontend_cli.main comments list --answer-id 82
 
 如果你是新加入的协作者，最适合接着推进的是：
 
-1. 修正首页发帖体验与后端校验错位
-2. 收口安全配置与登录审计
-3. 清理鉴权过渡接口
-4. 采纳答案
-5. 用户中心
+1. 清理鉴权过渡接口
+2. 采纳答案
+3. 用户中心
+4. 后台用户状态管理与审计查询
 
 如果你只想先熟悉系统，不建议一上来就碰：
 

@@ -50,7 +50,7 @@
 - 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/search/questions`
 - 搜索历史：`GET /api/search/history`
 - 浏览、收藏：`POST /api/questions/{question_id}/browse`、`POST /api/questions/{question_id}/favorite`、`DELETE /api/questions/{question_id}/favorite`
-- 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`POST /api/questions/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
+- 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
 - 评论与楼中楼：`POST /api/answers/{answer_id}/comments`、`GET /api/answers/{answer_id}/comments`、`DELETE /api/comments/{comment_id}`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
 
@@ -103,9 +103,8 @@
 
 当前仍然保留的收尾项有：
 
-- `POST /api/answers/{answer_id}/feedback` 与 `POST /api/questions/answers/{answer_id}/feedback` 仍同时存在
-- `questions.py` 中还有历史遗留的混合路由
-- 读接口中仍有少量兼容参数待继续清理
+- 部分写接口仍保留显式 `user_id` 兼容字段
+- CLI 里仍有少量旧交互习惯待继续收口
 
 ### 3.2 已完成阶段：统一网页前端交付方式（第二阶段）
 
@@ -134,28 +133,36 @@
 - 分类、标签选择仍是简化实现，前端还没有完整暴露出来
 - 社区发帖成功后的返回结构仍比较简化，后续可以继续统一
 
-### 3.4 当前第一优先级：收口安全与配置
+### 3.4 已完成阶段：登录安全基础收口（第四阶段）
 
-当前登录功能已可演示，但还有明显的工程化缺口：
+这一阶段已经完成到“基础规则已生效”的状态，主要包括：
 
 - JWT 密钥、算法、有效期已经进入 `.env`
-- 登录、注册成功后的审计链路还没有完全和 `LOGIN_LOG` 打通
+- 登录成功、密码错误、锁定账号登录都会写入 `LOGIN_LOG`
+- 账号状态口径已经明确：
+  - `ACTIVE`：允许登录，也允许继续访问受保护接口
+  - `INACTIVE`：拒绝登录，也拒绝访问受保护接口
+  - `LOCKED`：拒绝登录，也拒绝访问受保护接口；登录审计结果记为 `LOCKED`
+  - `DISABLED`：拒绝登录，也拒绝访问受保护接口
+- 受保护接口在 JWT 解码后会再次检查用户当前状态，避免旧 token 绕过停用/锁定
+- `JWT_SECRET_KEY` 必须是当前环境单独设置的强随机密钥，示例占位值不可直接用于真实环境
 
-建议优先动作：
+当前仍建议后续补的点有：
 
-1. 在登录流程里补齐审计记录
-2. 明确用户停用、锁定等状态的处理口径
-3. 为不同环境使用不同的强随机 JWT 密钥
+- 后台还没有直接管理用户状态的入口
+- 登录审计目前已落库，但还没有查询页面或运维侧可视化
+- 不存在 `user_id` 的登录失败尝试仍无法写入 `LOGIN_LOG`
 
-### 3.5 当前第二优先级：继续清理鉴权过渡接口
+### 3.5 已完成阶段：继续清理鉴权过渡接口
 
-虽然 JWT-first 已经落地，但还建议继续做这几件事：
+这一轮已经完成的收口包括：
 
-1. 统一回答反馈入口，只保留一套主路由
-2. 清理 `questions.py` 中混入的非问题资源逻辑
-3. 梳理个别读接口上的历史兼容参数
+1. 回答反馈写入口统一为 `POST /api/answers/{answer_id}/feedback`
+2. `questions.py` 中移除了反馈相关的混入路由
+3. 搜索读接口不再接受历史 `user_id` 查询参数，搜索历史改为仅依据当前 JWT 登录态记录
+4. CLI 与文档已同步到新的接口口径
 
-### 3.6 当前第三优先级：补齐社区核心能力
+### 3.6 当前第一优先级：补齐社区核心能力
 
 当前最适合继续做的业务能力仍然是：
 
@@ -169,7 +176,7 @@
 - 采纳答案
 - 用户中心
 - 网页端的评论、收藏、推荐等完整闭环
-- 登录审计与权限边界收口
+- 后台用户状态管理与审计查询
 - 多轮对话正式业务链
 
 ## 5. 当前最稳妥的协作口径
@@ -179,10 +186,10 @@
 - 这是一个“带 AI 首答、行为记录、推荐能力、基础网页登录和网页端入口”的问答社区 MVP
 - CLI 和网页前端同时存在
 - 写接口现在已经以 JWT 登录态为主，旧 `user_id` 字段只保留过渡兼容与一致性校验
-- 个别读接口仍保留历史兼容参数，后续还会继续清理
+- 读接口已经收口到 JWT / 路径参数主导，剩余清理点主要集中在少量写接口兼容字段
 
 如果后续继续开发，建议优先顺序为：
 
-1. 收口安全配置与登录审计
-2. 清理鉴权过渡接口
-3. 再补用户中心和采纳答案
+1. 先补用户中心和采纳答案
+2. 再补网页端评论、收藏、推荐完整闭环
+3. 补后台用户状态管理与审计查询

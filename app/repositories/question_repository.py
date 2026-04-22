@@ -297,18 +297,3 @@ class QuestionRepository:
             question["tags"] = tags_by_question_id.get(question["question_id"], [])
 
         return questions
-
-    def get_question_list(self, connection) -> list[dict]:
-        cursor = connection.cursor()
-        # 用连表查询 (JOIN) 一次性把问题和发帖人的名字都查出来
-        cursor.execute("""
-                       SELECT q.question_id, q.title, q.content, q.ask_time, q.answer_count, u.username
-                       FROM questions q
-                                LEFT JOIN users u ON q.user_id = u.user_id
-                       ORDER BY q.ask_time DESC
-                       """)
-        columns = [col[0].lower() for col in cursor.description]
-        rows = cursor.fetchall()
-        cursor.close()
-
-        return [dict(zip(columns, row)) for row in rows]

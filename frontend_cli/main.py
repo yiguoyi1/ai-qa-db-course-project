@@ -347,7 +347,6 @@ def handle_search_questions(args: argparse.Namespace, client: APIClient) -> None
             "q": args.q,
             "page": args.page,
             "page_size": args.page_size,
-            "user_id": args.user_id,
             "category_id": args.category_id,
             "tag_id": args.tag_id,
             "status": args.status,
@@ -463,7 +462,6 @@ def handle_menu(_: argparse.Namespace, client: APIClient) -> None:
                     q=_prompt_text("关键词"),
                     page=_prompt_int("页码", default=1),
                     page_size=_prompt_int("每页数量", default=10),
-                    user_id=_prompt_int("user_id（留空则不记历史）", required=False),
                     category_id=_prompt_int("category_id", required=False),
                     tag_id=_prompt_int("tag_id", required=False),
                     status=_prompt_text("status", required=False, default="OPEN"),
@@ -649,7 +647,6 @@ def build_parser(
     search_questions.add_argument("--q", required=True)
     search_questions.add_argument("--page", type=int, default=1)
     search_questions.add_argument("--page-size", type=int, default=10)
-    search_questions.add_argument("--user-id", type=int)
     search_questions.add_argument("--category-id", type=int)
     search_questions.add_argument("--tag-id", type=int)
     search_questions.add_argument("--status", default="OPEN")

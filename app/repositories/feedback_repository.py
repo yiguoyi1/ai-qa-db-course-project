@@ -163,3 +163,29 @@ class FeedbackRepository:
             "dislike_count": int(row[1]),
             "avg_rating": float(row[2]) if row[2] is not None else None,
         }
+
+    def list_user_feedbacks_by_question(
+        self,
+        connection: oracledb.Connection,
+        *,
+        question_id: int,
+        user_id: int,
+    ) -> dict[int, str]:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                f.answer_id,
+                f.is_like
+            FROM answer_feedback f
+            JOIN answers a
+              ON a.answer_id = f.answer_id
+            WHERE a.question_id = :question_id
+              AND f.user_id = :user_id
+            """,
+            {
+                "question_id": question_id,
+                "user_id": user_id,
+            },
+        )
+        return {int(row[0]): row[1] for row in cursor.fetchall()}

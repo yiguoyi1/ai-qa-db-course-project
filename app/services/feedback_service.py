@@ -81,6 +81,24 @@ class FeedbackService:
             operation=operation,
         )
 
+    def list_question_feedbacks(
+        self,
+        *,
+        question_id: int,
+        user_id: int,
+    ) -> dict[int, str]:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+        if user_id <= 0:
+            raise ValidationError("user_id must be greater than 0.")
+
+        with get_connection() as connection:
+            return self._feedback_repository.list_user_feedbacks_by_question(
+                connection=connection,
+                question_id=question_id,
+                user_id=user_id,
+            )
+
     @staticmethod
     def _translate_database_error(exc: oracledb.DatabaseError) -> AppError:
         details = exc.args[0] if exc.args else exc

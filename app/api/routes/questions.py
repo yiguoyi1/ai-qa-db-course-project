@@ -5,13 +5,10 @@ from app.api.deps import get_question_service
 from app.core.errors import AppError
 from app.schemas.question import (
     AskQuestionRequest,
-    FeedbackRequest,
     QuestionCreate,
     QuestionDetailResponse,
-    QuestionListItem,
     QuestionListResponse,
 )
-from app.services.answer_service import AnswerService
 from app.services.question_service import QuestionService
 
 router = APIRouter(prefix="/questions", tags=["questions"])
@@ -81,11 +78,6 @@ def get_question_detail(
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
-@router.get("", response_model=list[QuestionListItem])
-def list_questions(question_service: QuestionService = Depends(get_question_service)):
-    return question_service.get_questions()
-
-# 🌟 终于！开设接收纯社区发帖的 POST 大门 🌟
 @router.post("")
 def create_community_question(
     payload: QuestionCreate,
@@ -93,25 +85,3 @@ def create_community_question(
     service: QuestionService = Depends(get_question_service),
 ):
     return service.publish_question(current_user_id, payload)
-
-
-
-# 🌟 接收用户点赞/踩的终极通道
-@router.post("/answers/{answer_id}/feedback")
-def submit_answer_feedback(
-    answer_id: int,
-    payload: FeedbackRequest,
-    current_user_id: int = Depends(get_current_user_id),
-):
-    service = AnswerService()
-    return service.submit_feedback(answer_id, current_user_id, payload.is_like)
-
-
-
-@router.get("/{question_id}/feedbacks")
-def get_my_feedbacks(
-    question_id: int,
-    current_user_id: int = Depends(get_current_user_id),
-):
-    service = AnswerService()
-    return service.get_user_feedbacks(question_id, current_user_id)
