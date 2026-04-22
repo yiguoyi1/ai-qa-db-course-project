@@ -1,80 +1,130 @@
 # ai-qa-db-course-project
 
-AI QA system with recommendation and database design.
+AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 
 # 智能问答记录与推荐管理系统
 
 ## 项目简介
 
-本项目是一个面向数据库课程设计的智能问答系统，围绕“问答 + 行为 + 推荐”构建完整的数据闭环。
+本项目是一个面向数据库课程设计的问答社区 MVP，围绕“问答 + 行为 + 推荐”构建完整的数据闭环。
 
-如果是新的协作者，建议先看：
+当前仓库已经不只是数据库设计稿，而是同时包含：
 
-- [docs/README.md](/F:/ai-qa-db-course-project/docs/README.md)
-- [docs/onboarding_checklist.md](/F:/ai-qa-db-course-project/docs/onboarding_checklist.md)
+- Oracle 26ai 数据库脚本与校验脚本
+- FastAPI 后端
+- 静态网页前端
+- 独立 CLI 测试前端
 
-系统支持：
+如果你是新的协作者，建议先看：
 
-- 用户提问与 AI 回答记录
-- 浏览、收藏、反馈、搜索等行为数据管理
-- 用户兴趣画像建模
-- 多策略推荐生成
-- AI Prompt 与多轮会话日志记录
+- [docs/current_status.md](docs/current_status.md)
+- [docs/README.md](docs/README.md)
+- [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
+
+## 当前已完成能力
+
+### 1. 数据库与推荐闭环
+
+- `sql/create_tables.sql`：建表、主外键、唯一约束、检查约束、索引
+- `sql/procedures.sql`：统计同步、画像重建、推荐生成
+- `sql/triggers.sql`：自动维护统计字段与登录时间
+- `sql/seed_data.sql`：固定演示数据
+- `scripts/validate-oracle-schema.ps1`：结构和业务规则校验
+
+### 2. FastAPI 后端
+
+- 健康检查：`GET /health`
+- 注册 / 登录：`POST /api/auth/register`、`POST /api/auth/login`
+- AI 首答提问：`POST /api/questions/ask`
+- 纯社区发帖：`POST /api/questions`
+- 问题列表 / 详情：`GET /api/questions`、`GET /api/questions/{question_id}`
+- 人工回答：`POST /api/questions/{question_id}/answers`
+- 分类、标签、搜索、搜索历史
+- 浏览、收藏、反馈、评论
+- 用户画像重建与推荐生成
+
+### 3. 网页前端
+
+当前仓库已经包含静态网页前端页面，位于 `app/web/`：
+
+- [app/web/login.html](app/web/login.html)
+- [app/web/home.html](app/web/home.html)
+- [app/web/detail.html](app/web/detail.html)
+
+当前网页端已经实现：
+
+- 登录与注册
+- 首页问题流
+- 搜索与搜索历史下拉
+- 发布问题
+- 切换“纯社区发帖”与“AI 首答发帖”
+- 问题详情查看
+- Markdown 回答渲染与代码高亮
+- 发布人工回答
+- 点赞 / 点踩与当前用户反馈状态回显
+- 登录态展示与退出登录
+
+### 4. CLI 测试前端
+
+仓库仍保留独立 CLI：
+
+- `frontend_cli/main.py`
+- `frontend_cli/api_client.py`
+- `frontend_cli/config.py`
+- `frontend_cli/render.py`
+
+CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastAPI，适合做接口回归和业务演示。
+
+## 当前最值得先改的地方
+
+基于当前代码现状，最值得优先收口的是：
+
+1. 统一接口契约和鉴权方式
+   当前同时存在 JWT 取 `user_id` 和显式传 `user_id` 两种模式，回答反馈也有两套入口。
+2. 把网页前端纳入统一交付方式
+   现在 `app/web/` 页面还没有通过 FastAPI 静态托管，且 API 地址写死为 `http://127.0.0.1:8000`。
+3. 修正发帖体验与后端校验错位
+   首页弹窗把“详细描述”标成可选，但 AI 发帖接口仍要求 `content` 非空。
+4. 收口安全配置
+   JWT `SECRET_KEY` 仍硬编码在服务层，还没有进入 `.env`。
+5. 补齐社区核心能力
+   采纳答案、用户中心、网页端评论 / 收藏 / 推荐入口仍待完善。
+
+详细说明见：
+
+- [docs/current_status.md](docs/current_status.md)
 
 ## 当前技术栈
 
-- 数据库：Oracle AI Database 26ai Free
-- 本地运行方式：Docker Desktop + Oracle 官方容器镜像
-- SQL 脚本：Oracle 26ai 兼容 DDL / Package / Trigger
-- 适用环境：Windows + PowerShell + WSL 2
+- 后端：`FastAPI`
+- 数据库：`Oracle AI Database 26ai Free`
+- 数据库访问：`python-oracledb`
+- AI 提供商：`DeepSeek`
+- AI SDK：`OpenAI SDK`
+- 配置管理：`.env`
+- 网页前端：原生 HTML + CSS + JavaScript
+- 测试前端：Python CLI
 
-## 数据库设计概览
+## 仓库结构速览
 
-系统数据表分为五大模块：
-
-### 1. 基础数据
-
-- `USERS`
-- `CATEGORIES`
-- `QUESTIONS`
-- `ANSWERS`
-- `TAGS`
-- `QUESTION_TAGS`
-
-### 2. 用户行为
-
-- `ANSWER_FEEDBACK`
-- `FAVORITES`
-- `BROWSE_HISTORY`
-- `SEARCH_HISTORY`
-
-### 3. 推荐相关
-
-- `RECOMMENDATIONS`
-- `USER_TAG_PROFILE`
-
-### 4. AI 扩展
-
-- `CHAT_SESSION`
-- `CHAT_MESSAGE`
-- `AI_PROMPT_LOG`
-
-### 5. 系统管理
-
-- `LOGIN_LOG`
-- `OPERATION_LOG`
-
-## 核心数据流程
-
-```text
-用户行为 -> 标签权重计算 -> 用户画像 -> 推荐生成
-```
-
-## 仓库中的关键 SQL
-
-- `sql/create_tables.sql`：建表、主外键、唯一约束、检查约束、索引
-- `sql/procedures.sql`：统计同步、画像重建、推荐生成等业务过程
-- `sql/triggers.sql`：自动维护统计字段与登录时间
+- `app/`
+  - `api/`：HTTP 路由与依赖
+  - `services/`：业务编排层
+  - `repositories/`：数据库访问层
+  - `schemas/`：请求与响应模型
+  - `integrations/llm/`：AI 提供商接入
+  - `prompts/`：提示词模板
+  - `web/`：静态网页前端
+- `frontend_cli/`
+  独立命令行前端
+- `sql/`
+  DDL、过程、触发器、迁移、种子数据
+- `scripts/`
+  启动容器、导入 schema、导入种子数据、业务测试入口
+- `docker/`
+  Oracle 启动相关文件
+- `docs/`
+  协作文档、设计文档、部署文档
 
 ## 本地启动 Oracle 26ai
 
@@ -90,7 +140,7 @@ docker login container-registry.oracle.com
 
 Oracle 仓库页面：
 
-`https://container-registry.oracle.com/ords/ocr/ba/database/free`
+[container-registry.oracle.com/ords/ocr/ba/database/free](https://container-registry.oracle.com/ords/ocr/ba/database/free)
 
 ### 初始化步骤
 
@@ -100,10 +150,11 @@ Oracle 仓库页面：
 Copy-Item .env.example .env
 ```
 
-2. 修改 `.env` 中至少这两个值：
+2. 修改 `.env` 中至少这些值：
 
 - `ORACLE_PWD`
 - `APP_USER_PASSWORD`
+- `DEEPSEEK_API_KEY`
 
 3. 启动 Oracle 26ai 容器：
 
@@ -146,28 +197,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 - 验证触发器、统计字段、推荐逻辑
 - 最后自动清理临时用户
 
-当前已验证通过的要点包括：
-
-- 全部表与索引可成功创建
-- `qa_app_pkg` 包和触发器可成功编译
-- 浏览量、收藏数、回答数、点赞数、评分均可自动同步
-- 重复用户名、重复收藏、重复反馈、非法评分、非法外键会被正确拒绝
-
-## 最小 API 骨架
-
-仓库现在已经包含“单轮 AI 问答最小闭环”的 FastAPI 代码骨架，核心目录如下：
-
-- `app/main.py`
-- `app/api/routes/questions.py`
-- `app/services/question_service.py`
-- `app/services/ai_answer_service.py`
-- `app/repositories/`
-- `app/integrations/llm/openai_client.py`
-- `app/prompts/question_answer_prompt.py`
+## 启动 API
 
 ### 运行前补充配置
 
-在 `.env` 中补充或确认以下值：
+在 `.env` 中确认这些值：
 
 - `APP_USER`
 - `APP_USER_PASSWORD`
@@ -181,144 +215,115 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 pip install -r requirements.txt
 ```
 
-### 启动 API
+### 启动命令
 
 ```powershell
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 当前已提供的接口
+启动后可访问：
 
-- `GET /health`
-- `POST /api/questions/ask`
-- `GET /api/questions/{question_id}`
+- `http://127.0.0.1:8000/health`
+- `http://127.0.0.1:8000/docs`
 
-当前还已补充：
+## 使用网页前端
 
-- `GET /api/questions`
-- `POST /api/questions/{question_id}/answers`
-- `GET /api/categories`
-- `GET /api/tags`
-- `POST /api/questions/{question_id}/browse`
-- `POST /api/questions/{question_id}/favorite`
-- `DELETE /api/questions/{question_id}/favorite`
-- `POST /api/answers/{answer_id}/feedback`
-- `POST /api/answers/{answer_id}/comments`
-- `GET /api/answers/{answer_id}/comments`
-- `DELETE /api/comments/{comment_id}`
-- `POST /api/users/{user_id}/profile/rebuild`
-- `POST /api/users/{user_id}/recommendations/generate`
-- `GET /api/users/{user_id}/recommendations`
-- `GET /api/search/questions`
+当前网页前端仍是静态页面，尚未通过 FastAPI 统一托管。
 
-## 独立 CLI 前端
+在 API 启动后，可直接打开：
 
-仓库现在包含一个单独的命令行前端：
+- `app/web/login.html`
+- `app/web/home.html`
+- `app/web/detail.html`
 
-- `frontend_cli/main.py`
-- `frontend_cli/api_client.py`
-- `frontend_cli/config.py`
-- `frontend_cli/render.py`
+注意：
 
-这个 CLI 前端不会直接 import `app/services` 或 `app/repositories`，而是只通过 HTTP 调用 FastAPI 接口，因此和业务逻辑代码保持解耦。
+- 页面脚本当前默认请求 `http://127.0.0.1:8000`
+- 登录成功后，JWT 和用户信息会写入 `localStorage`
+- 首页右侧热门标签目前仍是硬编码展示，不是动态接口渲染
 
-### CLI 配置
+## 使用 CLI
 
-可在 `.env` 中配置：
-
-- `CLI_API_BASE_URL`
-- `CLI_API_TIMEOUT`
-
-默认值分别是：
-
-- `http://127.0.0.1:8000`
-- `30`
-
-### CLI 示例
-
-先启动 API：
-
-```powershell
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-再在另一个终端执行：
-
-```powershell
-python -m frontend_cli.main health
-python -m frontend_cli.main menu
-python -m frontend_cli.main categories
-python -m frontend_cli.main tags
-python -m frontend_cli.main questions list
-python -m frontend_cli.main questions detail --question-id <question_id>
-python -m frontend_cli.main questions answer --question-id <question_id> --user-id <user_id> --content "这是一个人工回答示例"
-python -m frontend_cli.main comments add --answer-id <answer_id> --user-id <user_id> --content "这是一条评论"
-python -m frontend_cli.main comments list --answer-id <answer_id>
-python -m frontend_cli.main comments delete --comment-id <comment_id> --user-id <user_id>
-python -m frontend_cli.main search questions --q DeepSeek
-python -m frontend_cli.main recommendations list --user-id <user_id>
-```
-
-### 一键业务测试入口
-
-如果你当前主要是验证业务逻辑，可以直接使用这个脚本：
-
-优先推荐 Python 入口：
+推荐入口：
 
 ```powershell
 python .\scripts\start_business_test.py
 ```
 
-它会：
+这个入口会：
 
-- 检查 `http://127.0.0.1:8000/health`
-- 如果 API 还没启动，就自动启动 `uvicorn`
-- 等待后端可用
-- 直接进入 CLI 菜单模式
-- 退出菜单后，如果 API 是脚本临时拉起的，就自动关闭
+- 自动检查 `/health`
+- 如有需要自动启动 API
+- 进入 CLI 菜单模式
 
-如果你已经手动启动了 API，也可以这样复用现有服务：
+也可以单独执行：
 
 ```powershell
-python .\scripts\start_business_test.py --skip-api-start
+python -m frontend_cli.main health
+python -m frontend_cli.main menu
+python -m frontend_cli.main questions list
+python -m frontend_cli.main questions detail --question-id <question_id>
+python -m frontend_cli.main questions answer --question-id <question_id> --user-id <user_id> --content "这是一个人工回答示例"
+python -m frontend_cli.main search questions --q DeepSeek
 ```
 
-如果你更习惯 PowerShell，也可以继续使用：
+## 当前主要接口
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-business-test.ps1
-```
+### 认证
 
-对应的 PowerShell 复用方式：
+- `POST /api/auth/register`
+- `POST /api/auth/login`
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\start-business-test.ps1 -SkipApiStart
-```
+### 问题与回答
 
-## 连接信息
+- `POST /api/questions/ask`
+- `POST /api/questions`
+- `GET /api/questions`
+- `GET /api/questions/{question_id}`
+- `POST /api/questions/{question_id}/answers`
 
-- Host: `localhost`
-- Port: `1521`
-- Service Name: `FREEPDB1`
-- 管理员密码：`.env` 中的 `ORACLE_PWD`
-- 应用用户：`.env` 中的 `APP_USER`
-- 应用密码：`.env` 中的 `APP_USER_PASSWORD`
+### 搜索与行为
 
-## 常用命令
+- `GET /api/categories`
+- `GET /api/tags`
+- `GET /api/search/questions`
+- `GET /api/search/history`
+- `POST /api/questions/{question_id}/browse`
+- `POST /api/questions/{question_id}/favorite`
+- `DELETE /api/questions/{question_id}/favorite`
+- `POST /api/answers/{answer_id}/feedback`
+- `POST /api/questions/answers/{answer_id}/feedback`
+- `GET /api/questions/{question_id}/feedbacks`
+- `POST /api/answers/{answer_id}/comments`
+- `GET /api/answers/{answer_id}/comments`
+- `DELETE /api/comments/{comment_id}`
 
-```powershell
-docker compose up -d
-docker compose logs -f oracle26ai
-docker compose down
-docker exec -it oracle26ai sqlplus system/<password>@//localhost:1521/FREEPDB1
-```
+### 推荐
 
-## 相关文档
+- `POST /api/users/{user_id}/profile/rebuild`
+- `POST /api/users/{user_id}/recommendations/generate`
+- `GET /api/users/{user_id}/recommendations`
 
-- [docs/README.md](/F:/ai-qa-db-course-project/docs/README.md)
-- [docs/onboarding_checklist.md](/F:/ai-qa-db-course-project/docs/onboarding_checklist.md)
-- `docs/setup/oracle-26ai-docker.md`
-- `docs/design_details/data_design_full.md`
-- `docs/design_details/business_code_architecture.md`
-- `docs/design_details/community_platform_design.md`
-- `docs/design_details/threaded_comment_design.md`
+## 当前仍未完全完成或未收口的能力
+
+- 采纳答案
+- 用户中心
+- 网页前端评论 / 收藏 / 推荐完整闭环
+- 网页前端与后端统一托管和统一配置
+- 登录审计收口
+- 多轮对话正式业务链
+
+## 文档地图
+
+- [docs/current_status.md](docs/current_status.md)
+  当前代码状态、已完成能力、优先改进项
+- [docs/README.md](docs/README.md)
+  协作者快速入口
+- [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
+  新协作者交接清单
+- [docs/design_details/business_code_architecture.md](docs/design_details/business_code_architecture.md)
+  业务代码架构说明
+- [docs/design_details/community_platform_design.md](docs/design_details/community_platform_design.md)
+  社区产品与接口设计
+- [docs/setup/oracle-26ai-docker.md](docs/setup/oracle-26ai-docker.md)
+  Oracle 26ai 部署说明

@@ -12,17 +12,17 @@
 
 先看这 4 份文档：
 
-1. [README.md](/F:/ai-qa-db-course-project/README.md)
-2. [docs/README.md](/F:/ai-qa-db-course-project/docs/README.md)
-3. [community_platform_design.md](/F:/ai-qa-db-course-project/docs/design_details/community_platform_design.md)
-4. [business_code_architecture.md](/F:/ai-qa-db-course-project/docs/design_details/business_code_architecture.md)
+1. [README.md](../README.md)
+2. [current_status.md](current_status.md)
+3. [docs/README.md](README.md)
+4. [community_platform_design.md](design_details/community_platform_design.md)
 
 读完后你应该能回答这几个问题：
 
 - 这是“问答社区”，不是纯 AI 问答机器人
 - 当前数据库和后端已经可运行
-- 当前测试入口是独立 CLI，而不是网页前端
-- 当前仍以显式 `user_id` 测业务，不是完整登录态
+- 当前同时有静态网页前端和独立 CLI
+- 当前登录态已经基础落地，但接口层还存在 JWT 与显式 `user_id` 并存的情况
 
 ## 2. 准备本地环境
 
@@ -85,12 +85,32 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-打开这个地址检查：
+打开这些地址检查：
 
 - `http://127.0.0.1:8000/health`
 - `http://127.0.0.1:8000/docs`
 
-## 5. 用独立 CLI 验证主链路
+## 5. 用网页前端或 CLI 验证主链路
+
+### 5.1 网页前端验证
+
+API 正常后，可直接打开：
+
+- `app/web/login.html`
+- `app/web/home.html`
+- `app/web/detail.html`
+
+建议最少手动验证这几步：
+
+1. 注册一个新账号
+2. 登录并跳转到首页
+3. 首页搜索已有问题
+4. 通过发帖弹窗发布一个纯社区问题
+5. 再发布一个带 AI 首答的问题
+6. 打开详情页并尝试发布人工回答
+7. 对已有回答执行点赞或点踩
+
+### 5.2 CLI 验证
 
 最推荐的入口：
 
@@ -127,6 +147,9 @@ python -m frontend_cli.main comments list --answer-id 82
 这些不是“可选理解”，而是当前实现已经固定下来的口径：
 
 - `POST /api/questions/ask` 会自动触发 AI 首答，不是纯提问
+- `POST /api/questions` 是纯社区发帖入口
+- 当前网页前端已经使用 JWT 登录态
+- 当前仍有一部分接口保留显式 `user_id`
 - `MANUAL` 回答必须带真实 `user_id`
 - `AI` / `SYSTEM` 回答不带 `user_id`
 - 评论挂在回答下，不直接挂在问题下
@@ -134,37 +157,43 @@ python -m frontend_cli.main comments list --answer-id 82
 - 评论不支持编辑
 - 评论删除采用软删除
 - 删除评论不会级联删除子回复
-- 已删除顶层评论显示“原评论已删除”
-- 已删除回复显示“原回复已删除”
 - 推荐逻辑优先复用数据库过程，不在 Python 里重写
 
 ## 7. 改代码前先看哪些文件
 
-### 7.1 如果要改问题、回答、评论
+### 7.1 如果要改登录、发帖、详情页联动
 
-- [questions.py](/F:/ai-qa-db-course-project/app/api/routes/questions.py)
-- [answers.py](/F:/ai-qa-db-course-project/app/api/routes/answers.py)
-- [comments.py](/F:/ai-qa-db-course-project/app/api/routes/comments.py)
-- [question_service.py](/F:/ai-qa-db-course-project/app/services/question_service.py)
-- [answer_service.py](/F:/ai-qa-db-course-project/app/services/answer_service.py)
-- [comment_service.py](/F:/ai-qa-db-course-project/app/services/comment_service.py)
-- [question_repository.py](/F:/ai-qa-db-course-project/app/repositories/question_repository.py)
-- [answer_repository.py](/F:/ai-qa-db-course-project/app/repositories/answer_repository.py)
-- [comment_repository.py](/F:/ai-qa-db-course-project/app/repositories/comment_repository.py)
+- [login.html](../app/web/login.html)
+- [home.html](../app/web/home.html)
+- [detail.html](../app/web/detail.html)
+- [auth.py](../app/api/routes/auth.py)
+- [auth_service.py](../app/services/auth_service.py)
+- [questions.py](../app/api/routes/questions.py)
 
-### 7.2 如果要改推荐
+### 7.2 如果要改问题、回答、评论
 
-- [recommendations.py](/F:/ai-qa-db-course-project/app/api/routes/recommendations.py)
-- [recommendation_service.py](/F:/ai-qa-db-course-project/app/services/recommendation_service.py)
-- [recommendation_repository.py](/F:/ai-qa-db-course-project/app/repositories/recommendation_repository.py)
-- [procedures.sql](/F:/ai-qa-db-course-project/sql/procedures.sql)
+- [answers.py](../app/api/routes/answers.py)
+- [comments.py](../app/api/routes/comments.py)
+- [question_service.py](../app/services/question_service.py)
+- [answer_service.py](../app/services/answer_service.py)
+- [comment_service.py](../app/services/comment_service.py)
+- [question_repository.py](../app/repositories/question_repository.py)
+- [answer_repository.py](../app/repositories/answer_repository.py)
+- [comment_repository.py](../app/repositories/comment_repository.py)
 
-### 7.3 如果要改数据库结构
+### 7.3 如果要改推荐
 
-- [create_tables.sql](/F:/ai-qa-db-course-project/sql/create_tables.sql)
-- [procedures.sql](/F:/ai-qa-db-course-project/sql/procedures.sql)
-- [triggers.sql](/F:/ai-qa-db-course-project/sql/triggers.sql)
-- [constraints_and_rules.md](/F:/ai-qa-db-course-project/docs/design_details/constraints_and_rules.md)
+- [recommendations.py](../app/api/routes/recommendations.py)
+- [recommendation_service.py](../app/services/recommendation_service.py)
+- [recommendation_repository.py](../app/repositories/recommendation_repository.py)
+- [procedures.sql](../sql/procedures.sql)
+
+### 7.4 如果要改数据库结构
+
+- [create_tables.sql](../sql/create_tables.sql)
+- [procedures.sql](../sql/procedures.sql)
+- [triggers.sql](../sql/triggers.sql)
+- [constraints_and_rules.md](design_details/constraints_and_rules.md)
 - `sql/migrations/`
 
 ## 8. 协作时不要做的事
@@ -173,6 +202,7 @@ python -m frontend_cli.main comments list --answer-id 82
 - 不要把本机绝对路径、真实密码、日志垃圾提交进仓库
 - 不要在 Python 里手动维护统计字段
 - 不要在应用层复制一套推荐算法
+- 不要忽略网页前端和后端之间的接口错位
 - 不要只改代码不改文档
 - 不要把未实现能力写成“已完成”
 
@@ -182,25 +212,27 @@ python -m frontend_cli.main comments list --answer-id 82
 
 1. 能否启动 API
 2. `/health` 是否正常
-3. 对应 CLI 命令是否还能跑通
-4. 如果改了数据库结构，校验脚本是否还能过
-5. 是否同步更新了相关文档
-6. `git status` 里是否出现了不该提交的 `.env`、日志、缓存文件
+3. 网页前端是否还能完成登录、列表、详情、发帖、回答、点赞主链路
+4. 对应 CLI 命令是否还能跑通
+5. 如果改了数据库结构，校验脚本是否还能过
+6. 是否同步更新了相关文档
+7. `git status` 里是否出现了不该提交的 `.env`、日志、缓存文件
 
 ## 10. 当前最推荐继续做的事
 
 如果你是新加入的协作者，最适合接着推进的是：
 
-1. 纯社区式提问接口 `POST /api/questions`
-2. 采纳答案
-3. 用户中心
-4. 登录与鉴权
+1. 统一接口契约与鉴权方式
+2. 把网页前端纳入 FastAPI 统一托管
+3. 修正首页发帖体验与后端校验错位
+4. 采纳答案
+5. 用户中心
 
 如果你只想先熟悉系统，不建议一上来就碰：
 
 - 多轮对话
-- 复杂前端页面
 - 推荐算法重构
+- 大规模重写数据库逻辑
 
 ## 11. 交接完成标准
 
@@ -208,7 +240,8 @@ python -m frontend_cli.main comments list --answer-id 82
 
 - 能独立跑起 Oracle 容器
 - 能独立启动 FastAPI
-- 能用 CLI 跑通至少一条业务链
+- 能至少用网页前端或 CLI 跑通一条业务链
+- 知道当前 JWT 和显式 `user_id` 是并存状态
 - 知道评论和推荐的关键规则
 - 知道改数据库要同步改文档
 - 知道当前下一阶段优先级是什么

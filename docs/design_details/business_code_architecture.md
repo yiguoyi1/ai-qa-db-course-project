@@ -30,7 +30,7 @@
 
 - 结构简单，适合课程设计阶段快速落地
 - Python 接入 AI 模型和 Oracle 都比较直接
-- 后续如果需要做前端页面，也容易加接口
+- 当前已经同时落地静态网页前端和独立 CLI，后续继续扩展也方便
 - 即使以后换成 Java / Node.js，这套模块边界仍然成立
 
 ## 3. 建议目录结构
@@ -44,6 +44,7 @@ app/
     router.py
     deps.py
     routes/
+      auth.py
       answers.py
       browse.py
       comments.py
@@ -52,6 +53,7 @@ app/
       meta.py
       questions.py
       recommendations.py
+      search.py
   core/
     errors.py
     settings.py
@@ -59,6 +61,7 @@ app/
     connection.py
   schemas/
     answer.py
+    auth.py
     browse.py
     comment.py
     favorite.py
@@ -69,6 +72,7 @@ app/
   services/
     ai_answer_service.py
     answer_service.py
+    auth_service.py
     browse_service.py
     comment_service.py
     favorite_service.py
@@ -88,11 +92,16 @@ app/
     question_repository.py
     recommendation_repository.py
     search_repository.py
+    user_repository.py
   integrations/
     llm/
       openai_client.py
   prompts/
     question_answer_prompt.py
+  web/
+    login.html
+    home.html
+    detail.html
 
 frontend_cli/
   api_client.py
@@ -288,10 +297,13 @@ tests/
 
 这一层尽量复用数据库里已经写好的过程，不要在应用层重复实现同一套推荐逻辑。
 
-### 5.5 独立 CLI 测试前端
+### 5.5 网页前端与 CLI 测试前端
 
 建议文件：
 
+- `app/web/login.html`
+- `app/web/home.html`
+- `app/web/detail.html`
 - `frontend_cli/main.py`
 - `frontend_cli/api_client.py`
 - `frontend_cli/render.py`
@@ -299,6 +311,8 @@ tests/
 
 当前能力：
 
+- 网页端已具备登录、首页列表、搜索、发帖、详情、回答、点赞/点踩等主链路
+- 网页端当前仍是静态 HTML，尚未通过 FastAPI 统一托管
 - 通过 HTTP 调后端接口，不直接依赖 service/repository
 - 覆盖问题、回答、收藏、反馈、评论、推荐等核心测试入口
 - 一键拉起 API 并进入菜单模式
@@ -332,6 +346,7 @@ tests/
 
 ### 7.1 认证
 
+- `POST /api/auth/register`
 - `POST /api/auth/login`
 
 ### 7.2 问题与回答
@@ -410,38 +425,48 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 当前代码已经完成这些主链路：
 
+- 注册、登录与 JWT 房卡发放
 - 问题列表、问题详情、AI 首答
+- 纯社区式发帖
 - 用户人工回答
 - 分类标签、搜索、浏览、收藏、反馈
 - 评论与楼中楼回复
 - 用户画像与推荐生成
+- 静态网页前端主链路
 - 独立 CLI 业务测试入口
 
 下一阶段更值得优先补的是：
 
-### 10.1 纯社区式提问
+### 10.1 统一接口契约与鉴权
 
-- 新增不自动触发 AI 首答的 `POST /api/questions`
-- 把“提问”和“请求 AI 辅助回答”彻底分开
+- 把 JWT 鉴权依赖从 `questions.py` 中抽离出来
+- 统一显式 `user_id` 与 JWT 两种调用方式的边界
+- 合并重复或语义重叠的反馈入口
 
-### 10.2 采纳答案
+### 10.2 网页前端统一托管与配置
+
+- 把 `app/web/` 纳入 FastAPI 静态文件或模板托管
+- 把 API base URL 从页面脚本中抽离
+- 用真实接口替换首页硬编码展示内容
+
+### 10.3 采纳答案
 
 - 支持提问者采纳某条回答
 - 让问题状态与最佳答案形成明确闭环
 
-### 10.3 用户中心
+### 10.4 用户中心
 
 - 我的问题
 - 我的回答
 - 我的收藏
 - 我的搜索与浏览历史
 
-### 10.4 登录与鉴权
+### 10.5 登录与鉴权收口
 
-- 当前仍以显式 `user_id` 为主，方便测试
-- 后续可补真实登录态和权限控制
+- 当前登录、注册和 JWT 已基础落地
+- 但仍与显式 `user_id` 模式并存，后续应继续收口权限控制与审计
 
-### 10.5 多轮对话
+### 10.6 多轮对话
 
 - 当前未实现
 - 等社区主链路稳定后再扩展
@@ -479,7 +504,7 @@ scripts/start_business_test.py
 
 最稳妥的落地方式是：
 
-- 继续保持单体后端 + 独立 CLI 测试前端
+- 继续保持单体后端，同时维护网页前端和独立 CLI 两条验证链路
 - 继续复用 Oracle 里已经写好的约束、触发器和推荐过程
-- 优先补齐社区主链路缺口，而不是先扩散到更多外围功能
+- 优先收口接口契约、鉴权和网页前端交付方式
 - 等采纳答案、用户中心、登录态稳定后，再考虑多轮对话和更复杂推荐策略
