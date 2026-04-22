@@ -2,10 +2,27 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-from app.services.auth_service import ALGORITHM, SECRET_KEY
+from app.core.settings import get_settings
 
 
 _bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def _get_decode_config() -> tuple[str, str]:
+    settings = get_settings()
+
+    if not settings.jwt_secret_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="JWT_SECRET_KEY 未配置，请联系管理员检查服务配置",
+        )
+    if not settings.jwt_algorithm:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="JWT_ALGORITHM 未配置，请联系管理员检查服务配置",
+        )
+
+    return settings.jwt_secret_key, settings.jwt_algorithm
 
 
 def _decode_current_user_id(
@@ -22,10 +39,11 @@ def _decode_current_user_id(
         return None
 
     try:
+        secret_key, algorithm = _get_decode_config()
         payload = jwt.decode(
             credentials.credentials,
-            SECRET_KEY,
-            algorithms=[ALGORITHM],
+            secret_key,
+            algorithms=[algorithm],
         )
         subject = payload.get("sub")
         if subject is None:

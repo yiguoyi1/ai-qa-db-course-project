@@ -22,6 +22,9 @@ class Settings:
     deepseek_api_key: str
     deepseek_model: str
     deepseek_base_url: str
+    jwt_secret_key: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
 
     @property
     def oracle_dsn(self) -> str:
@@ -43,4 +46,9 @@ def get_settings() -> Settings:
         deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", ""),
         deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
         deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+        jwt_secret_key=os.getenv("JWT_SECRET_KEY", "").strip(),
+        jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256").strip(),
+        jwt_access_token_expire_minutes=int(
+            os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7))
+        ),
     )

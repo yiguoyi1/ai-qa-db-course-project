@@ -97,7 +97,7 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 接下来最值得继续收口的是：
 
 1. 收口安全配置
-   JWT `SECRET_KEY` 仍硬编码在服务层，还没有进入 `.env`。
+   JWT 参数已经进入 `.env`，下一步重点是登录审计、用户状态和生产环境密钥管理。
 2. 继续清理鉴权过渡接口
    回答反馈仍保留兼容入口，`questions.py` 内也还有历史遗留路由需要进一步拆分。
 3. 补齐社区核心能力
@@ -167,6 +167,7 @@ Copy-Item .env.example .env
 
 - `ORACLE_PWD`
 - `APP_USER_PASSWORD`
+- `JWT_SECRET_KEY`
 - `DEEPSEEK_API_KEY`
 
 3. 启动 Oracle 26ai 容器：
@@ -218,6 +219,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 
 - `APP_USER`
 - `APP_USER_PASSWORD`
+- `JWT_SECRET_KEY`
+- `JWT_ALGORITHM`
+- `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`
 - `DEEPSEEK_API_KEY`
 - `DEEPSEEK_MODEL`
 - `DEEPSEEK_BASE_URL`

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt
 
+from app.core.settings import get_settings
 from app.core.errors import AppError, ValidationError, NotFoundError
 from app.db.connection import get_connection
 from app.repositories.user_repository import UserRepository
@@ -10,10 +11,25 @@ from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 # 密码加密器：使用 bcrypt 算法
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT 印钞机配置（在企业里这些要写进 .env 里，现在为了测试先写死）
-SECRET_KEY = "super-secret-ai-qa-key-do-not-leak"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 房卡有效期：7天
+
+def _get_jwt_config() -> tuple[str, str, int]:
+    settings = get_settings()
+
+    if not settings.jwt_secret_key:
+        raise AppError("JWT_SECRET_KEY 未配置，请先在 .env 中设置该项。", status_code=500)
+    if not settings.jwt_algorithm:
+        raise AppError("JWT_ALGORITHM 未配置，请先在 .env 中设置该项。", status_code=500)
+    if settings.jwt_access_token_expire_minutes <= 0:
+        raise AppError(
+            "JWT_ACCESS_TOKEN_EXPIRE_MINUTES 必须大于 0。",
+            status_code=500,
+        )
+
+    return (
+        settings.jwt_secret_key,
+        settings.jwt_algorithm,
+        settings.jwt_access_token_expire_minutes,
+    )
 
 class AuthService:
     def __init__(self, user_repository: UserRepository | None = None):
@@ -40,6 +56,8 @@ class AuthService:
             return {"user_id": user_id, "message": "注册成功"}
 
     def login(self, payload: LoginRequest) -> TokenResponse:
+        secret_key, algorithm, access_token_expire_minutes = _get_jwt_config()
+
         with get_connection() as connection:
             # 1. 去数据库里找这个人
             user = self._user_repository.get_user_by_username(connection, payload.username)
@@ -51,10 +69,10 @@ class AuthService:
                 raise ValidationError("用户名或密码错误")
 
             # 3. 登录成功！开始印制 JWT 房卡 (Token)
-            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.utcnow() + timedelta(minutes=access_token_expire_minutes)
             # 房卡里藏着用户信息和过期时间
             to_encode = {"sub": str(user["user_id"]), "exp": expire}
-            encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+            encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
 
             # 4. 把发好的房卡端给服务员
             return TokenResponse(
