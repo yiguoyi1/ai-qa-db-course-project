@@ -13,10 +13,11 @@
 先看这 4 份文档：
 
 1. [README.md](../README.md)
-2. [current_status.md](current_status.md)
-3. [docs/README.md](README.md)
-4. [community_platform_design.md](design_details/community_platform_design.md)
-5. [admin_governance_guide.md](admin_governance_guide.md)
+2. [handoff.md](handoff.md)
+3. [current_status.md](current_status.md)
+4. [docs/README.md](README.md)
+5. [community_platform_design.md](design_details/community_platform_design.md)
+6. [admin_governance_guide.md](admin_governance_guide.md)
 
 读完后你应该能回答这几个问题：
 
