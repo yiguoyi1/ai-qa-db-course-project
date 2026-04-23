@@ -42,6 +42,9 @@
 - 查询登录日志
 - 查询操作日志
 - 自动写入管理员操作日志
+- 管理员网页后台 `/admin`
+- 网页后台中的内容 ID 查询：从最近问题定位问题 ID，展开回答后查看评论 ID，并一键填入治理表单
+- 网页后台中文友好展示角色、状态和操作类型，实际接口枚举值保持不变
 
 当前管理员日志能力包括：
 
@@ -55,9 +58,8 @@
 - 推荐规则人工干预
 - 媒体资源治理
 - 图片 / 头像审核
-- 更完整的后台管理前端
 
-这意味着当前管理员能力已经够做“治理最小闭环”，但还不是完整后台系统。
+这意味着当前管理员能力已经够做“治理最小闭环”，并具备可演示的网页后台；但还不是覆盖媒体审核、推荐干预、导出统计的完整后台系统。
 
 ## 4. 管理员业务规则
 
@@ -136,6 +138,24 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password>
 ```
 
+### 5.5 验证管理员网页后台
+
+管理员账号重新登录后，访问：
+
+```text
+http://127.0.0.1:8000/admin
+```
+
+页面会复用登录后保存的 JWT 调用后台接口。当前网页后台包含：
+
+- 总览：用户数、管理员数、分类数、操作日志数
+- 用户治理：按角色和状态筛选用户，修改角色或状态
+- 分类管理：创建分类，修改名称、描述和启用状态
+- 内容治理：查询最近问题、查看回答 ID 和评论 ID，并一键填入状态调整表单
+- 审计日志：查询登录日志和管理员操作日志
+
+管理员页面展示层会显示“普通用户 / 管理员”“正常 / 已锁定 / 已停用”“开放中 / 已解决”等中文文案；传给后端的仍是 `USER / ADMIN`、`ACTIVE / LOCKED / DISABLED`、`OPEN / RESOLVED` 等枚举值。
+
 ## 6. 当前管理员接口清单
 
 ### 6.1 分类治理
@@ -154,6 +174,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 
 - `PATCH /api/admin/questions/{question_id}/status`
 - `PATCH /api/admin/comments/{comment_id}/status`
+
+网页后台为了帮助管理员定位 ID，会复用以下普通读接口：
+
+- `GET /api/questions`
+- `GET /api/questions/{question_id}`
+- `GET /api/answers/{answer_id}/comments`
 
 ### 6.4 日志查询
 
@@ -211,6 +237,7 @@ app/services/admin_service.py
 app/repositories/admin_repository.py
 app/repositories/log_repository.py
 app/schemas/admin.py
+app/web/admin.html
 scripts/grant-admin.ps1
 scripts/test-admin-api.ps1
 ```
@@ -227,6 +254,8 @@ scripts/test-admin-api.ps1
   负责登录日志、操作日志写入
 - `app/schemas/admin.py`
   负责管理员接口请求和响应模型
+- `app/web/admin.html`
+  负责管理员网页后台交互，包括总览、用户治理、分类管理、内容治理、审计日志和内容 ID 查询
 - `scripts/grant-admin.ps1`
   负责本地环境授予管理员
 - `scripts/test-admin-api.ps1`
@@ -247,7 +276,6 @@ scripts/test-admin-api.ps1
 1. 媒体资源治理
 2. 用户头像 / 内容图片审核
 3. 推荐规则人工干预入口
-4. 管理员网页后台
-5. 更完整的审计筛选条件和导出能力
+4. 更完整的审计筛选条件和导出能力
 
 这样能保持当前“角色鉴权 + 状态治理 + 审计日志”这条主线继续一致扩展。

@@ -311,11 +311,11 @@ tests/
 - 问题详情返回问题 `images` 和回答 `images`
 - 图片内容写入 `MEDIA_ASSETS.FILE_CONTENT BLOB`
 - `PUBLIC_URL` 指向 FastAPI 的 BLOB 读取接口 `/api/media/files/{file_name}`
+- 网页端发帖弹窗支持问题配图上传，回答框支持回答配图上传
 
 当前暂不包含：
 
 - 评论图片
-- 网页端图片上传 UI
 - 管理员图片审核与清理后台
 
 ### 5.5 推荐模块
@@ -474,7 +474,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 - 用户中心聚合接口与 `/me` 页面
 - 管理员分类、用户、问题、评论和日志治理接口
 - 头像、问题配图和回答配图 API
-- 网页端主链路
+- 网页端主链路与管理员后台 `/admin`
 - 独立 CLI 业务测试入口
 
 下一阶段更值得优先补的是：
@@ -487,7 +487,8 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 ### 10.2 管理员与媒体治理增强
 
-- 当前管理员 API 已经具备治理闭环，后续可补专门的网页后台
+- 当前管理员 API 已经具备治理闭环，网页后台已经覆盖总览、用户治理、分类管理、内容治理和审计日志查询
+- 内容治理页已提供问题 ID、回答 ID、评论 ID 查询辅助，并可一键填入治理表单
 - 当前媒体能力已支持头像、问题配图和回答配图，后续可补管理员图片审核、隐藏和清理入口
 - 真实环境仍要确保 JWT 密钥、DeepSeek Key 和数据库密码只存在 `.env` 或部署密钥系统中
 
@@ -546,6 +547,10 @@ app/repositories/admin_repository.py
 app/repositories/recommendation_repository.py
 app/integrations/llm/openai_client.py
 app/prompts/question_answer_prompt.py
+app/web/home.html
+app/web/detail.html
+app/web/profile.html
+app/web/admin.html
 frontend_cli/main.py
 scripts/start_business_test.py
 ```
@@ -567,6 +572,8 @@ app/
     admin.py
   services/
     admin_service.py
+  web/
+    admin.html
 
 scripts/
   grant-admin.ps1
@@ -587,6 +594,8 @@ scripts/
   用于本地环境快速授予首个管理员，解决“系统里还没有管理员账号”的启动问题
 - `scripts/test-admin-api.ps1`
   用于一键验证管理员登录、分类管理和日志查询链路是否可用
+- `app/web/admin.html`
+  用于管理员网页后台交互，复用 `/api/admin/...` 和必要的普通读接口完成 ID 定位与治理操作
 
 这样做的好处是：
 
