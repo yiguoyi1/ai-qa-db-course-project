@@ -14,11 +14,15 @@
 - `FAVORITES (USER_ID, QUESTION_ID)` must be unique.
 - `ANSWER_FEEDBACK (ANSWER_ID, USER_ID)` must be unique.
 - `USER_TAG_PROFILE (USER_ID, TAG_ID)` must be unique.
+- `ANSWERS (QUESTION_ID, ANSWER_ID)` must be unique to support accepted-answer ownership checks.
 
 ## Foreign Keys
 
+- `USERS.AVATAR_MEDIA_ID -> MEDIA_ASSETS.MEDIA_ID`
+- `MEDIA_ASSETS.UPLOADER_USER_ID -> USERS.USER_ID`
 - `QUESTIONS.USER_ID -> USERS.USER_ID`
 - `QUESTIONS.CATEGORY_ID -> CATEGORIES.CATEGORY_ID`
+- `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID) -> ANSWERS (QUESTION_ID, ANSWER_ID)`
 - `ANSWERS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
 - `ANSWERS.USER_ID -> USERS.USER_ID`
 - `QUESTION_TAGS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
@@ -52,6 +56,8 @@
 - `CATEGORIES.STATUS` in `('ACTIVE', 'INACTIVE')`
 - `QUESTIONS.STATUS` in `('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED')`
 - `ANSWERS.ANSWER_TYPE` in `('AI', 'MANUAL', 'SYSTEM')`
+- `MEDIA_ASSETS.OWNER_TYPE` in `('USER_AVATAR', 'QUESTION', 'ANSWER')`
+- `MEDIA_ASSETS.STATUS` in `('ACTIVE', 'DELETED')`
 - `ANSWER_COMMENTS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
 - `ANSWER_FEEDBACK.IS_LIKE` in `('Y', 'N')`
 - `RECOMMENDATIONS.REC_TYPE` in `('TAG_BASED', 'POPULARITY', 'HYBRID', 'MANUAL')`
@@ -70,6 +76,8 @@
 - `ANSWERS.LIKE_COUNT >= 0`
 - `ANSWERS.DISLIKE_COUNT >= 0`
 - `ANSWERS.AVG_RATING` is `NULL` or between `0` and `5`
+- `MEDIA_ASSETS.FILE_SIZE >= 0`
+- `MEDIA_ASSETS.SORT_ORDER >= 1`
 - `ANSWER_COMMENTS.COMMENT_LEVEL >= 1`
 - `ANSWER_COMMENTS.REPLY_COUNT >= 0`
 - `ANSWER_FEEDBACK.RATING` is `NULL` or between `0` and `5`
@@ -82,7 +90,16 @@
 ## Time Rules
 
 - `CHAT_SESSION.END_TIME` must be `NULL` or greater than or equal to `START_TIME`
+- `MEDIA_ASSETS.DELETE_TIME` must be `NULL` or greater than or equal to `CREATE_TIME`
 - `ANSWER_COMMENTS.DELETE_TIME` must be `NULL` or greater than or equal to `CREATE_TIME`
+
+## Accepted Answer Rules
+
+- A question may have zero or one accepted answer through `QUESTIONS.ACCEPTED_ANSWER_ID`.
+- Accepted answers must belong to the same question. This is enforced by the composite foreign key from `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID)` to `ANSWERS (QUESTION_ID, ANSWER_ID)`.
+- Accepting an answer changes the question status to `RESOLVED`.
+- Only the question author or an active administrator can accept an answer.
+- `SYSTEM` answers must not be accepted.
 
 ## Answer Source Rules
 
@@ -122,3 +139,12 @@
 - Admins currently moderate comments by setting `ANSWER_COMMENTS.STATUS` to `HIDDEN` or back to `ACTIVE`.
 - Admins do not force-delete comments in the current implementation.
 - When listing comments, `HIDDEN` comments should display an administrator-hidden placeholder instead of the original content.
+
+## Media Rules
+
+- `MEDIA_ASSETS` stores metadata only; image binaries are stored under the local `uploads/` directory.
+- `USER_AVATAR` media is linked from `USERS.AVATAR_MEDIA_ID`.
+- `QUESTION` media belongs to a question through `OWNER_ID = QUESTIONS.QUESTION_ID`.
+- `ANSWER` media belongs to an answer through `OWNER_ID = ANSWERS.ANSWER_ID`.
+- Media deletion uses soft delete by setting `STATUS = 'DELETED'` and `DELETE_TIME`.
+- The current MVP supports user avatars, question images, and answer images. Comment images are reserved for a later phase.

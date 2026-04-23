@@ -44,6 +44,7 @@ app/
     router.py
     deps.py
     routes/
+      admin.py
       auth.py
       answers.py
       browse.py
@@ -55,12 +56,14 @@ app/
       questions.py
       recommendations.py
       search.py
+      users.py
   core/
     errors.py
     settings.py
   db/
     connection.py
   schemas/
+    admin.py
     answer.py
     auth.py
     browse.py
@@ -71,7 +74,9 @@ app/
     meta.py
     question.py
     recommendation.py
+    user_center.py
   services/
+    admin_service.py
     ai_answer_service.py
     answer_service.py
     auth_service.py
@@ -84,7 +89,9 @@ app/
     question_service.py
     recommendation_service.py
     search_service.py
+    user_center_service.py
   repositories/
+    admin_repository.py
     answer_repository.py
     browse_repository.py
     comment_repository.py
@@ -96,6 +103,7 @@ app/
     question_repository.py
     recommendation_repository.py
     search_repository.py
+    user_center_repository.py
     user_repository.py
   integrations/
     llm/
@@ -106,6 +114,7 @@ app/
     login.html
     home.html
     detail.html
+    profile.html
 
 frontend_cli/
   api_client.py
@@ -461,25 +470,33 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 - 分类标签、搜索、浏览、收藏、反馈
 - 评论与楼中楼回复
 - 用户画像与推荐生成
+- 采纳答案与已采纳答案高亮
+- 用户中心聚合接口与 `/me` 页面
+- 管理员分类、用户、问题、评论和日志治理接口
+- 头像、问题配图和回答配图 API
 - 网页端主链路
 - 独立 CLI 业务测试入口
 
 下一阶段更值得优先补的是：
 
-### 10.1 收口安全配置
+### 10.1 网页端社区互动入口
 
-- 确保不同环境使用独立且足够强的 JWT 密钥
-- 继续补后台用户状态管理与审计查询能力
+- 把评论与楼中楼回复入口补到 `app/web/detail.html`
+- 在问题详情页补齐评论树展示、回复和删除动作
+- 保持网页端继续通过 `/api/...` 调后端，不直接绕过 service 层
 
-### 10.2 继续清理鉴权过渡接口
+### 10.2 管理员与媒体治理增强
 
-- 合并重复或语义重叠的反馈入口
-- 继续拆分 `questions.py` 中混杂的历史遗留逻辑
+- 当前管理员 API 已经具备治理闭环，后续可补专门的网页后台
+- 当前媒体能力已支持头像、问题配图和回答配图，后续可补管理员图片审核、隐藏和清理入口
+- 真实环境仍要确保 JWT 密钥、DeepSeek Key 和数据库密码只存在 `.env` 或部署密钥系统中
 
 ### 10.3 采纳答案
 
-- 支持提问者采纳某条回答
-- 让问题状态与最佳答案形成明确闭环
+- 已提供 `POST /api/questions/{question_id}/accept-answer`
+- 只有提问者或管理员可以采纳答案
+- 数据库通过 `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID)` 复合外键保证不能跨问题采纳回答
+- 采纳后问题状态变为 `RESOLVED`
 
 ### 10.4 用户中心
 
@@ -491,7 +508,8 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 ### 10.5 登录与鉴权收口
 
 - 当前登录、注册和 JWT 已基础落地
-- 但仍与显式 `user_id` 模式并存，后续应继续收口权限控制与审计
+- 部分请求模型中仍可能保留历史兼容字段，服务端应继续以当前登录用户为准做校验
+- 后续如果调整鉴权契约，要同步 CLI、网页端和 README
 
 ### 10.6 多轮对话
 
@@ -508,14 +526,23 @@ app/api/router.py
 app/api/routes/questions.py
 app/api/routes/answers.py
 app/api/routes/comments.py
+app/api/routes/media.py
+app/api/routes/users.py
+app/api/routes/admin.py
 app/api/routes/recommendations.py
 app/services/question_service.py
 app/services/ai_answer_service.py
 app/services/answer_service.py
 app/services/comment_service.py
+app/services/media_service.py
+app/services/user_center_service.py
+app/services/admin_service.py
 app/repositories/question_repository.py
 app/repositories/answer_repository.py
 app/repositories/comment_repository.py
+app/repositories/media_repository.py
+app/repositories/user_center_repository.py
+app/repositories/admin_repository.py
 app/repositories/recommendation_repository.py
 app/integrations/llm/openai_client.py
 app/prompts/question_answer_prompt.py
@@ -576,4 +603,4 @@ scripts/
 - 继续保持单体后端，同时维护网页前端和独立 CLI 两条验证链路
 - 继续复用 Oracle 里已经写好的约束、触发器和推荐过程
 - 优先收口接口契约、鉴权和网页前端交付方式
-- 当前采纳答案、用户中心、登录态已经进入可演示状态，下一阶段可继续考虑多轮对话和更复杂推荐策略
+- 当前采纳答案、用户中心、管理员治理、头像和内容图片已经进入可演示状态，下一阶段可继续补网页端评论互动、媒体治理页面、多轮对话和更复杂推荐策略

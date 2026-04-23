@@ -2,38 +2,45 @@
 
 ## 1. 设计目标
 
-当前项目已经具备问答社区、AI 首答、人工回答、评论与推荐等基础能力，但还缺少社区产品中常见的两类媒体能力：
+当前项目已经具备问答社区、AI 首答、人工回答、评论与推荐等基础能力，并已经补齐社区产品中最基础的两类媒体能力：
 
 - 用户头像
 - 内容图片
 
 这份设计文档的目标是：
 
-1. 为“头像上传与展示”提供一套可直接实现的方案
-2. 为“问题 / 回答配图”提供一套与当前项目结构兼容的方案
-3. 控制第一阶段复杂度，避免一上来把项目做成完整媒体系统
+1. 说明“头像上传与展示”的当前落地方案
+2. 说明“问题 / 回答配图”与当前项目结构的连接方式
+3. 标清当前 MVP 边界，避免协作者误以为已经是完整媒体系统
 
 因此，这里采用的原则是：
 
-- 第一阶段先解决“能用”
-- 第二阶段再考虑“更完整”
+- 当前阶段先解决“能用”
+- 后续阶段再考虑“更完整”
 - 数据库存元数据，文件不直接存进 Oracle BLOB
 
-## 2. 当前缺口
+## 2. 当前落地状态
 
-基于当前实现，项目还没有以下能力：
+截至当前版本，项目已经落地：
 
-- `USERS` 中没有头像字段
-- `QUESTIONS` / `ANSWERS` / `ANSWER_COMMENTS` 中没有图片元数据结构
-- 后端没有文件上传接口
-- 前端没有头像或图片展示区域
-- 数据库没有统一媒体资源表
+- `MEDIA_ASSETS` 统一媒体资源表
+- `USERS.AVATAR_MEDIA_ID` 当前头像引用字段
+- 用户头像上传、查看、删除接口
+- 问题配图上传、列表、删除接口
+- 回答配图上传、列表、删除接口
+- 问题详情返回问题 `images` 和回答 `images`
+- 本地 `uploads/` 文件存储目录
 
-因此，这项能力需要从“数据结构 + API + 存储路径 + 页面展示”四层一起补。
+当前仍未完整收口：
+
+- 网页端上传 UI
+- 评论图片
+- 图片审核、隐藏与定期清理后台
+- 缩略图、裁剪和对象存储迁移
 
 ## 3. 迭代策略
 
-建议按 4 个阶段逐步落地：
+媒体能力按 4 个阶段理解，其中前三阶段已经进入 MVP 可用状态：
 
 ### 3.1 第一阶段：头像 MVP
 
@@ -74,7 +81,7 @@
 
 ### 3.4 第四阶段：增强项
 
-可选增强：
+增强项：
 
 - 评论发图
 - 图片懒加载
@@ -83,13 +90,13 @@
 - 管理员隐藏媒体
 - 对象存储迁移
 
-第一版不建议直接做第四阶段。
+当前版本不纳入第四阶段。
 
-## 4. 推荐总体方案
+## 4. 总体方案
 
 ### 4.1 文件存储策略
 
-建议采用：
+当前采用：
 
 - 文件存在本地目录
 - 数据库存媒体元数据
@@ -101,20 +108,20 @@
 - 用本地目录存储最容易落地
 - 后续如果迁移到 MinIO / OSS / COS，也只需要替换存储实现层
 
-第一版不建议：
+当前版本不采用：
 
 - 直接把图片二进制存进 Oracle BLOB
 - 一开始就接第三方对象存储
 
-### 4.2 推荐目录结构
+### 4.2 目录结构
 
-建议新增：
+当前目录结构定义为：
 
 - `uploads/avatars/`
 - `uploads/questions/`
 - `uploads/answers/`
 
-文件命名建议：
+文件命名规则：
 
 - 不保留原始文件名作为最终文件名
 - 使用 `时间戳 + 随机串` 或 `UUID`
@@ -125,25 +132,25 @@
 - `uploads/questions/20260422_ef56gh78.jpg`
 - `uploads/answers/20260422_ij90kl12.webp`
 
-### 4.3 推荐访问方式
+### 4.3 访问方式
 
-建议由 FastAPI 提供静态访问入口，例如：
+由 FastAPI 提供静态访问入口，例如：
 
 - `/uploads/avatars/...`
 - `/uploads/questions/...`
 - `/uploads/answers/...`
 
-这样网页前端和 CLI 返回的媒体 URL 可以统一。
+这样网页前端和 CLI 返回的媒体 URL 保持统一。
 
 ## 5. 数据库设计
 
-## 5.1 新增统一媒体表
+## 5.1 统一媒体表
 
-建议新增表：`MEDIA_ASSETS`
+当前已新增表：`MEDIA_ASSETS`
 
-推荐字段如下：
+当前字段如下：
 
-| 字段 | 类型建议 | 含义 |
+| 字段 | 类型 | 含义 |
 | --- | --- | --- |
 | `media_id` | `NUMBER IDENTITY` | 主键 |
 | `uploader_user_id` | `NUMBER NOT NULL` | 上传者 |
@@ -162,9 +169,9 @@
 | `update_time` | `DATE DEFAULT SYSDATE` | 更新时间 |
 | `delete_time` | `DATE` | 软删除时间 |
 
-### 5.2 `owner_type` 推荐枚举
+### 5.2 `owner_type` 当前枚举
 
-建议允许：
+当前允许：
 
 - `USER_AVATAR`
 - `QUESTION`
@@ -172,9 +179,9 @@
 
 第一阶段先只支持这三类。
 
-### 5.3 推荐约束
+### 5.3 当前约束
 
-建议约束：
+当前约束：
 
 - `fk_media_assets_uploader`
   - `uploader_user_id -> users.user_id`
@@ -187,9 +194,9 @@
 - `ck_media_assets_sort_order`
   - `sort_order >= 1`
 
-### 5.4 推荐索引
+### 5.4 当前索引
 
-建议索引：
+当前索引：
 
 - `idx_media_assets_owner`
   - `(owner_type, owner_id, status, sort_order)`
@@ -200,7 +207,7 @@
 
 ## 5.5 用户头像字段设计
 
-建议在 `USERS` 中新增：
+`USERS` 中新增：
 
 - `avatar_media_id NUMBER`
 
@@ -208,13 +215,15 @@
 
 - `fk_users_avatar_media -> media_assets.media_id`
 
-这样做比直接加 `avatar_url` 更适合当前项目，因为：
+这里不直接增加 `avatar_url`，而是采用媒体引用字段，原因是：
 
 - 头像也能纳入统一媒体管理
 - 后续支持头像替换、状态管理、清理策略会更容易
 - 跟问题 / 回答图片共用同一套媒体机制
 
-## 6. DDL 草案
+## 6. DDL 摘要
+
+完整建表以 `sql/create_tables.sql` 为准；老库补充以 `sql/migrations/20260422_add_media_assets.sql` 为准。下面保留关键 DDL 摘要，方便协作者理解字段和约束。
 
 ```sql
 CREATE TABLE media_assets (
@@ -259,7 +268,7 @@ CREATE INDEX idx_media_assets_uploader
     ON media_assets (uploader_user_id);
 ```
 
-## 7. API 设计
+## 7. API 设计与当前实现
 
 ### 7.1 头像相关接口
 
@@ -274,7 +283,7 @@ CREATE INDEX idx_media_assets_uploader
 - `multipart/form-data`
 - 字段：`file`
 
-返回建议：
+返回字段：
 
 - `media_id`
 - `public_url`
@@ -293,7 +302,7 @@ CREATE INDEX idx_media_assets_uploader
 
 - 软删除当前头像
 
-第一版也可以不单独做这个接口，而是在重新上传头像时直接替换旧头像。
+当前已经提供该接口，同时上传新头像时也会替换旧头像引用。
 
 ### 7.2 问题图片接口
 
@@ -340,9 +349,9 @@ CREATE INDEX idx_media_assets_uploader
 
 - 回答对象中增加 `images: []`
 
-## 8. 响应结构建议
+## 8. 响应结构
 
-建议统一媒体对象格式：
+统一媒体对象格式：
 
 ```json
 {
@@ -357,25 +366,25 @@ CREATE INDEX idx_media_assets_uploader
 }
 ```
 
-### 8.1 问题列表增强建议
+### 8.1 问题列表增强
 
-`GET /api/questions` 后续可选补充：
-
-- `author_avatar_url`
-
-### 8.2 问题详情增强建议
-
-问题详情建议返回：
+`GET /api/questions` 后续补充字段：
 
 - `author_avatar_url`
-- `images`
 
-每条回答建议返回：
+### 8.2 问题详情增强
+
+问题详情返回：
 
 - `author_avatar_url`
 - `images`
 
-每条评论建议返回：
+每条回答返回：
+
+- `author_avatar_url`
+- `images`
+
+每条评论返回：
 
 - `author_avatar_url`
 
@@ -410,20 +419,20 @@ CREATE INDEX idx_media_assets_uploader
 - 不立即物理删除文件
 - 后续可通过清理脚本定期删除 `DELETED` 文件
 
-## 10. 后端实现建议
+## 10. 后端实现
 
-按当前项目分层，建议新增：
+按当前项目分层，模块划分如下：
 
 - `app/api/routes/media.py`
 - `app/services/media_service.py`
 - `app/repositories/media_repository.py`
 - `app/schemas/media.py`
 
-另外建议新增：
+另外增加：
 
 - `app/core/file_storage.py`
 
-职责建议：
+职责划分：
 
 - `route`
   - 处理上传请求
@@ -435,11 +444,13 @@ CREATE INDEX idx_media_assets_uploader
 - `file_storage`
   - 负责本地文件落盘、删除、URL 生成
 
-## 11. 前端改造建议
+## 11. 前端改造
+
+当前 API 与 CLI 链路已具备，网页端上传 UI 仍是后续增强项。
 
 ### 11.1 登录后头像展示
 
-建议在页面里补：
+页面补充内容：
 
 - 当前用户头像
 - 问题作者头像
@@ -448,7 +459,7 @@ CREATE INDEX idx_media_assets_uploader
 
 ### 11.2 发帖与回答上传图片
 
-建议在：
+页面入口：
 
 - `app/web/home.html`
   - 发帖弹窗增加图片上传
@@ -457,12 +468,12 @@ CREATE INDEX idx_media_assets_uploader
 
 ### 11.3 展示形态
 
-第一版建议：
+当前展示形态：
 
 - 小缩略图
 - 点击可查看原图
 
-不建议第一版就做：
+当前版本不纳入：
 
 - 拖拽排序
 - 图片裁剪
@@ -471,7 +482,7 @@ CREATE INDEX idx_media_assets_uploader
 
 ## 12. 测试计划
 
-建议至少覆盖：
+至少覆盖：
 
 1. 用户上传合法头像成功
 2. 用户上传非图片失败
@@ -484,9 +495,9 @@ CREATE INDEX idx_media_assets_uploader
 9. 回答正确返回图片列表
 10. 删除图片后状态更新正确
 
-## 13. 推荐开发顺序
+## 13. 开发顺序
 
-建议按以下顺序落地：
+当前前四项已经落地，后续从网页 UI 和治理能力继续推进：
 
 1. 新增 `MEDIA_ASSETS` 表与 `USERS.avatar_media_id`
 2. 实现头像上传与展示
@@ -494,9 +505,9 @@ CREATE INDEX idx_media_assets_uploader
 4. 实现回答图片上传与详情展示
 5. 最后再考虑评论发图
 
-## 14. 当前最推荐的落地范围
+## 14. 当前落地范围
 
-如果只做一个适合当前项目阶段的版本，我建议范围收在：
+当前版本范围定义为：
 
 - 用户头像
 - 问题配图
@@ -509,4 +520,4 @@ CREATE INDEX idx_media_assets_uploader
 - 对象存储
 - 图片审核后台
 
-这套范围最适合你当前的问答社区 MVP，也最容易和现在的 Oracle + FastAPI + 原生网页前端结构接上。
+这套范围与当前问答社区 MVP、Oracle、FastAPI 和原生网页前端结构保持一致。
