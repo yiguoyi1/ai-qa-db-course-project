@@ -167,6 +167,10 @@ class CommentService:
                 comment["content"] = self._deleted_placeholder(
                     is_reply=comment["parent_comment_id"] is not None
                 )
+            elif comment["status"] == "HIDDEN":
+                comment["content"] = self._hidden_placeholder(
+                    is_reply=comment["parent_comment_id"] is not None
+                )
 
         nodes = [CommentItem(**comment) for comment in flat_comments]
         node_by_id = {node.comment_id: node for node in nodes}
@@ -203,3 +207,11 @@ class CommentService:
     @staticmethod
     def _deleted_placeholder(*, is_reply: bool) -> str:
         return "原回复已删除" if is_reply else "原评论已删除"
+
+    @staticmethod
+    def _hidden_placeholder(*, is_reply: bool) -> str:
+        return (
+            "该回复已被管理员隐藏"
+            if is_reply
+            else "该评论已被管理员隐藏"
+        )

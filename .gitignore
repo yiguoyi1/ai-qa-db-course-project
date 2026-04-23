@@ -20,6 +20,7 @@ Thumbs.db
 
 # Logs
 *.log
+uploads/
 
 # SQL build artifacts
 *.sqlite

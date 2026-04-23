@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.media import MediaAssetItem
+
 
 class AskQuestionRequest(BaseModel):
     user_id: int | None = Field(default=None, gt=0)
@@ -23,6 +25,7 @@ class AnswerItem(BaseModel):
     provider_name: str | None = None
     author_username: str | None = None
     author_nickname: str | None = None
+    author_avatar_url: str | None = None
     content: str
     generate_time: datetime
     model_name: str | None = None
@@ -31,6 +34,7 @@ class AnswerItem(BaseModel):
     dislike_count: int
     avg_rating: float | None = None
     is_accepted: bool = False
+    images: list[MediaAssetItem] = Field(default_factory=list)
 
 
 class QuestionSummaryItem(BaseModel):
@@ -45,7 +49,8 @@ class QuestionSummaryItem(BaseModel):
     answer_count: int
     is_favorited: bool = False
     tags: list[TagItem] = Field(default_factory=list)
-    username: str | None = None  # 🌟 新增这一行：让标准里允许带上名字
+    username: str | None = None
+    author_avatar_url: str | None = None
 
 
 class QuestionListResponse(BaseModel):
@@ -69,8 +74,11 @@ class QuestionDetailResponse(BaseModel):
     answer_count: int
     is_favorited: bool = False
     tags: list[TagItem] = Field(default_factory=list)
+    images: list[MediaAssetItem] = Field(default_factory=list)
     answers: list[AnswerItem] = Field(default_factory=list)
-    username: str | None = None  # 🌟 新增这一行：让详情页标准也允许带名字
+    username: str | None = None
+    author_avatar_url: str | None = None
+
 
 class QuestionCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)

@@ -385,5 +385,72 @@ CLI 现在支持：
   业务代码架构说明
 - [docs/design_details/community_platform_design.md](docs/design_details/community_platform_design.md)
   社区产品与接口设计
+- [docs/design_details/media_and_avatar_design.md](docs/design_details/media_and_avatar_design.md)
+  头像与问题 / 回答图片能力设计
 - [docs/setup/oracle-26ai-docker.md](docs/setup/oracle-26ai-docker.md)
   Oracle 26ai 部署说明
+
+## 管理员使用说明
+
+当前项目不单独维护管理员表，而是使用 `USERS.ROLE = 'ADMIN'` 表示管理员身份。
+
+### 1. 授予首个管理员
+
+先通过注册接口或页面创建一个普通用户，然后执行：
+
+```powershell
+.\scripts\grant-admin.ps1 -Username <your_username>
+```
+
+执行完成后，该账号会被更新为 `ACTIVE ADMIN`。
+
+### 2. 一键验证管理员接口
+
+仓库已提供管理员接口测试入口脚本：
+
+```powershell
+.\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password>
+```
+
+默认行为：
+
+- 默认使用 `http://127.0.0.1:8001`
+- 如果目标端口没有 API，会自动启动一份最新代码的 FastAPI 测试进程
+- 自动验证登录、管理员身份、用户列表、分类列表、登录日志、操作日志
+
+如果你已经手动启动了最新 API，也可以这样执行：
+
+```powershell
+.\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password> -Port 8000 -SkipApiStart
+```
+
+如果你还想顺手验证“创建分类 / 修改分类”这条写入链路，可以加：
+
+```powershell
+.\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password> -WriteSmoke
+```
+
+注意：
+
+- `-WriteSmoke` 会创建一条临时测试分类，并把它更新为 `INACTIVE`
+- 如果你当前 `8000` 已经挂着旧进程，建议改用 `8001` 或其他空闲端口启动最新代码再测
+
+### 3. 当前管理员接口
+
+- `GET /api/admin/categories`
+- `POST /api/admin/categories`
+- `PATCH /api/admin/categories/{category_id}`
+- `GET /api/admin/users`
+- `PATCH /api/admin/users/{user_id}/status`
+- `PATCH /api/admin/users/{user_id}/role`
+- `PATCH /api/admin/questions/{question_id}/status`
+- `PATCH /api/admin/comments/{comment_id}/status`
+- `GET /api/admin/logs/login`
+- `GET /api/admin/logs/operations`
+
+补充说明：当使用 `.\scripts\test-admin-api.ps1 -WriteSmoke` 时，脚本会在摘要中额外返回写入后的操作日志校验结果，用来确认 `ADMIN_CREATE_CATEGORY` 和 `ADMIN_UPDATE_CATEGORY` 已经成功落日志。
+
+如果 Windows PowerShell 提示“系统上禁止运行脚本”，可以改用：
+`powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <your_username>`
+或
+`powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password>`

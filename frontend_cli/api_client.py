@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 import json
+import mimetypes
+from pathlib import Path
 from typing import Any
 from urllib import error, parse, request
+from uuid import uuid4
 
 
 class APIClientError(Exception):
@@ -47,6 +50,32 @@ class APIClient:
         )
         return self._send(req)
 
+    def post_file(
+        self,
+        path: str,
+        *,
+        field_name: str,
+        file_path: str,
+        params: dict[str, Any] | None = None,
+    ) -> Any:
+        query = self._build_query(params)
+        headers = self._build_headers()
+        boundary = f"----CodexBoundary{uuid4().hex}"
+        body = self._build_multipart_body(
+            field_name=field_name,
+            file_path=file_path,
+            boundary=boundary,
+        )
+        headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
+
+        req = request.Request(
+            url=f"{self.base_url}{path}{query}",
+            data=body,
+            headers=headers,
+            method="POST",
+        )
+        return self._send(req)
+
     def delete(self, path: str, params: dict[str, Any] | None = None) -> Any:
         query = self._build_query(params)
         req = request.Request(
@@ -70,6 +99,27 @@ class APIClient:
         if self.access_token:
             headers["Authorization"] = f"Bearer {self.access_token}"
         return headers
+
+    @staticmethod
+    def _build_multipart_body(
+        *,
+        field_name: str,
+        file_path: str,
+        boundary: str,
+    ) -> bytes:
+        path = Path(file_path)
+        file_bytes = path.read_bytes()
+        mime_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+
+        lines = [
+            f"--{boundary}",
+            f'Content-Disposition: form-data; name="{field_name}"; filename="{path.name}"',
+            f"Content-Type: {mime_type}",
+            "",
+        ]
+        body = "\r\n".join(lines).encode("utf-8") + b"\r\n" + file_bytes + b"\r\n"
+        body += f"--{boundary}--\r\n".encode("utf-8")
+        return body
 
     def _send(self, req: request.Request) -> Any:
         try:

@@ -10,18 +10,18 @@ class UserRepository:
             "password_hash": row[2],
             "status": row[3],
             "role": row[4],
+            "nickname": row[5],
         }
 
-    # 动作 1：根据用户名找人（用于登录和防重复注册）
     def get_user_by_username(self, connection, username: str) -> dict | None:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, password_hash, status, role
+            SELECT user_id, username, password_hash, status, role, nickname
             FROM users
             WHERE username = :1
             """,
-            [username]
+            [username],
         )
         row = cursor.fetchone()
         cursor.close()
@@ -32,7 +32,7 @@ class UserRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT user_id, username, password_hash, status, role
+            SELECT user_id, username, password_hash, status, role, nickname
             FROM users
             WHERE user_id = :1
             """,
@@ -43,10 +43,8 @@ class UserRepository:
 
         return self._build_user_record(row) if row else None
 
-    # 动作 2：创建新用户（用于注册）
     def create_user(self, connection, username: str, password_hash: str, nickname: str | None) -> int:
         cursor = connection.cursor()
-        # Oracle 特有的返回新插入 ID 的写法 (RETURNING ... INTO ...)
         user_id_var = cursor.var(int)
 
         cursor.execute(
@@ -55,7 +53,7 @@ class UserRepository:
             VALUES (:1, :2, :3) RETURNING user_id
             INTO :4
             """,
-            [username, password_hash, nickname, user_id_var]
+            [username, password_hash, nickname, user_id_var],
         )
         user_id = user_id_var.getvalue()[0]
         cursor.close()

@@ -14,8 +14,10 @@
 1. [README.md](../README.md)
 2. [current_status.md](current_status.md)
 3. [onboarding_checklist.md](onboarding_checklist.md)
-4. [community_platform_design.md](design_details/community_platform_design.md)
-5. [business_code_architecture.md](design_details/business_code_architecture.md)
+4. [admin_governance_guide.md](admin_governance_guide.md)
+5. [community_platform_design.md](design_details/community_platform_design.md)
+6. [business_code_architecture.md](design_details/business_code_architecture.md)
+7. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
 
 ## 2. 项目当前定位
 
@@ -255,12 +257,14 @@ python .\scripts\start_business_test.py
 
 - [current_status.md](current_status.md)
 - [onboarding_checklist.md](onboarding_checklist.md)
+- [admin_governance_guide.md](admin_governance_guide.md)
 
 ### 10.2 产品与业务设计
 
 - [data_design.md](design_details/data_design.md)
 - [community_platform_design.md](design_details/community_platform_design.md)
 - [threaded_comment_design.md](design_details/threaded_comment_design.md)
+- [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
 
 ### 10.3 数据设计
 

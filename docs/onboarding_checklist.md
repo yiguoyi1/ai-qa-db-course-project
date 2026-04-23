@@ -16,6 +16,7 @@
 2. [current_status.md](current_status.md)
 3. [docs/README.md](README.md)
 4. [community_platform_design.md](design_details/community_platform_design.md)
+5. [admin_governance_guide.md](admin_governance_guide.md)
 
 读完后你应该能回答这几个问题：
 
@@ -151,6 +152,19 @@ python -m frontend_cli.main --access-token your_token questions answer --questio
 python -m frontend_cli.main --access-token your_token comments add --answer-id 82 --user-id 22 --content "这是一条评论"
 python -m frontend_cli.main comments list --answer-id 82
 ```
+
+### 5.3 管理员链路验证
+
+如果你本次接手需要改后台治理相关能力，建议额外做一遍管理员验证：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <your_username>
+powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username <your_username> -Password <your_password> -WriteSmoke
+```
+
+建议先看：
+
+- [admin_governance_guide.md](admin_governance_guide.md)
 
 ## 6. 协作者最应该先知道的业务规则
 

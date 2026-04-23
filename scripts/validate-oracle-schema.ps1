@@ -130,6 +130,8 @@ DECLARE
   l_question_a_id     questions.question_id%TYPE;
   l_question_b_id     questions.question_id%TYPE;
   l_answer_id         answers.answer_id%TYPE;
+  l_accepted_answer_id questions.accepted_answer_id%TYPE;
+  l_question_status   questions.status%TYPE;
   l_view_count        questions.view_count%TYPE;
   l_favorite_count    questions.favorite_count%TYPE;
   l_answer_count      questions.answer_count%TYPE;
@@ -265,6 +267,21 @@ BEGIN
   assert_number('answer.dislike_count', l_dislike_count, 0);
   assert_number('answer.avg_rating', l_avg_rating, 4.5);
 
+  UPDATE questions
+     SET accepted_answer_id = l_answer_id,
+         status = 'RESOLVED'
+   WHERE question_id = l_question_a_id;
+
+  COMMIT;
+
+  SELECT accepted_answer_id, status
+    INTO l_accepted_answer_id, l_question_status
+    FROM questions
+   WHERE question_id = l_question_a_id;
+
+  assert_number('question_a.accepted_answer_id', l_accepted_answer_id, l_answer_id);
+  assert_text('question_a.status.after_accept', l_question_status, 'RESOLVED');
+
   qa_app_pkg.rebuild_user_tag_profile(l_user_a_id);
   qa_app_pkg.generate_recommendations(l_user_a_id, 5);
 
@@ -386,6 +403,21 @@ BEGIN
           ROLLBACK TO sp_invalid_fk;
   END;
 
+  SAVEPOINT sp_cross_question_accept;
+  BEGIN
+      UPDATE questions
+         SET accepted_answer_id = l_answer_id
+       WHERE question_id = l_question_b_id;
+      RAISE_APPLICATION_ERROR(-20030, 'Cross-question accepted answer was allowed');
+  EXCEPTION
+      WHEN OTHERS THEN
+          IF SQLCODE != -2291 THEN
+              RAISE;
+          END IF;
+          DBMS_OUTPUT.PUT_LINE('CHECK cross-question accepted answer rejected as expected');
+          ROLLBACK TO sp_cross_question_accept;
+  END;
+
   SAVEPOINT sp_dup_feedback;
   BEGIN
       INSERT INTO answer_feedback (answer_id, user_id, is_like, rating, comment_text)
@@ -476,6 +508,13 @@ BEGIN
       RAISE_APPLICATION_ERROR(-20025, 'Expected avg_rating to become NULL after deleting all feedback');
   END IF;
   DBMS_OUTPUT.PUT_LINE('CHECK answer.avg_rating.after_delete actual=NULL expected=NULL');
+
+  UPDATE questions
+     SET accepted_answer_id = NULL,
+         status = 'OPEN'
+   WHERE question_id = l_question_a_id;
+
+  COMMIT;
 
   DELETE FROM answers
    WHERE answer_id = l_answer_id;

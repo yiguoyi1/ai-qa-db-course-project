@@ -3,6 +3,7 @@ import oracledb
 from app.core.errors import AppError, NotFoundError, ValidationError
 from app.db.connection import get_connection
 from app.repositories.answer_repository import AnswerRepository
+from app.repositories.media_repository import MediaRepository
 from app.repositories.question_repository import QuestionRepository
 from app.schemas.answer import CreateManualAnswerRequest
 from app.schemas.question import QuestionDetailResponse
@@ -13,9 +14,11 @@ class AnswerService:
         self,
         answer_repository: AnswerRepository | None = None,
         question_repository: QuestionRepository | None = None,
+        media_repository: MediaRepository | None = None,
     ) -> None:
         self._answer_repository = answer_repository or AnswerRepository()
         self._question_repository = question_repository or QuestionRepository()
+        self._media_repository = media_repository or MediaRepository()
 
     def create_manual_answer(
         self,
@@ -57,12 +60,30 @@ class AnswerService:
             if refreshed_question is None:
                 raise NotFoundError("Answer was created but the question could not be reloaded.")
 
+            refreshed_question["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="QUESTION",
+                owner_id=question_id,
+            )
             refreshed_question["answers"] = self._answer_repository.list_answers_by_question(
                 connection,
                 question_id,
             )
+            self._attach_answer_images(connection, refreshed_question["answers"])
 
         return QuestionDetailResponse(**refreshed_question)
+
+    def _attach_answer_images(
+        self,
+        connection: oracledb.Connection,
+        answers: list[dict],
+    ) -> None:
+        for answer in answers:
+            answer["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="ANSWER",
+                owner_id=answer["answer_id"],
+            )
 
     @staticmethod
     def _translate_database_error(exc: oracledb.DatabaseError) -> AppError:

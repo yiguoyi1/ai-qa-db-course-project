@@ -50,6 +50,7 @@ app/
       comments.py
       favorites.py
       feedback.py
+      media.py
       meta.py
       questions.py
       recommendations.py
@@ -66,6 +67,7 @@ app/
     comment.py
     favorite.py
     feedback.py
+    media.py
     meta.py
     question.py
     recommendation.py
@@ -77,6 +79,7 @@ app/
     comment_service.py
     favorite_service.py
     feedback_service.py
+    media_service.py
     meta_service.py
     question_service.py
     recommendation_service.py
@@ -87,6 +90,7 @@ app/
     comment_repository.py
     favorite_repository.py
     feedback_repository.py
+    media_repository.py
     log_repository.py
     meta_repository.py
     question_repository.py
@@ -281,7 +285,31 @@ tests/
 - 对同一回答更新已有反馈
 - 发表评论、回复评论与软删除评论
 
-### 5.4 推荐模块
+### 5.4 媒体资源模块
+
+建议文件：
+
+- `api/routes/media.py`
+- `services/media_service.py`
+- `repositories/media_repository.py`
+- `schemas/media.py`
+- `core/file_storage.py`
+
+当前能力：
+
+- 用户头像上传、查看、删除
+- 问题配图上传、列表、删除
+- 回答配图上传、列表、删除
+- 问题详情返回问题 `images` 和回答 `images`
+- 本地文件落盘到 `uploads/`，数据库只保存 `MEDIA_ASSETS` 元数据
+
+当前暂不包含：
+
+- 评论图片
+- 网页端图片上传 UI
+- 管理员图片审核与清理后台
+
+### 5.5 推荐模块
 
 建议文件：
 
@@ -297,7 +325,7 @@ tests/
 
 这一层尽量复用数据库里已经写好的过程，不要在应用层重复实现同一套推荐逻辑。
 
-### 5.5 网页前端与 CLI 测试前端
+### 5.6 网页前端与 CLI 测试前端
 
 建议文件：
 
@@ -394,6 +422,7 @@ tests/
 | 收藏 | `favorite_service` | `favorite_repository` | `FAVORITES` |
 | 回答反馈 | `feedback_service` | `feedback_repository` | `ANSWER_FEEDBACK` |
 | 评论与回复 | `comment_service` | `comment_repository` | `ANSWER_COMMENTS` |
+| 头像与内容图片 | `media_service` | `media_repository` | `MEDIA_ASSETS`, `USERS` |
 | 推荐 | `recommendation_service` | `recommendation_repository` | `USER_TAG_PROFILE`, `RECOMMENDATIONS` |
 | 审计日志 | `log_repository` | `log_repository` | `AI_PROMPT_LOG`, `LOGIN_LOG`, `OPERATION_LOG` |
 
@@ -495,6 +524,48 @@ scripts/start_business_test.py
 ```
 
 看完这批文件，基本就能把当前“问答社区 + AI 首答 + 评论回复 + 推荐”的主链路串起来。
+
+## 11.1 管理员模块补充
+
+在现有目录结构基础上，管理员模块应补充为：
+
+```text
+app/
+  api/
+    routes/
+      admin.py
+  repositories/
+    admin_repository.py
+  schemas/
+    admin.py
+  services/
+    admin_service.py
+
+scripts/
+  grant-admin.ps1
+  test-admin-api.ps1
+```
+
+管理员模块继续遵循现有分层原则，不单独走一套特殊架构：
+
+- `api/routes/admin.py`
+  负责管理员接口入口、参数接收、鉴权依赖注入和错误转换
+- `services/admin_service.py`
+  负责管理员业务规则，例如最后一个有效管理员保护、自身角色保护、状态变更规则
+- `repositories/admin_repository.py`
+  负责查询和更新 `USERS`、`QUESTIONS`、`ANSWER_COMMENTS`
+- `schemas/admin.py`
+  定义管理员接口的请求体和响应体
+- `scripts/grant-admin.ps1`
+  用于本地环境快速授予首个管理员，解决“系统里还没有管理员账号”的启动问题
+- `scripts/test-admin-api.ps1`
+  用于一键验证管理员登录、分类管理和日志查询链路是否可用
+
+这样做的好处是：
+
+- 与普通业务模块保持一致，便于协作者理解
+- 管理员逻辑集中，不污染普通用户业务 service
+- 后续扩展日志查询、分类管理、媒体审核时可继续复用同一模块
 
 ## 12. 结论
 

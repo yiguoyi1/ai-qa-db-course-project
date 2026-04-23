@@ -111,6 +111,7 @@ class AnswerRepository:
                 a.avg_rating,
                 u.username,
                 u.nickname,
+                m.public_url,
                 CASE
                     WHEN q.accepted_answer_id = a.answer_id THEN 1
                     ELSE 0
@@ -120,6 +121,9 @@ class AnswerRepository:
               ON q.question_id = a.question_id
             LEFT JOIN users u
               ON u.user_id = a.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE a.question_id = :question_id
             ORDER BY
                 CASE
@@ -157,13 +161,14 @@ class AnswerRepository:
                     "avg_rating": float(row[11]) if row[11] is not None else None,
                     "author_username": row[12],
                     "author_nickname": row[13],
-                    "is_accepted": bool(row[14]),
+                    "author_avatar_url": row[14],
+                    "is_accepted": bool(row[15]),
                 }
             )
 
         return answers
 
-    def get_answer_context(
+    def get_answer_by_id(
         self,
         connection: oracledb.Connection,
         answer_id: int,
@@ -174,7 +179,16 @@ class AnswerRepository:
             SELECT
                 answer_id,
                 question_id,
-                answer_type
+                user_id,
+                answer_type,
+                provider_name,
+                content,
+                generate_time,
+                model_name,
+                confidence_score,
+                like_count,
+                dislike_count,
+                avg_rating
             FROM answers
             WHERE answer_id = :answer_id
             """,
@@ -187,5 +201,29 @@ class AnswerRepository:
         return {
             "answer_id": int(row[0]),
             "question_id": int(row[1]),
-            "answer_type": row[2],
+            "user_id": int(row[2]) if row[2] is not None else None,
+            "answer_type": row[3],
+            "provider_name": row[4],
+            "content": row[5].read() if hasattr(row[5], "read") else row[5],
+            "generate_time": row[6],
+            "model_name": row[7],
+            "confidence_score": float(row[8]) if row[8] is not None else None,
+            "like_count": int(row[9]),
+            "dislike_count": int(row[10]),
+            "avg_rating": float(row[11]) if row[11] is not None else None,
+        }
+
+    def get_answer_context(
+        self,
+        connection: oracledb.Connection,
+        answer_id: int,
+    ) -> dict[str, Any] | None:
+        answer = self.get_answer_by_id(connection, answer_id)
+        if answer is None:
+            return None
+
+        return {
+            "answer_id": answer["answer_id"],
+            "question_id": answer["question_id"],
+            "answer_type": answer["answer_type"],
         }

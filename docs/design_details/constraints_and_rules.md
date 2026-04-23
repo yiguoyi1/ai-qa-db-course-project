@@ -105,3 +105,20 @@
 - When listing comments, deleted top-level comments are displayed as `原评论已删除`.
 - When listing comments, deleted replies are displayed as `原回复已删除`.
 - Only the comment author can delete the comment in the current implementation.
+
+## Admin Governance Rules
+
+- The current project uses `USERS.ROLE = 'ADMIN'` to represent administrator identity.
+- Admin permissions are based on role checks in the application layer and do not rely on a separate admin table.
+- Only `ACTIVE` admin users can execute admin APIs.
+- Admin operations should be recorded in `OPERATION_LOG`.
+- Admins may query `LOGIN_LOG` and `OPERATION_LOG`.
+- Admins may create and update `CATEGORIES`.
+- Admins may update `USERS.STATUS` and `USERS.ROLE` for other users.
+- The current admin implementation must not remove the last active admin account.
+- Admins must not demote their own current account from `ADMIN` to `USER`.
+- Admins must not deactivate their own current account.
+- Admins may update `QUESTIONS.STATUS`.
+- Admins currently moderate comments by setting `ANSWER_COMMENTS.STATUS` to `HIDDEN` or back to `ACTIVE`.
+- Admins do not force-delete comments in the current implementation.
+- When listing comments, `HIDDEN` comments should display an administrator-hidden placeholder instead of the original content.

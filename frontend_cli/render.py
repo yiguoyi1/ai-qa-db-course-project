@@ -28,6 +28,18 @@ def print_question_detail(data: dict[str, Any]) -> None:
         print(f"已采纳回答: {data['accepted_answer_id']}")
     print(f"提问时间: {data['ask_time']}")
     print(f"标签: {', '.join(tag['tag_name'] for tag in data.get('tags', [])) or '-'}")
+
+    images = data.get("images", [])
+    if images:
+        print("配图:")
+        for image in images:
+            print(
+                f"  [{image['media_id']}] sort={image.get('sort_order')} "
+                f"{image.get('mime_type')} {image.get('public_url')}"
+            )
+    else:
+        print("配图: -")
+
     print("内容:")
     print(data["content"])
     print("-" * 72)
@@ -44,6 +56,14 @@ def print_question_detail(data: dict[str, Any]) -> None:
             f"model={answer.get('model_name')} 赞={answer['like_count']} 踩={answer['dislike_count']} "
             f"评分={answer.get('avg_rating')}"
         )
+        answer_images = answer.get("images", [])
+        if answer_images:
+            print("  images:")
+            for image in answer_images:
+                print(
+                    f"    [{image['media_id']}] sort={image.get('sort_order')} "
+                    f"{image.get('mime_type')} {image.get('public_url')}"
+                )
         print(answer["content"])
         print("-" * 72)
 
