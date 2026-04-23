@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - AI QA 社区</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #047857;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-color);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .brand-mark {
+            font-size: 20px;
+            line-height: 1;
+            color: var(--text-main);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .layout {
+            max-width: 1280px;
+            margin: 32px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 88px;
+            align-self: start;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .admin-card {
+            background: #eff6ff;
+            color: var(--text-main);
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .admin-card::after {
+            content: "";
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 999px;
+            right: -38px;
+            bottom: -42px;
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .admin-card h1 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .admin-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .nav-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: none;
+            background: transparent;
+            color: #374151;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .nav-button:hover,
+        .nav-button.active {
+            color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .content {
+            min-width: 0;
+        }
+
+        .hero {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
+        }
+
+        .hero:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .hero h2 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 720px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .grid.two {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .panel:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .panel-header h3 {
+            margin: 0 0 5px;
+            font-size: 18px;
+        }
+
+        .panel-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .panel-body {
+            padding: 20px 22px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .filters,
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            background: white;
+            font: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        textarea {
+            min-height: 88px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .field {
+            min-width: 160px;
+            flex: 1;
+        }
+
+        .field.small {
+            max-width: 170px;
+            flex: 0 0 150px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 780px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid #e5edf6;
+            padding: 13px 10px;
+            vertical-align: middle;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            background: #f9fafb;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 68px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .badge.success { background: #dcfce7; color: var(--success); }
+        .badge.warn { background: #fffbeb; color: var(--warning); }
+        .badge.danger { background: #fef2f2; color: var(--danger); }
+        .badge.blue { background: #eff6ff; color: var(--primary); }
+        .badge.gray { background: #f1f5f9; color: #475569; }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        .empty,
+        .loading {
+            padding: 34px;
+            text-align: center;
+            color: var(--text-muted);
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            right: 26px;
+            bottom: 26px;
+            z-index: 99;
+            max-width: 420px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            color: white;
+            background: var(--primary);
+            box-shadow: var(--shadow);
+            display: none;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.error {
+            background: #991b1b;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .inline-select {
+            min-width: 118px;
+            padding: 8px 9px;
+            border-radius: 8px;
+        }
+
+        .inline-input {
+            min-width: 130px;
+            padding: 8px 9px;
+            border-radius: 8px;
+        }
+
+        .log-content {
+            max-width: 360px;
+            white-space: normal;
+            line-height: 1.55;
+        }
+
+        .lookup-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .lookup-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            background: #ffffff;
+        }
+
+        .lookup-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .lookup-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .lookup-title {
+            margin: 0 0 6px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .lookup-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .lookup-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .id-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .comment-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .comment-item {
+            border-left: 3px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: #f9fafb;
+        }
+
+        .comment-item.child {
+            margin-left: 18px;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                max-width: 760px;
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .stats-grid,
+            .grid.two {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 0 20px;
+            }
+
+            .top-actions span {
+                display: none;
+            }
+
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .field,
+            .field.small {
+                min-width: 100%;
+                max-width: none;
+                flex-basis: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">💡</span>
+            <span>AI QA 管理后台</span>
+        </div>
+        <div class="top-actions">
+            <span id="admin-greeting">正在校验管理员身份...</span>
+            <button class="btn btn-outline" onclick="goHome()">返回社区</button>
+            <button class="btn btn-danger" onclick="logout()">退出登录</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <aside class="sidebar">
+            <div class="admin-card">
+                <h1>治理控制台</h1>
+                <p>集中处理用户状态、分类配置、内容状态和审计记录，所有写操作都会进入操作日志。</p>
+            </div>
+            <button class="nav-button active" data-section="overview" onclick="switchSection('overview')">总览 <span>→</span></button>
+            <button class="nav-button" data-section="users" onclick="switchSection('users')">用户治理 <span>→</span></button>
+            <button class="nav-button" data-section="categories" onclick="switchSection('categories')">分类管理 <span>→</span></button>
+            <button class="nav-button" data-section="content" onclick="switchSection('content')">内容治理 <span>→</span></button>
+            <button class="nav-button" data-section="logs" onclick="switchSection('logs')">审计日志 <span>→</span></button>
+        </aside>
+
+        <section class="content">
+            <div class="hero">
+                <div>
+                    <h2 id="section-title">总览</h2>
+                    <p id="section-desc">查看管理员后台的关键数量，并快速确认系统治理状态。</p>
+                </div>
+                <button class="btn btn-primary" onclick="refreshCurrentSection()">刷新当前模块</button>
+            </div>
+
+            <section class="section active" id="overview-section">
+                <div class="grid stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">用户总数</div>
+                        <div class="stat-value" id="stat-users">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">管理员数</div>
+                        <div class="stat-value" id="stat-admins">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">分类总数</div>
+                        <div class="stat-value" id="stat-categories">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">操作日志</div>
+                        <div class="stat-value" id="stat-operations">-</div>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top: 18px;">
+                    <div class="panel-header">
+                        <div>
+                            <h3>快速治理</h3>
+                            <p>如果只知道问题 ID 或评论 ID，可以直接在这里调整状态。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="grid two">
+                            <div class="panel" style="box-shadow:none;">
+                                <div class="panel-body">
+                                    <h3 style="margin-top:0;">问题状态</h3>
+                                    <div class="form-row">
+                                        <div class="field">
+                                            <label for="quick-question-id">问题 ID</label>
+                                            <input id="quick-question-id" type="number" min="1" placeholder="例如 62">
+                                        </div>
+                                        <div class="field">
+                                            <label for="quick-question-status">目标状态</label>
+                                            <select id="quick-question-status">
+                                                <option value="OPEN">开放中</option>
+                                                <option value="RESOLVED">已解决</option>
+                                                <option value="CLOSED">已关闭</option>
+                                                <option value="ARCHIVED">已归档</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateQuestionStatus('quick')">更新问题</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel" style="box-shadow:none;">
+                                <div class="panel-body">
+                                    <h3 style="margin-top:0;">评论状态</h3>
+                                    <div class="form-row">
+                                        <div class="field">
+                                            <label for="quick-comment-id">评论 ID</label>
+                                            <input id="quick-comment-id" type="number" min="1" placeholder="例如 18">
+                                        </div>
+                                        <div class="field">
+                                            <label for="quick-comment-status">目标状态</label>
+                                            <select id="quick-comment-status">
+                                                <option value="ACTIVE">正常展示</option>
+                                                <option value="HIDDEN">已隐藏</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateCommentStatus('quick')">更新评论</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="users-section">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>用户治理</h3>
+                            <p>筛选用户并修改角色或状态。系统会阻止停用最后一个有效管理员。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="filters">
+                            <div class="field small">
+                                <label for="user-role-filter">角色</label>
+                                <select id="user-role-filter">
+                                    <option value="">全部</option>
+                                    <option value="USER">普通用户</option>
+                                    <option value="ADMIN">管理员</option>
+                                </select>
+                            </div>
+                            <div class="field small">
+                                <label for="user-status-filter">状态</label>
+                                <select id="user-status-filter">
+                                    <option value="">全部</option>
+                                    <option value="ACTIVE">正常</option>
+                                    <option value="INACTIVE">未激活</option>
+                                    <option value="LOCKED">已锁定</option>
+                                    <option value="DISABLED">已停用</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyUserFilters()">筛选</button>
+                            <button class="btn btn-outline" onclick="resetUserFilters()">重置</button>
+                        </div>
+                        <div id="users-table" style="margin-top:18px;"><div class="loading">正在加载用户...</div></div>
+                        <div class="pagination" id="users-pagination"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="categories-section">
+                <div class="grid two">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>创建分类</h3>
+                                <p>分类名称必须唯一，可用于问题发布和检索。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="new-category-name">分类名称</label>
+                                    <input id="new-category-name" maxlength="50" placeholder="例如 数据库">
+                                </div>
+                                <div class="field small">
+                                    <label for="new-category-status">状态</label>
+                                    <select id="new-category-status">
+                                        <option value="ACTIVE">启用</option>
+                                        <option value="INACTIVE">停用</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top:12px;">
+                                <label for="new-category-desc">描述</label>
+                                <textarea id="new-category-desc" maxlength="200" placeholder="可选，说明该分类适合哪些问题"></textarea>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top:14px;" onclick="createCategory()">创建分类</button>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>分类列表</h3>
+                                <p>可以内联修改名称、描述和启用状态。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="filters">
+                                <div class="field small">
+                                    <label for="category-status-filter">状态</label>
+                                    <select id="category-status-filter">
+                                        <option value="">全部</option>
+                                        <option value="ACTIVE">启用</option>
+                                        <option value="INACTIVE">停用</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="applyCategoryFilters()">筛选</button>
+                                <button class="btn btn-outline" onclick="resetCategoryFilters()">重置</button>
+                            </div>
+                            <div id="categories-table" style="margin-top:18px;"><div class="loading">正在加载分类...</div></div>
+                            <div class="pagination" id="categories-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="content-section">
+                <div class="panel" style="margin-bottom: 18px;">
+                    <div class="panel-header">
+                        <div>
+                            <h3>内容 ID 查询</h3>
+                            <p>先从最近问题里定位问题 ID，再展开回答查看对应的评论 ID，可一键填入下方治理表单。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="filters">
+                            <div class="field small">
+                                <label for="content-question-status-filter">问题状态</label>
+                                <select id="content-question-status-filter">
+                                    <option value="">全部</option>
+                                    <option value="OPEN">开放中</option>
+                                    <option value="RESOLVED">已解决</option>
+                                    <option value="CLOSED">已关闭</option>
+                                    <option value="ARCHIVED">已归档</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyContentQuestionFilters()">查询问题</button>
+                            <button class="btn btn-outline" onclick="resetContentQuestionFilters()">重置</button>
+                        </div>
+                        <div id="content-question-list" class="lookup-list">
+                            <div class="loading">进入内容治理后会自动加载最近问题...</div>
+                        </div>
+                        <div class="pagination" id="content-question-pagination"></div>
+                        <div id="content-detail-panel" style="margin-top:16px;"></div>
+                    </div>
+                </div>
+                <div class="grid two">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>问题状态调整</h3>
+                                <p>用于关闭、归档或恢复问题。注意：状态变更会影响回答入口。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="content-question-id">问题 ID</label>
+                                    <input id="content-question-id" type="number" min="1" placeholder="输入问题 ID">
+                                </div>
+                                <div class="field">
+                                    <label for="content-question-status">目标状态</label>
+                                    <select id="content-question-status">
+                                        <option value="OPEN">开放中</option>
+                                        <option value="RESOLVED">已解决</option>
+                                        <option value="CLOSED">已关闭</option>
+                                        <option value="ARCHIVED">已归档</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="updateQuestionStatus('content')">更新</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>评论状态调整</h3>
+                                <p>管理员可以隐藏不合适的回答评论，也可以恢复为正常展示。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="content-comment-id">评论 ID</label>
+                                    <input id="content-comment-id" type="number" min="1" placeholder="输入评论 ID">
+                                </div>
+                                <div class="field">
+                                    <label for="content-comment-status">目标状态</label>
+                                    <select id="content-comment-status">
+                                        <option value="ACTIVE">正常展示</option>
+                                        <option value="HIDDEN">已隐藏</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="updateCommentStatus('content')">更新</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="logs-section">
+                <div class="grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>登录日志</h3>
+                                <p>查看登录成功、失败和锁定账号的审计记录。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="filters">
+                                <div class="field small">
+                                    <label for="login-log-user-id">用户 ID</label>
+                                    <input id="login-log-user-id" type="number" min="1" placeholder="可选">
+                                </div>
+                                <div class="field small">
+                                    <label for="login-log-result">结果</label>
+                                    <select id="login-log-result">
+                                        <option value="">全部</option>
+                                        <option value="SUCCESS">登录成功</option>
+                                        <option value="FAILURE">登录失败</option>
+                                        <option value="LOCKED">账号锁定</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="applyLoginLogFilters()">筛选</button>
+                                <button class="btn btn-outline" onclick="resetLoginLogFilters()">重置</button>
+                            </div>
+                            <div id="login-logs-table" style="margin-top:18px;"><div class="loading">正在加载登录日志...</div></div>
+                            <div class="pagination" id="login-logs-pagination"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>操作日志</h3>
+                                <p>管理员写操作会落到这里，用于答辩说明审计闭环。</p>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="filters">
+                                <div class="field small">
+                                    <label for="operation-log-user-id">管理员 ID</label>
+                                    <input id="operation-log-user-id" type="number" min="1" placeholder="可选">
+                                </div>
+                                <div class="field">
+                                    <label for="operation-log-type">操作类型</label>
+                                    <select id="operation-log-type">
+                                        <option value="">全部</option>
+                                        <option value="ADMIN_CREATE_CATEGORY">创建分类</option>
+                                        <option value="ADMIN_UPDATE_CATEGORY">修改分类</option>
+                                        <option value="ADMIN_UPDATE_USER_STATUS">修改用户状态</option>
+                                        <option value="ADMIN_UPDATE_USER_ROLE">修改用户角色</option>
+                                        <option value="ADMIN_UPDATE_QUESTION_STATUS">修改问题状态</option>
+                                        <option value="ADMIN_UPDATE_COMMENT_STATUS">修改评论状态</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="applyOperationLogFilters()">筛选</button>
+                                <button class="btn btn-outline" onclick="resetOperationLogFilters()">重置</button>
+                            </div>
+                            <div id="operation-logs-table" style="margin-top:18px;"><div class="loading">正在加载操作日志...</div></div>
+                            <div class="pagination" id="operation-logs-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const LOGIN_PAGE_URL = '/login';
+        const HOME_PAGE_URL = '/home';
+        const sectionMeta = {
+            overview: ['总览', '查看管理员后台的关键数量，并快速确认系统治理状态。'],
+            users: ['用户治理', '筛选用户并调整用户角色、锁定、停用和恢复状态。'],
+            categories: ['分类管理', '创建和维护社区问题分类，支持启用与停用。'],
+            content: ['内容治理', '通过问题 ID 或评论 ID 快速调整内容状态。'],
+            logs: ['审计日志', '查看登录日志和管理员操作日志，支撑可追溯治理。'],
+        };
+
+        const state = {
+            currentSection: 'overview',
+            users: { page: 1, pageSize: 10, role: '', status: '' },
+            categories: { page: 1, pageSize: 8, status: '' },
+            contentQuestions: { page: 1, pageSize: 6, status: '' },
+            loginLogs: { page: 1, pageSize: 10, userId: '', result: '' },
+            operationLogs: { page: 1, pageSize: 10, userId: '', opType: '' },
+        };
+
+        const friendlyLabels = {
+            USER: '普通用户',
+            ADMIN: '管理员',
+            ACTIVE: '正常',
+            INACTIVE: '未激活',
+            LOCKED: '已锁定',
+            DISABLED: '已停用',
+            OPEN: '开放中',
+            RESOLVED: '已解决',
+            CLOSED: '已关闭',
+            ARCHIVED: '已归档',
+            HIDDEN: '已隐藏',
+            DELETED: '已删除',
+            SUCCESS: '成功',
+            FAILURE: '失败',
+            ADMIN_CREATE_CATEGORY: '创建分类',
+            ADMIN_UPDATE_CATEGORY: '修改分类',
+            ADMIN_UPDATE_USER_STATUS: '修改用户状态',
+            ADMIN_UPDATE_USER_ROLE: '修改用户角色',
+            ADMIN_UPDATE_QUESTION_STATUS: '修改问题状态',
+            ADMIN_UPDATE_COMMENT_STATUS: '修改评论状态',
+        };
+
+        function friendlyLabel(value) {
+            const normalized = String(value || '').toUpperCase();
+            return friendlyLabels[normalized] || normalized || '-';
+        }
+
+        function buildApiUrl(path, params = {}) {
+            const url = new URL(path, window.location.origin);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return url.toString();
+        }
+
+        function clearSession() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('username');
+            localStorage.removeItem('user_role');
+        }
+
+        function redirectToLogin(message) {
+            clearSession();
+            if (message) {
+                alert(message);
+            }
+            window.location.href = LOGIN_PAGE_URL;
+        }
+
+        function logout() {
+            redirectToLogin();
+        }
+
+        function goHome() {
+            window.location.href = HOME_PAGE_URL;
+        }
+
+        function getAccessToken() {
+            return localStorage.getItem('access_token');
+        }
+
+        function getCurrentUserRole() {
+            return localStorage.getItem('user_role') || '';
+        }
+
+        function getCurrentUsername() {
+            return localStorage.getItem('username') || '管理员';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '-';
+            }
+            return new Date(value).toLocaleString();
+        }
+
+        function excerpt(value, maxLength = 110) {
+            const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+            if (text.length <= maxLength) {
+                return text || '-';
+            }
+            return `${text.slice(0, maxLength)}...`;
+        }
+
+        function setInputValue(id, value) {
+            const input = document.getElementById(id);
+            if (input) {
+                input.value = value;
+            }
+        }
+
+        function fillQuestionId(questionId) {
+            setInputValue('quick-question-id', questionId);
+            setInputValue('content-question-id', questionId);
+            showToast(`已填入问题 ID：${questionId}`);
+        }
+
+        function fillCommentId(commentId) {
+            setInputValue('quick-comment-id', commentId);
+            setInputValue('content-comment-id', commentId);
+            showToast(`已填入评论 ID：${commentId}`);
+        }
+
+        function badge(value, overrides = {}) {
+            const normalized = String(value || '').toUpperCase();
+            let kind = 'gray';
+            if (['ACTIVE', 'SUCCESS', 'OPEN'].includes(normalized)) kind = 'success';
+            if (['ADMIN', 'RESOLVED'].includes(normalized)) kind = 'blue';
+            if (['INACTIVE', 'LOCKED', 'HIDDEN', 'ARCHIVED'].includes(normalized)) kind = 'warn';
+            if (['DISABLED', 'FAILURE', 'CLOSED', 'DELETED'].includes(normalized)) kind = 'danger';
+            const label = overrides[normalized] || friendlyLabel(normalized);
+            return `<span class="badge ${kind}">${escapeHtml(label)}</span>`;
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show${isError ? ' error' : ''}`;
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => {
+                toast.className = 'toast';
+            }, 2800);
+        }
+
+        function setLoading(targetId, message) {
+            document.getElementById(targetId).innerHTML = `<div class="loading">${message}</div>`;
+        }
+
+        async function adminFetch(path, options = {}) {
+            const token = getAccessToken();
+            if (!token) {
+                redirectToLogin('请先登录管理员账号。');
+                throw new Error('Missing token');
+            }
+
+            const { params = {}, ...fetchOptions } = options;
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                ...(fetchOptions.headers || {}),
+            };
+
+            const response = await fetch(buildApiUrl(path, params), {
+                ...fetchOptions,
+                headers,
+            });
+
+            if ([401, 403, 423].includes(response.status)) {
+                const err = await response.json().catch(() => ({}));
+                const message = err.detail || '当前账号无权访问管理员后台。';
+                if (response.status === 401) {
+                    redirectToLogin(message);
+                } else {
+                    showToast(message, true);
+                }
+                throw new Error(message);
+            }
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `请求失败：${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        function switchSection(section) {
+            state.currentSection = section;
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.toggle('active', button.dataset.section === section);
+            });
+            document.querySelectorAll('.section').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `${section}-section`);
+            });
+            const [title, desc] = sectionMeta[section] || sectionMeta.overview;
+            document.getElementById('section-title').textContent = title;
+            document.getElementById('section-desc').textContent = desc;
+            loadSection(section);
+        }
+
+        function refreshCurrentSection() {
+            loadSection(state.currentSection, true);
+        }
+
+        async function loadSection(section, force = false) {
+            try {
+                if (section === 'overview') await loadOverview();
+                if (section === 'users') await loadUsers();
+                if (section === 'categories') await loadCategories();
+                if (section === 'content') await loadContentQuestions();
+                if (section === 'logs') {
+                    await Promise.all([loadLoginLogs(), loadOperationLogs()]);
+                }
+                if (section === 'content' && force) {
+                    showToast('内容治理模块已准备就绪。');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadOverview() {
+            const [users, admins, categories, operations] = await Promise.all([
+                adminFetch('/api/admin/users', { params: { page: 1, page_size: 1 } }),
+                adminFetch('/api/admin/users', { params: { page: 1, page_size: 1, role: 'ADMIN' } }),
+                adminFetch('/api/admin/categories', { params: { page: 1, page_size: 1 } }),
+                adminFetch('/api/admin/logs/operations', { params: { page: 1, page_size: 1 } }),
+            ]);
+            document.getElementById('stat-users').textContent = users.total ?? 0;
+            document.getElementById('stat-admins').textContent = admins.total ?? 0;
+            document.getElementById('stat-categories').textContent = categories.total ?? 0;
+            document.getElementById('stat-operations').textContent = operations.total ?? 0;
+        }
+
+        function renderPagination(targetId, paginationState, total, onPageChangeName) {
+            const totalPages = Math.max(1, Math.ceil((total || 0) / paginationState.pageSize));
+            document.getElementById(targetId).innerHTML = `
+                <button class="btn btn-outline" ${paginationState.page <= 1 ? 'disabled' : ''} onclick="${onPageChangeName}(${paginationState.page - 1})">上一页</button>
+                <span>第 ${paginationState.page} / ${totalPages} 页，共 ${total || 0} 条</span>
+                <button class="btn btn-outline" ${paginationState.page >= totalPages ? 'disabled' : ''} onclick="${onPageChangeName}(${paginationState.page + 1})">下一页</button>
+            `;
+        }
+
+        async function loadUsers() {
+            setLoading('users-table', '正在加载用户...');
+            const data = await adminFetch('/api/admin/users', {
+                params: {
+                    page: state.users.page,
+                    page_size: state.users.pageSize,
+                    role: state.users.role,
+                    status: state.users.status,
+                },
+            });
+            renderUsers(data);
+            renderPagination('users-pagination', state.users, data.total, 'changeUsersPage');
+        }
+
+        function renderUsers(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('users-table').innerHTML = '<div class="empty">暂无用户数据</div>';
+                return;
+            }
+            document.getElementById('users-table').innerHTML = `
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>注册时间</th>
+                                <th>最近登录</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(user => `
+                                <tr>
+                                    <td>${user.user_id}</td>
+                                    <td>
+                                        <strong>${escapeHtml(user.username)}</strong>
+                                        <div class="muted">${escapeHtml(user.nickname || user.email || '无昵称/邮箱')}</div>
+                                    </td>
+                                    <td>
+                                        ${badge(user.role)}
+                                        <select class="inline-select" id="user-role-${user.user_id}">
+                                            <option value="USER" ${user.role === 'USER' ? 'selected' : ''}>普通用户</option>
+                                            <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>管理员</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        ${badge(user.status)}
+                                        <select class="inline-select" id="user-status-${user.user_id}">
+                                            <option value="ACTIVE" ${user.status === 'ACTIVE' ? 'selected' : ''}>正常</option>
+                                            <option value="INACTIVE" ${user.status === 'INACTIVE' ? 'selected' : ''}>未激活</option>
+                                            <option value="LOCKED" ${user.status === 'LOCKED' ? 'selected' : ''}>已锁定</option>
+                                            <option value="DISABLED" ${user.status === 'DISABLED' ? 'selected' : ''}>已停用</option>
+                                        </select>
+                                    </td>
+                                    <td>${formatDate(user.register_time)}</td>
+                                    <td>${formatDate(user.last_login_time)}</td>
+                                    <td>
+                                        <button class="btn btn-outline" onclick="updateUserRole(${user.user_id})">改角色</button>
+                                        <button class="btn btn-primary" onclick="updateUserStatus(${user.user_id})">改状态</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyUserFilters() {
+            state.users.page = 1;
+            state.users.role = document.getElementById('user-role-filter').value;
+            state.users.status = document.getElementById('user-status-filter').value;
+            loadUsers();
+        }
+
+        function resetUserFilters() {
+            document.getElementById('user-role-filter').value = '';
+            document.getElementById('user-status-filter').value = '';
+            applyUserFilters();
+        }
+
+        function changeUsersPage(page) {
+            state.users.page = Math.max(1, page);
+            loadUsers();
+        }
+
+        async function updateUserStatus(userId) {
+            const statusValue = document.getElementById(`user-status-${userId}`).value;
+            try {
+                await adminFetch(`/api/admin/users/${userId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusValue }),
+                });
+                showToast('用户状态已更新。');
+                await Promise.all([loadUsers(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function updateUserRole(userId) {
+            const roleValue = document.getElementById(`user-role-${userId}`).value;
+            try {
+                await adminFetch(`/api/admin/users/${userId}/role`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: roleValue }),
+                });
+                showToast('用户角色已更新。');
+                await Promise.all([loadUsers(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function createCategory() {
+            const categoryName = document.getElementById('new-category-name').value.trim();
+            const description = document.getElementById('new-category-desc').value.trim();
+            const statusValue = document.getElementById('new-category-status').value;
+            if (!categoryName) {
+                showToast('分类名称不能为空。', true);
+                return;
+            }
+            try {
+                await adminFetch('/api/admin/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category_name: categoryName,
+                        description: description || null,
+                        status: statusValue,
+                    }),
+                });
+                document.getElementById('new-category-name').value = '';
+                document.getElementById('new-category-desc').value = '';
+                showToast('分类已创建。');
+                await Promise.all([loadCategories(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function loadCategories() {
+            setLoading('categories-table', '正在加载分类...');
+            const data = await adminFetch('/api/admin/categories', {
+                params: {
+                    page: state.categories.page,
+                    page_size: state.categories.pageSize,
+                    status: state.categories.status,
+                },
+            });
+            renderCategories(data);
+            renderPagination('categories-pagination', state.categories, data.total, 'changeCategoriesPage');
+        }
+
+        function renderCategories(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('categories-table').innerHTML = '<div class="empty">暂无分类数据</div>';
+                return;
+            }
+            document.getElementById('categories-table').innerHTML = `
+                <div class="table-wrap">
+                    <table style="min-width: 640px;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>名称</th>
+                                <th>描述</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(category => `
+                                <tr>
+                                    <td>${category.category_id}</td>
+                                    <td><input class="inline-input" id="category-name-${category.category_id}" value="${escapeHtml(category.category_name)}"></td>
+                                    <td><input class="inline-input" id="category-desc-${category.category_id}" value="${escapeHtml(category.description || '')}"></td>
+                                    <td>
+                                        ${badge(category.status, { ACTIVE: '启用', INACTIVE: '停用' })}
+                                        <select class="inline-select" id="category-status-${category.category_id}">
+                                            <option value="ACTIVE" ${category.status === 'ACTIVE' ? 'selected' : ''}>启用</option>
+                                            <option value="INACTIVE" ${category.status === 'INACTIVE' ? 'selected' : ''}>停用</option>
+                                        </select>
+                                    </td>
+                                    <td><button class="btn btn-primary" onclick="updateCategory(${category.category_id})">保存</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyCategoryFilters() {
+            state.categories.page = 1;
+            state.categories.status = document.getElementById('category-status-filter').value;
+            loadCategories();
+        }
+
+        function resetCategoryFilters() {
+            document.getElementById('category-status-filter').value = '';
+            applyCategoryFilters();
+        }
+
+        function changeCategoriesPage(page) {
+            state.categories.page = Math.max(1, page);
+            loadCategories();
+        }
+
+        async function updateCategory(categoryId) {
+            const name = document.getElementById(`category-name-${categoryId}`).value.trim();
+            const description = document.getElementById(`category-desc-${categoryId}`).value.trim();
+            const statusValue = document.getElementById(`category-status-${categoryId}`).value;
+            if (!name) {
+                showToast('分类名称不能为空。', true);
+                return;
+            }
+            try {
+                await adminFetch(`/api/admin/categories/${categoryId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category_name: name,
+                        description: description || null,
+                        status: statusValue,
+                    }),
+                });
+                showToast('分类已更新。');
+                await Promise.all([loadCategories(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function loadContentQuestions() {
+            document.getElementById('content-question-list').innerHTML = '<div class="loading">正在加载最近问题...</div>';
+            const data = await adminFetch('/api/questions', {
+                params: {
+                    page: state.contentQuestions.page,
+                    page_size: state.contentQuestions.pageSize,
+                    status: state.contentQuestions.status,
+                },
+            });
+            renderContentQuestions(data);
+            renderPagination(
+                'content-question-pagination',
+                state.contentQuestions,
+                data.total,
+                'changeContentQuestionsPage'
+            );
+        }
+
+        function renderContentQuestions(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('content-question-list').innerHTML = '<div class="empty">没有找到符合条件的问题。</div>';
+                return;
+            }
+
+            document.getElementById('content-question-list').innerHTML = items.map(question => `
+                <div class="lookup-card">
+                    <div class="lookup-head">
+                        <div>
+                            <p class="lookup-title">#${question.question_id} ${escapeHtml(question.title)}</p>
+                            <div class="lookup-meta">
+                                ${badge(question.status)}
+                                <span>作者：${escapeHtml(question.username || `用户 ${question.user_id}`)}</span>
+                                <span>回答：${question.answer_count || 0}</span>
+                                <span>收藏：${question.favorite_count || 0}</span>
+                                <span>${formatDate(question.ask_time)}</span>
+                            </div>
+                        </div>
+                        <span class="id-chip">问题 ID：${question.question_id}</span>
+                    </div>
+                    <div class="lookup-actions">
+                        <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                        <button class="btn btn-outline" onclick="inspectQuestionContent(${question.question_id})">查看回答/评论 ID</button>
+                        <button class="btn btn-outline" onclick="window.open('/questions/${question.question_id}', '_blank')">打开详情页</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function applyContentQuestionFilters() {
+            state.contentQuestions.page = 1;
+            state.contentQuestions.status = document.getElementById('content-question-status-filter').value;
+            loadContentQuestions();
+        }
+
+        function resetContentQuestionFilters() {
+            document.getElementById('content-question-status-filter').value = '';
+            applyContentQuestionFilters();
+        }
+
+        function changeContentQuestionsPage(page) {
+            state.contentQuestions.page = Math.max(1, page);
+            loadContentQuestions();
+        }
+
+        async function inspectQuestionContent(questionId) {
+            fillQuestionId(questionId);
+            document.getElementById('content-detail-panel').innerHTML =
+                '<div class="loading">正在读取该问题下的回答与评论...</div>';
+            try {
+                const question = await adminFetch(`/api/questions/${questionId}`);
+                renderQuestionInspector(question);
+            } catch (error) {
+                document.getElementById('content-detail-panel').innerHTML =
+                    `<div class="empty">${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        function renderQuestionInspector(question) {
+            const answers = question.answers || [];
+            const answerListHtml = answers.length
+                ? answers.map(answer => {
+                    const author = answer.author_username || answer.author_nickname || answer.provider_name || `用户 ${answer.user_id || '-'}`;
+                    const answerType = answer.answer_type === 'MANUAL' ? '社区回答' : 'AI 回答';
+                    const accepted = answer.is_accepted ? '<span class="badge success">已采纳</span>' : '';
+                    return `
+                        <div class="lookup-card">
+                            <div class="lookup-head">
+                                <div>
+                                    <div class="lookup-meta" style="margin-bottom:8px;">
+                                        <span class="id-chip">回答 ID：${answer.answer_id}</span>
+                                        <span>${escapeHtml(answerType)}</span>
+                                        <span>作者：${escapeHtml(author)}</span>
+                                        <span>${formatDate(answer.generate_time)}</span>
+                                        ${accepted}
+                                    </div>
+                                    <p class="lookup-title">${escapeHtml(excerpt(answer.content, 150))}</p>
+                                </div>
+                            </div>
+                            <div class="lookup-actions">
+                                <button class="btn btn-outline" onclick="loadAnswerComments(${answer.answer_id})">查看该回答的评论 ID</button>
+                            </div>
+                            <div id="answer-comments-${answer.answer_id}"></div>
+                        </div>
+                    `;
+                }).join('')
+                : '<div class="empty">这个问题暂时还没有回答，因此没有可查看的评论 ID。</div>';
+
+            document.getElementById('content-detail-panel').innerHTML = `
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>问题 #${question.question_id} 的回答与评论</h3>
+                            <p>${escapeHtml(question.title)} · ${answers.length} 个回答</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="lookup-list">${answerListHtml}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function flattenComments(items, depth = 0) {
+            return (items || []).flatMap(comment => [
+                { comment, depth },
+                ...flattenComments(comment.children || [], depth + 1),
+            ]);
+        }
+
+        async function loadAnswerComments(answerId) {
+            const container = document.getElementById(`answer-comments-${answerId}`);
+            if (!container) {
+                return;
+            }
+            container.innerHTML = '<div class="loading" style="margin-top:10px;">正在加载评论...</div>';
+            try {
+                const data = await adminFetch(`/api/answers/${answerId}/comments`);
+                const comments = flattenComments(data.items || []);
+                if (comments.length === 0) {
+                    container.innerHTML = '<div class="empty" style="margin-top:10px;">这条回答下面暂无评论。</div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="comment-list">
+                        ${comments.map(({ comment, depth }) => `
+                            <div class="comment-item ${depth > 0 ? 'child' : ''}" style="margin-left:${Math.min(depth, 3) * 18}px;">
+                                <div class="lookup-head" style="margin-bottom:6px;">
+                                    <div class="lookup-meta">
+                                        <span class="id-chip">评论 ID：${comment.comment_id}</span>
+                                        ${badge(comment.status, { ACTIVE: '正常展示', HIDDEN: '已隐藏', DELETED: '已删除' })}
+                                        <span>作者：${escapeHtml(comment.author_username || comment.author_nickname || `用户 ${comment.user_id}`)}</span>
+                                        <span>${formatDate(comment.create_time)}</span>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="fillCommentId(${comment.comment_id})">填入评论 ID</button>
+                                </div>
+                                <div class="muted">${escapeHtml(excerpt(comment.content, 160))}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `<div class="empty" style="margin-top:10px;">${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        async function updateQuestionStatus(source) {
+            const idPrefix = source === 'quick' ? 'quick' : 'content';
+            const questionId = Number(document.getElementById(`${idPrefix}-question-id`).value);
+            const statusValue = document.getElementById(`${idPrefix}-question-status`).value;
+            if (!Number.isInteger(questionId) || questionId <= 0) {
+                showToast('请输入有效的问题 ID。', true);
+                return;
+            }
+            try {
+                await adminFetch(`/api/admin/questions/${questionId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusValue }),
+                });
+                showToast('问题状态已更新。');
+                await loadOperationLogs();
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function updateCommentStatus(source) {
+            const idPrefix = source === 'quick' ? 'quick' : 'content';
+            const commentId = Number(document.getElementById(`${idPrefix}-comment-id`).value);
+            const statusValue = document.getElementById(`${idPrefix}-comment-status`).value;
+            if (!Number.isInteger(commentId) || commentId <= 0) {
+                showToast('请输入有效的评论 ID。', true);
+                return;
+            }
+            try {
+                await adminFetch(`/api/admin/comments/${commentId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusValue }),
+                });
+                showToast('评论状态已更新。');
+                await loadOperationLogs();
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function loadLoginLogs() {
+            setLoading('login-logs-table', '正在加载登录日志...');
+            const data = await adminFetch('/api/admin/logs/login', {
+                params: {
+                    page: state.loginLogs.page,
+                    page_size: state.loginLogs.pageSize,
+                    user_id: state.loginLogs.userId,
+                    result: state.loginLogs.result,
+                },
+            });
+            renderLoginLogs(data);
+            renderPagination('login-logs-pagination', state.loginLogs, data.total, 'changeLoginLogsPage');
+        }
+
+        function renderLoginLogs(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('login-logs-table').innerHTML = '<div class="empty">暂无登录日志</div>';
+                return;
+            }
+            document.getElementById('login-logs-table').innerHTML = `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>用户</th><th>结果</th><th>IP</th><th>时间</th></tr></thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr>
+                                    <td>${item.log_id}</td>
+                                    <td>#${item.user_id} ${escapeHtml(item.username || '')}</td>
+                                    <td>${badge(item.result)}</td>
+                                    <td>${escapeHtml(item.ip_address || '-')}</td>
+                                    <td>${formatDate(item.login_time)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyLoginLogFilters() {
+            state.loginLogs.page = 1;
+            state.loginLogs.userId = document.getElementById('login-log-user-id').value;
+            state.loginLogs.result = document.getElementById('login-log-result').value;
+            loadLoginLogs();
+        }
+
+        function resetLoginLogFilters() {
+            document.getElementById('login-log-user-id').value = '';
+            document.getElementById('login-log-result').value = '';
+            applyLoginLogFilters();
+        }
+
+        function changeLoginLogsPage(page) {
+            state.loginLogs.page = Math.max(1, page);
+            loadLoginLogs();
+        }
+
+        async function loadOperationLogs() {
+            setLoading('operation-logs-table', '正在加载操作日志...');
+            const data = await adminFetch('/api/admin/logs/operations', {
+                params: {
+                    page: state.operationLogs.page,
+                    page_size: state.operationLogs.pageSize,
+                    user_id: state.operationLogs.userId,
+                    op_type: state.operationLogs.opType,
+                },
+            });
+            renderOperationLogs(data);
+            renderPagination('operation-logs-pagination', state.operationLogs, data.total, 'changeOperationLogsPage');
+        }
+
+        function renderOperationLogs(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('operation-logs-table').innerHTML = '<div class="empty">暂无操作日志</div>';
+                return;
+            }
+            document.getElementById('operation-logs-table').innerHTML = `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>管理员</th><th>类型</th><th>内容</th><th>时间</th></tr></thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr>
+                                    <td>${item.op_id}</td>
+                                    <td>#${item.user_id} ${escapeHtml(item.username || '')}</td>
+                                    <td>${badge(item.op_type)}</td>
+                                    <td class="log-content">${escapeHtml(item.op_content)}</td>
+                                    <td>${formatDate(item.op_time)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyOperationLogFilters() {
+            state.operationLogs.page = 1;
+            state.operationLogs.userId = document.getElementById('operation-log-user-id').value;
+            state.operationLogs.opType = document.getElementById('operation-log-type').value;
+            loadOperationLogs();
+        }
+
+        function resetOperationLogFilters() {
+            document.getElementById('operation-log-user-id').value = '';
+            document.getElementById('operation-log-type').value = '';
+            applyOperationLogFilters();
+        }
+
+        function changeOperationLogsPage(page) {
+            state.operationLogs.page = Math.max(1, page);
+            loadOperationLogs();
+        }
+
+        async function initializeAdminPage() {
+            const token = getAccessToken();
+            if (!token) {
+                redirectToLogin('请先登录管理员账号。');
+                return;
+            }
+
+            document.getElementById('admin-greeting').textContent = `欢迎回来，${getCurrentUsername()}`;
+            try {
+                await loadOverview();
+                if (getCurrentUserRole() !== 'ADMIN') {
+                    localStorage.setItem('user_role', 'ADMIN');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, true);
+                if (String(error.message).includes('管理员') || String(error.message).includes('无权访问')) {
+                    setTimeout(() => {
+                        window.location.href = HOME_PAGE_URL;
+                    }, 900);
+                }
+            }
+        }
+
+        window.addEventListener('load', initializeAdminPage);
+    </script>
+</body>
+</html>

@@ -10,7 +10,13 @@ web_router = APIRouter(include_in_schema=False)
 
 
 def _page_response(filename: str) -> FileResponse:
-    return FileResponse(WEB_DIR / filename)
+    return FileResponse(
+        WEB_DIR / filename,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "Pragma": "no-cache",
+        },
+    )
 
 
 @web_router.get("/")
@@ -34,6 +40,12 @@ def home_page() -> FileResponse:
 @web_router.get("/me.html")
 def profile_page() -> FileResponse:
     return _page_response("profile.html")
+
+
+@web_router.get("/admin")
+@web_router.get("/admin.html")
+def admin_page() -> FileResponse:
+    return _page_response("admin.html")
 
 
 @web_router.get("/questions/{question_id}")

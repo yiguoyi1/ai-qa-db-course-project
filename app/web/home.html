@@ -116,6 +116,85 @@
         .switch input:checked + .slider { background-color: #2563eb; } /* 开启时的蓝色 */
         .switch input:checked + .slider:before { transform: translateX(20px); } /* 圆点向右滑动的距离 */
 
+        .media-uploader {
+            margin-bottom: 24px;
+            padding: 14px 16px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .media-uploader-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .media-upload-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .media-upload-hint {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #64748b;
+        }
+
+        .media-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .media-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #e2e8f0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .media-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-preview-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(15, 23, 42, 0.72);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 22px;
+            padding: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -144,6 +223,7 @@
 
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
+        <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
         <button class="btn-outline" onclick="goToProfile()">我的中心</button>
         <button class="btn-outline" onclick="logout()">退出登录</button>
     </div>
@@ -183,6 +263,16 @@
             <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 15px; font-family: inherit;"></textarea>
         </div>
 
+        <div class="media-uploader">
+            <div class="media-uploader-title">
+                <span>问题配图</span>
+                <label class="media-upload-button" for="post-images">选择图片</label>
+                <input id="post-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="handlePostImageSelection(event)" style="display: none;">
+            </div>
+            <p class="media-upload-hint">可选，最多 9 张，支持 JPG / PNG / WebP，发布后会显示在问题正文下方。</p>
+            <div id="post-image-preview" class="media-preview-grid"></div>
+        </div>
+
         <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 14px 16px; border-radius: 10px; border: 1px solid #e2e8f0; transition: all 0.2s;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="font-size: 20px;">🤖</div>
@@ -204,9 +294,13 @@
     </div>
 </div>
 
-<script>
-    const LOGIN_PAGE_URL = '/login';
-    const DETAIL_PAGE_BASE = '/questions';
+    <script>
+        const LOGIN_PAGE_URL = '/login';
+        const DETAIL_PAGE_BASE = '/questions';
+        const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+        const MAX_QUESTION_IMAGES = 9;
+        const MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024;
+        let selectedPostImages = [];
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -289,6 +383,7 @@
     window.onload = async function() {
         const token = localStorage.getItem('access_token');
         const username = localStorage.getItem('username');
+        const role = localStorage.getItem('user_role');
 
         if (!token) {
             alert('您还没有登录，请先登录！');
@@ -296,6 +391,9 @@
             return;
         }
         document.getElementById('user-greeting').innerText = `欢迎回来, ${username}`;
+        if (role === 'ADMIN') {
+            document.getElementById('admin-entry').style.display = 'inline-flex';
+        }
 
         // 页面刚打开，没搜索词，直接拉取默认第一页
         loadPopularTags();
@@ -454,9 +552,13 @@
         window.location.href = '/me';
     }
 
+    function goToAdmin() {
+        window.location.href = '/admin';
+    }
+
     // 🌟 跳转到详情页的魔法 🌟
     function goToDetail(questionId) {
-        window.location.href = `${DETAIL_PAGE_BASE}/${questionId}`;
+        window.location.href = `${DETAIL_PAGE_BASE}/${questionId}?_=${Date.now()}`;
     }
     // 🌟 弹窗的开启与关闭逻辑
     function openPostModal() {
@@ -468,6 +570,127 @@
         // 关闭时清空输入框
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
+        resetPostImageSelection();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024 * 1024) {
+            return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+        }
+        return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+    }
+
+    function revokePreviewImages(items) {
+        items.forEach(item => URL.revokeObjectURL(item.previewUrl));
+    }
+
+    function buildSelectedImageItems(files, maxCount, maxSize) {
+        const selected = [];
+        const errors = [];
+
+        files.slice(0, maxCount).forEach(file => {
+            if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+                errors.push(`${file.name} 不是支持的图片格式`);
+                return;
+            }
+            if (file.size > maxSize) {
+                errors.push(`${file.name} 超过 ${formatFileSize(maxSize)}`);
+                return;
+            }
+            selected.push({
+                file,
+                previewUrl: URL.createObjectURL(file),
+            });
+        });
+
+        if (files.length > maxCount) {
+            errors.push(`本次最多只能选择 ${maxCount} 张图片，已自动忽略多余图片`);
+        }
+
+        return { selected, errors };
+    }
+
+    function handlePostImageSelection(event) {
+        const files = Array.from(event.target.files || []);
+        const { selected, errors } = buildSelectedImageItems(
+            files,
+            MAX_QUESTION_IMAGES,
+            MAX_QUESTION_IMAGE_SIZE
+        );
+
+        revokePreviewImages(selectedPostImages);
+        selectedPostImages = selected;
+        renderPostImagePreview();
+
+        if (errors.length > 0) {
+            alert(`部分图片未加入：\n${errors.join('\n')}`);
+        }
+    }
+
+    function renderPostImagePreview() {
+        const container = document.getElementById('post-image-preview');
+        if (!container) {
+            return;
+        }
+
+        if (selectedPostImages.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = selectedPostImages.map((item, index) => `
+            <div class="media-preview-item">
+                <img src="${item.previewUrl}" alt="问题配图预览 ${index + 1}">
+                <button type="button" class="media-preview-remove" onclick="removePostImage(${index})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function removePostImage(index) {
+        const [removed] = selectedPostImages.splice(index, 1);
+        if (removed) {
+            URL.revokeObjectURL(removed.previewUrl);
+        }
+        const input = document.getElementById('post-images');
+        if (input) {
+            input.value = '';
+        }
+        renderPostImagePreview();
+    }
+
+    function resetPostImageSelection() {
+        revokePreviewImages(selectedPostImages);
+        selectedPostImages = [];
+        const input = document.getElementById('post-images');
+        if (input) {
+            input.value = '';
+        }
+        renderPostImagePreview();
+    }
+
+    async function uploadQuestionImages(questionId, images, token, onProgress) {
+        for (let index = 0; index < images.length; index += 1) {
+            const item = images[index];
+            const formData = new FormData();
+            formData.append('file', item.file);
+
+            const response = await fetch(buildApiUrl(`/api/questions/${questionId}/images`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `${item.file.name} 上传失败`);
+            }
+
+            if (typeof onProgress === 'function') {
+                onProgress(index + 1, images.length);
+            }
+        }
     }
 
     // 🌟 核心：提交帖子到后端
@@ -486,6 +709,9 @@
 
         const token = localStorage.getItem('access_token');
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
+        const imagesToUpload = [...selectedPostImages];
+        const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
+        const originalBtnText = submitBtn.innerText;
 
         try {
             // 🌟 核心分流逻辑 🌟
@@ -505,8 +731,6 @@
             }
 
             // UI 提示变成加载中，因为 AI 生成需要几秒钟
-            const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
-            const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = useAi ? '🤖 AI 正在思考中...' : '发布中...';
             submitBtn.disabled = true;
 
@@ -520,8 +744,27 @@
             });
 
             if (response.ok) {
+                const responseData = await response.json();
+                const questionId = responseData.question_id;
+
+                if (questionId && imagesToUpload.length > 0) {
+                    submitBtn.innerText = `上传图片中 0/${imagesToUpload.length}...`;
+                    try {
+                        await uploadQuestionImages(questionId, imagesToUpload, token, (done, total) => {
+                            submitBtn.innerText = `上传图片中 ${done}/${total}...`;
+                        });
+                    } catch (uploadError) {
+                        console.error(uploadError);
+                        alert(`问题已发布，但图片上传失败：${uploadError.message}`);
+                    }
+                }
+
                 closePostModal();
-                window.location.reload();
+                if (questionId && imagesToUpload.length > 0) {
+                    window.location.href = `${DETAIL_PAGE_BASE}/${questionId}`;
+                } else {
+                    window.location.reload();
+                }
             } else if (response.status === 401) {
                 redirectToLogin('登录状态已失效，请重新登录。');
             } else {
@@ -533,6 +776,8 @@
         } catch (error) {
             console.error(error);
             alert("❌ 网络请求失败，请检查后端是否运行。");
+            submitBtn.innerText = originalBtnText;
+            submitBtn.disabled = false;
         }
     }
 

@@ -117,6 +117,108 @@
             font-size: 13px;
         }
 
+        .media-uploader {
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .media-uploader-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .media-upload-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .media-upload-hint {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #64748b;
+        }
+
+        .media-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .media-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #e2e8f0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .media-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-preview-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(15, 23, 42, 0.72);
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 20px;
+            padding: 0;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .media-grid img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            cursor: zoom-in;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .media-grid img:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+        }
+
     </style>
 </head>
 <body>
@@ -125,6 +227,7 @@
         <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
         <div class="navbar-user">
             <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
+            <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
             <button class="btn-outline" onclick="goToProfile()">我的中心</button>
             <button class="btn-outline" onclick="logout()">退出登录</button>
         </div>
@@ -146,6 +249,16 @@
 
                 <textarea id="my-answer-content" rows="6" placeholder="分享你的知识和见解..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 14px; font-family: inherit; margin-bottom: 16px; transition: border-color 0.2s;"></textarea>
 
+                <div class="media-uploader">
+                    <div class="media-uploader-title">
+                        <span>回答配图</span>
+                        <label class="media-upload-button" for="answer-images">选择图片</label>
+                        <input id="answer-images" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="handleAnswerImageSelection(event)" style="display: none;">
+                    </div>
+                    <p class="media-upload-hint">可选，最多 6 张，发布后会显示在回答正文下方。</p>
+                    <div id="answer-image-preview" class="media-preview-grid"></div>
+                </div>
+
                 <button id="submit-answer-btn" onclick="submitAnswer()" style="width: 100%; padding: 10px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;">发 布 回 答</button>
             </div>
         </div>
@@ -153,8 +266,12 @@
 
     <script>
         const LOGIN_PAGE_URL = '/login';
+        const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+        const MAX_ANSWER_IMAGES = 6;
+        const MAX_ANSWER_IMAGE_SIZE = 5 * 1024 * 1024;
         let detailOpenedAt = Date.now();
         let browseHistoryRecorded = false;
+        let selectedAnswerImages = [];
 
         function buildApiUrl(path, params = {}) {
             const url = new URL(path, window.location.origin);
@@ -187,6 +304,10 @@
 
         function goToProfile() {
             window.location.href = '/me';
+        }
+
+        function goToAdmin() {
+            window.location.href = '/admin';
         }
 
         function getCurrentQuestionId() {
@@ -271,6 +392,15 @@
             const isOpen = question.status === 'OPEN';
             textarea.disabled = !isOpen;
             submitButton.disabled = !isOpen;
+            const imageInput = document.getElementById('answer-images');
+            const imageLabel = document.querySelector('label[for="answer-images"]');
+            if (imageInput) {
+                imageInput.disabled = !isOpen;
+            }
+            if (imageLabel) {
+                imageLabel.style.opacity = isOpen ? '1' : '0.55';
+                imageLabel.style.pointerEvents = isOpen ? 'auto' : 'none';
+            }
 
             if (isOpen) {
                 hint.innerText = '当前问题开放回答中，可以继续补充你的思路。';
@@ -290,6 +420,187 @@
             submitButton.innerText = '当前不可回答';
             submitButton.style.opacity = '0.65';
             submitButton.style.cursor = 'not-allowed';
+            resetAnswerImageSelection();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024 * 1024) {
+                return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+            }
+            return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value);
+        }
+
+        function resolveMediaUrl(item) {
+            const rawUrl = item?.public_url || item?.url || (item?.media_id ? `/api/media/${item.media_id}/content` : '');
+            if (!rawUrl) {
+                return '';
+            }
+            return new URL(rawUrl, window.location.origin).toString();
+        }
+
+        function renderMediaGrid(images, labelPrefix) {
+            if (!Array.isArray(images) || images.length === 0) {
+                return '';
+            }
+
+            const imageItems = images
+                .map((item, index) => {
+                    const src = resolveMediaUrl(item);
+                    if (!src) {
+                        return '';
+                    }
+                    return `
+                        <img
+                            src="${escapeAttr(src)}"
+                            alt="${escapeAttr(labelPrefix)} ${index + 1}"
+                            onclick="window.open('${escapeAttr(src)}', '_blank')"
+                            loading="lazy"
+                        >
+                    `;
+                })
+                .join('');
+
+            return imageItems ? `<div class="media-grid">${imageItems}</div>` : '';
+        }
+
+        function revokePreviewImages(items) {
+            items.forEach(item => URL.revokeObjectURL(item.previewUrl));
+        }
+
+        function buildSelectedImageItems(files, maxCount, maxSize) {
+            const selected = [];
+            const errors = [];
+
+            files.slice(0, maxCount).forEach(file => {
+                if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+                    errors.push(`${file.name} 不是支持的图片格式`);
+                    return;
+                }
+                if (file.size > maxSize) {
+                    errors.push(`${file.name} 超过 ${formatFileSize(maxSize)}`);
+                    return;
+                }
+                selected.push({
+                    file,
+                    previewUrl: URL.createObjectURL(file),
+                });
+            });
+
+            if (files.length > maxCount) {
+                errors.push(`本次最多只能选择 ${maxCount} 张图片，已自动忽略多余图片`);
+            }
+
+            return { selected, errors };
+        }
+
+        function handleAnswerImageSelection(event) {
+            const files = Array.from(event.target.files || []);
+            const { selected, errors } = buildSelectedImageItems(
+                files,
+                MAX_ANSWER_IMAGES,
+                MAX_ANSWER_IMAGE_SIZE
+            );
+
+            revokePreviewImages(selectedAnswerImages);
+            selectedAnswerImages = selected;
+            renderAnswerImagePreview();
+
+            if (errors.length > 0) {
+                alert(`部分图片未加入：\n${errors.join('\n')}`);
+            }
+        }
+
+        function renderAnswerImagePreview() {
+            const container = document.getElementById('answer-image-preview');
+            if (!container) {
+                return;
+            }
+
+            if (selectedAnswerImages.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = selectedAnswerImages.map((item, index) => `
+                <div class="media-preview-item">
+                    <img src="${item.previewUrl}" alt="回答配图预览 ${index + 1}">
+                    <button type="button" class="media-preview-remove" onclick="removeAnswerImage(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeAnswerImage(index) {
+            const [removed] = selectedAnswerImages.splice(index, 1);
+            if (removed) {
+                URL.revokeObjectURL(removed.previewUrl);
+            }
+            const input = document.getElementById('answer-images');
+            if (input) {
+                input.value = '';
+            }
+            renderAnswerImagePreview();
+        }
+
+        function resetAnswerImageSelection() {
+            revokePreviewImages(selectedAnswerImages);
+            selectedAnswerImages = [];
+            const input = document.getElementById('answer-images');
+            if (input) {
+                input.value = '';
+            }
+            renderAnswerImagePreview();
+        }
+
+        async function uploadAnswerImages(answerId, images, token, onProgress) {
+            for (let index = 0; index < images.length; index += 1) {
+                const item = images[index];
+                const formData = new FormData();
+                formData.append('file', item.file);
+
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}/images`), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `${item.file.name} 上传失败`);
+                }
+
+                if (typeof onProgress === 'function') {
+                    onProgress(index + 1, images.length);
+                }
+            }
+        }
+
+        function findCreatedAnswerId(questionData, content) {
+            const currentUserId = getCurrentUserId();
+            const answers = Array.isArray(questionData?.answers) ? questionData.answers : [];
+            const matchedAnswers = answers
+                .filter(answer =>
+                    answer.answer_type === 'MANUAL'
+                    && answer.user_id === currentUserId
+                    && answer.content === content
+                )
+                .sort((a, b) => new Date(b.generate_time) - new Date(a.generate_time));
+
+            return matchedAnswers.length > 0 ? matchedAnswers[0].answer_id : null;
         }
 
         function setFeedbackButtonState(button, isActive) {
@@ -353,6 +664,7 @@
         window.onload = async function() {
             const token = localStorage.getItem('access_token');
             const username = localStorage.getItem('username');
+            const role = localStorage.getItem('user_role');
             if (!token) {
                 alert('请先登录！');
                 window.location.href = LOGIN_PAGE_URL;
@@ -361,6 +673,9 @@
             document.getElementById('detail-user-greeting').innerText = username
                 ? `欢迎回来, ${username}`
                 : '已登录用户';
+            if (role === 'ADMIN') {
+                document.getElementById('admin-entry').style.display = 'inline-flex';
+            }
             await loadQuestionDetail(true);
         };
 
@@ -375,6 +690,7 @@
             const resolutionText = q.accepted_answer_id
                 ? '✅ 已采纳最佳答案'
                 : (q.status === 'OPEN' ? '🟦 仍在征集回答' : '📌 当前暂无已采纳答案');
+            const questionImagesHtml = renderMediaGrid(q.images, '问题配图');
 
             // 🌟 告诉 marked.js：当你遇到代码块时，请叫 highlight.js 来涂色！
             marked.setOptions({
@@ -446,6 +762,7 @@
                                 <div class="markdown-content" style="font-size: 15px; line-height: 1.8; color: #334155;">
                                     ${marked.parse(ans.content)}
                                 </div>
+                                ${renderMediaGrid(ans.images, '回答配图')}
                                 <div id="mask-${ansId}" class="fade-mask"></div>
                             </div>
 
@@ -484,6 +801,7 @@
                     <span>${resolutionText}</span>
                 </div>
                 <div class="q-content">${content}</div>
+                ${questionImagesHtml}
                 ${answersHtml} `;
             syncAnswerComposer(q);
 
@@ -601,6 +919,7 @@
 
             const questionId = getCurrentQuestionId();
             const token = localStorage.getItem('access_token');
+            const imagesToUpload = [...selectedAnswerImages];
 
             // 按钮变灰，防止用户狂点
             const btn = document.querySelector('button[onclick="submitAnswer()"]');
@@ -622,8 +941,28 @@
                 });
 
                 if (response.ok) {
-                    // 发布成功，直接刷新当前页面！
-                    window.location.reload();
+                    const questionData = await response.json();
+                    const answerId = findCreatedAnswerId(questionData, content);
+
+                    if (imagesToUpload.length > 0) {
+                        if (!answerId) {
+                            alert("回答已发布，但没有定位到新回答，图片暂时无法上传。");
+                        } else {
+                            btn.innerText = `上传图片中 0/${imagesToUpload.length}...`;
+                            try {
+                                await uploadAnswerImages(answerId, imagesToUpload, token, (done, total) => {
+                                    btn.innerText = `上传图片中 ${done}/${total}...`;
+                                });
+                            } catch (uploadError) {
+                                console.error(uploadError);
+                                alert(`回答已发布，但图片上传失败：${uploadError.message}`);
+                            }
+                        }
+                    }
+
+                    document.getElementById('my-answer-content').value = '';
+                    resetAnswerImageSelection();
+                    await loadQuestionDetail(false);
                 } else if (response.status === 401) {
                     redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
@@ -635,6 +974,7 @@
             } catch (error) {
                 console.error(error);
                 alert("❌ 网络错误，请检查后端服务！");
+            } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
             }

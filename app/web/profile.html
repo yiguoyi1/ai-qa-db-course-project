@@ -518,6 +518,7 @@
     <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
+        <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
         <button class="btn-outline" onclick="goHome()">返回首页</button>
         <button class="btn-outline" onclick="logout()">退出登录</button>
     </div>
@@ -728,8 +729,12 @@
         window.location.href = HOME_PAGE_URL;
     }
 
+    function goToAdmin() {
+        window.location.href = '/admin';
+    }
+
     function goToQuestion(questionId) {
-        window.location.href = `/questions/${questionId}`;
+        window.location.href = `/questions/${questionId}?_=${Date.now()}`;
     }
 
     function getCurrentUserId() {
@@ -1295,6 +1300,7 @@
         const token = getAccessToken();
         const userId = getCurrentUserId();
         const username = localStorage.getItem('username');
+        const role = localStorage.getItem('user_role');
 
         if (!token || !userId) {
             redirectToLogin('请先登录后再进入用户中心。');
@@ -1305,6 +1311,9 @@
         document.getElementById('user-greeting').innerText = username
             ? `欢迎回来, ${username}`
             : '欢迎回来';
+        if (role === 'ADMIN') {
+            document.getElementById('admin-entry').style.display = 'inline-flex';
+        }
 
         await loadUserCenter();
     };
