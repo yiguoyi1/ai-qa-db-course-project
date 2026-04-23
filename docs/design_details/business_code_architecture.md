@@ -44,32 +44,39 @@ app/
     router.py
     deps.py
     routes/
+      admin.py
       auth.py
       answers.py
       browse.py
       comments.py
       favorites.py
       feedback.py
+      media.py
       meta.py
       questions.py
       recommendations.py
       search.py
+      users.py
   core/
     errors.py
     settings.py
   db/
     connection.py
   schemas/
+    admin.py
     answer.py
     auth.py
     browse.py
     comment.py
     favorite.py
     feedback.py
+    media.py
     meta.py
     question.py
     recommendation.py
+    user_center.py
   services/
+    admin_service.py
     ai_answer_service.py
     answer_service.py
     auth_service.py
@@ -77,21 +84,26 @@ app/
     comment_service.py
     favorite_service.py
     feedback_service.py
+    media_service.py
     meta_service.py
     question_service.py
     recommendation_service.py
     search_service.py
+    user_center_service.py
   repositories/
+    admin_repository.py
     answer_repository.py
     browse_repository.py
     comment_repository.py
     favorite_repository.py
     feedback_repository.py
+    media_repository.py
     log_repository.py
     meta_repository.py
     question_repository.py
     recommendation_repository.py
     search_repository.py
+    user_center_repository.py
     user_repository.py
   integrations/
     llm/
@@ -102,6 +114,7 @@ app/
     login.html
     home.html
     detail.html
+    profile.html
 
 frontend_cli/
   api_client.py
@@ -281,7 +294,31 @@ tests/
 - 对同一回答更新已有反馈
 - 发表评论、回复评论与软删除评论
 
-### 5.4 推荐模块
+### 5.4 媒体资源模块
+
+建议文件：
+
+- `api/routes/media.py`
+- `services/media_service.py`
+- `repositories/media_repository.py`
+- `schemas/media.py`
+- `core/file_storage.py`
+
+当前能力：
+
+- 用户头像上传、查看、删除
+- 问题配图上传、列表、删除
+- 回答配图上传、列表、删除
+- 问题详情返回问题 `images` 和回答 `images`
+- 本地文件落盘到 `uploads/`，数据库只保存 `MEDIA_ASSETS` 元数据
+
+当前暂不包含：
+
+- 评论图片
+- 网页端图片上传 UI
+- 管理员图片审核与清理后台
+
+### 5.5 推荐模块
 
 建议文件：
 
@@ -297,7 +334,7 @@ tests/
 
 这一层尽量复用数据库里已经写好的过程，不要在应用层重复实现同一套推荐逻辑。
 
-### 5.5 网页前端与 CLI 测试前端
+### 5.6 网页前端与 CLI 测试前端
 
 建议文件：
 
@@ -394,6 +431,7 @@ tests/
 | 收藏 | `favorite_service` | `favorite_repository` | `FAVORITES` |
 | 回答反馈 | `feedback_service` | `feedback_repository` | `ANSWER_FEEDBACK` |
 | 评论与回复 | `comment_service` | `comment_repository` | `ANSWER_COMMENTS` |
+| 头像与内容图片 | `media_service` | `media_repository` | `MEDIA_ASSETS`, `USERS` |
 | 推荐 | `recommendation_service` | `recommendation_repository` | `USER_TAG_PROFILE`, `RECOMMENDATIONS` |
 | 审计日志 | `log_repository` | `log_repository` | `AI_PROMPT_LOG`, `LOGIN_LOG`, `OPERATION_LOG` |
 
@@ -432,25 +470,33 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 - 分类标签、搜索、浏览、收藏、反馈
 - 评论与楼中楼回复
 - 用户画像与推荐生成
+- 采纳答案与已采纳答案高亮
+- 用户中心聚合接口与 `/me` 页面
+- 管理员分类、用户、问题、评论和日志治理接口
+- 头像、问题配图和回答配图 API
 - 网页端主链路
 - 独立 CLI 业务测试入口
 
 下一阶段更值得优先补的是：
 
-### 10.1 收口安全配置
+### 10.1 网页端社区互动入口
 
-- 确保不同环境使用独立且足够强的 JWT 密钥
-- 继续补后台用户状态管理与审计查询能力
+- 把评论与楼中楼回复入口补到 `app/web/detail.html`
+- 在问题详情页补齐评论树展示、回复和删除动作
+- 保持网页端继续通过 `/api/...` 调后端，不直接绕过 service 层
 
-### 10.2 继续清理鉴权过渡接口
+### 10.2 管理员与媒体治理增强
 
-- 合并重复或语义重叠的反馈入口
-- 继续拆分 `questions.py` 中混杂的历史遗留逻辑
+- 当前管理员 API 已经具备治理闭环，后续可补专门的网页后台
+- 当前媒体能力已支持头像、问题配图和回答配图，后续可补管理员图片审核、隐藏和清理入口
+- 真实环境仍要确保 JWT 密钥、DeepSeek Key 和数据库密码只存在 `.env` 或部署密钥系统中
 
 ### 10.3 采纳答案
 
-- 支持提问者采纳某条回答
-- 让问题状态与最佳答案形成明确闭环
+- 已提供 `POST /api/questions/{question_id}/accept-answer`
+- 只有提问者或管理员可以采纳答案
+- 数据库通过 `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID)` 复合外键保证不能跨问题采纳回答
+- 采纳后问题状态变为 `RESOLVED`
 
 ### 10.4 用户中心
 
@@ -462,7 +508,8 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 ### 10.5 登录与鉴权收口
 
 - 当前登录、注册和 JWT 已基础落地
-- 但仍与显式 `user_id` 模式并存，后续应继续收口权限控制与审计
+- 部分请求模型中仍可能保留历史兼容字段，服务端应继续以当前登录用户为准做校验
+- 后续如果调整鉴权契约，要同步 CLI、网页端和 README
 
 ### 10.6 多轮对话
 
@@ -479,14 +526,23 @@ app/api/router.py
 app/api/routes/questions.py
 app/api/routes/answers.py
 app/api/routes/comments.py
+app/api/routes/media.py
+app/api/routes/users.py
+app/api/routes/admin.py
 app/api/routes/recommendations.py
 app/services/question_service.py
 app/services/ai_answer_service.py
 app/services/answer_service.py
 app/services/comment_service.py
+app/services/media_service.py
+app/services/user_center_service.py
+app/services/admin_service.py
 app/repositories/question_repository.py
 app/repositories/answer_repository.py
 app/repositories/comment_repository.py
+app/repositories/media_repository.py
+app/repositories/user_center_repository.py
+app/repositories/admin_repository.py
 app/repositories/recommendation_repository.py
 app/integrations/llm/openai_client.py
 app/prompts/question_answer_prompt.py
@@ -495,6 +551,48 @@ scripts/start_business_test.py
 ```
 
 看完这批文件，基本就能把当前“问答社区 + AI 首答 + 评论回复 + 推荐”的主链路串起来。
+
+## 11.1 管理员模块补充
+
+在现有目录结构基础上，管理员模块应补充为：
+
+```text
+app/
+  api/
+    routes/
+      admin.py
+  repositories/
+    admin_repository.py
+  schemas/
+    admin.py
+  services/
+    admin_service.py
+
+scripts/
+  grant-admin.ps1
+  test-admin-api.ps1
+```
+
+管理员模块继续遵循现有分层原则，不单独走一套特殊架构：
+
+- `api/routes/admin.py`
+  负责管理员接口入口、参数接收、鉴权依赖注入和错误转换
+- `services/admin_service.py`
+  负责管理员业务规则，例如最后一个有效管理员保护、自身角色保护、状态变更规则
+- `repositories/admin_repository.py`
+  负责查询和更新 `USERS`、`QUESTIONS`、`ANSWER_COMMENTS`
+- `schemas/admin.py`
+  定义管理员接口的请求体和响应体
+- `scripts/grant-admin.ps1`
+  用于本地环境快速授予首个管理员，解决“系统里还没有管理员账号”的启动问题
+- `scripts/test-admin-api.ps1`
+  用于一键验证管理员登录、分类管理和日志查询链路是否可用
+
+这样做的好处是：
+
+- 与普通业务模块保持一致，便于协作者理解
+- 管理员逻辑集中，不污染普通用户业务 service
+- 后续扩展日志查询、分类管理、媒体审核时可继续复用同一模块
 
 ## 12. 结论
 
@@ -505,4 +603,4 @@ scripts/start_business_test.py
 - 继续保持单体后端，同时维护网页前端和独立 CLI 两条验证链路
 - 继续复用 Oracle 里已经写好的约束、触发器和推荐过程
 - 优先收口接口契约、鉴权和网页前端交付方式
-- 当前采纳答案、用户中心、登录态已经进入可演示状态，下一阶段可继续考虑多轮对话和更复杂推荐策略
+- 当前采纳答案、用户中心、管理员治理、头像和内容图片已经进入可演示状态，下一阶段可继续补网页端评论互动、媒体治理页面、多轮对话和更复杂推荐策略

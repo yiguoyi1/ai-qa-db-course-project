@@ -124,6 +124,23 @@ class QuestionRepository:
 
         return _normalize_returning_value(question_id_var.getvalue())
 
+    def get_first_active_category_id(
+        self,
+        connection: oracledb.Connection,
+    ) -> int | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT category_id
+            FROM categories
+            WHERE status = 'ACTIVE'
+            ORDER BY category_id
+            FETCH FIRST 1 ROWS ONLY
+            """
+        )
+        row = cursor.fetchone()
+        return int(row[0]) if row is not None else None
+
     def add_tags(
         self,
         connection: oracledb.Connection,
@@ -159,20 +176,26 @@ class QuestionRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT q.question_id,
-                   q.user_id,
-                   q.category_id,
-                   q.title,
-                   q.content,
-                   q.ask_time,
-                   q.status,
-                   q.accepted_answer_id,
-                   q.view_count,
-                   q.favorite_count,
-                   q.answer_count,
-                   u.username
+            SELECT
+                q.question_id,
+                q.user_id,
+                q.category_id,
+                q.title,
+                q.content,
+                q.ask_time,
+                q.status,
+                q.accepted_answer_id,
+                q.view_count,
+                q.favorite_count,
+                q.answer_count,
+                u.username,
+                m.public_url
             FROM questions q
-                     LEFT JOIN users u ON q.user_id = u.user_id
+            LEFT JOIN users u
+              ON q.user_id = u.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE q.question_id = :question_id
             """,
             {"question_id": question_id},
@@ -194,6 +217,7 @@ class QuestionRepository:
             "favorite_count": int(row[9]),
             "answer_count": int(row[10]),
             "username": row[11],
+            "author_avatar_url": row[12],
             "is_favorited": False,
         }
 
@@ -260,10 +284,18 @@ class QuestionRepository:
         cursor = connection.cursor()
         cursor.execute(
             """
-            UPDATE questions
+            UPDATE questions q
             SET accepted_answer_id = :answer_id,
                 status = 'RESOLVED'
-            WHERE question_id = :question_id
+            WHERE q.question_id = :question_id
+              AND q.status NOT IN ('CLOSED', 'ARCHIVED')
+              AND EXISTS (
+                  SELECT 1
+                  FROM answers a
+                  WHERE a.answer_id = :answer_id
+                    AND a.question_id = q.question_id
+                    AND a.answer_type <> 'SYSTEM'
+              )
             """,
             {
                 "question_id": question_id,
@@ -334,9 +366,14 @@ class QuestionRepository:
                 q.view_count,
                 q.favorite_count,
                 q.answer_count,
-                u.username
+                u.username,
+                m.public_url
             FROM questions q
-            LEFT JOIN users u ON q.user_id = u.user_id
+            LEFT JOIN users u
+              ON q.user_id = u.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE {' AND '.join(where_clauses)}
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -361,6 +398,7 @@ class QuestionRepository:
                 "answer_count": int(row[8]),
                 "username": row[9],
                 "is_favorited": False,
+                "author_avatar_url": row[10],
                 "tags": [],
             }
             for row in rows

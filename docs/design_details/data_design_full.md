@@ -24,12 +24,13 @@
 
 ## 3.3 数据表总体结构
 
-系统数据表分为五类：
+系统数据表分为六类：
 
 ### 基础数据表
 
 * USERS
 * CATEGORIES
+* MEDIA_ASSETS
 * QUESTIONS
 * ANSWERS
 * TAGS
@@ -79,10 +80,14 @@
 | STATUS | VARCHAR2(20) | 状态 |
 | REGISTER_TIME | DATE | 注册时间 |
 | LAST_LOGIN_TIME | DATE | 最近登录时间 |
+| AVATAR_MEDIA_ID | NUMBER | 当前头像媒体 ID |
 
 **主键：** USER_ID
 
 **唯一约束：** USERNAME
+
+**外键：**
+* AVATAR_MEDIA_ID → MEDIA_ASSETS
 
 ---
 
@@ -112,6 +117,7 @@
 | CONTENT | CLOB |
 | ASK_TIME | DATE |
 | STATUS | VARCHAR2(20) |
+| ACCEPTED_ANSWER_ID | NUMBER |
 | VIEW_COUNT | NUMBER |
 | FAVORITE_COUNT | NUMBER |
 | ANSWER_COUNT | NUMBER |
@@ -121,6 +127,7 @@
 **外键：**
 * USER_ID → USERS
 * CATEGORY_ID → CATEGORIES
+* (QUESTION_ID, ACCEPTED_ANSWER_ID) → ANSWERS(QUESTION_ID, ANSWER_ID)
 
 ---
 
@@ -143,13 +150,45 @@
 
 **主键：** ANSWER_ID
 
+**唯一约束：** (QUESTION_ID, ANSWER_ID)
+
 **外键：**
 * QUESTION_ID → QUESTIONS
 * USER_ID → USERS
 
 ---
 
-### 3.4.5 TAGS 标签表
+### 3.4.5 MEDIA_ASSETS 媒体资源表
+
+用于统一保存用户头像、问题配图和回答配图的元数据。图片文件本身保存在本地 `uploads/` 目录，数据库只保存可追踪的资源信息。
+
+| 字段名 | 类型 | 说明 |
+| ------------- | ------------- | ------------ |
+| MEDIA_ID | NUMBER | 主键 |
+| UPLOADER_USER_ID | NUMBER | 上传者 |
+| OWNER_TYPE | VARCHAR2(30) | USER_AVATAR / QUESTION / ANSWER |
+| OWNER_ID | NUMBER | 归属对象 ID |
+| FILE_NAME | VARCHAR2(120) | 服务端文件名 |
+| ORIGINAL_FILE_NAME | VARCHAR2(255) | 原始文件名 |
+| MIME_TYPE | VARCHAR2(100) | 文件 MIME 类型 |
+| FILE_EXT | VARCHAR2(20) | 文件扩展名 |
+| FILE_SIZE | NUMBER | 文件大小 |
+| STORAGE_PATH | VARCHAR2(255) | 本地存储路径 |
+| PUBLIC_URL | VARCHAR2(255) | 对外访问地址 |
+| SORT_ORDER | NUMBER | 展示顺序 |
+| STATUS | VARCHAR2(20) | ACTIVE / DELETED |
+| CREATE_TIME | DATE | 创建时间 |
+| UPDATE_TIME | DATE | 更新时间 |
+| DELETE_TIME | DATE | 删除时间 |
+
+**主键：** MEDIA_ID
+
+**外键：**
+* UPLOADER_USER_ID → USERS
+
+---
+
+### 3.4.6 TAGS 标签表
 
 | 字段名 | 类型 |
 | -------- | ------------ |
@@ -162,7 +201,7 @@
 
 ---
 
-### 3.4.6 QUESTION_TAGS
+### 3.4.7 QUESTION_TAGS
 
 | 字段名 | 类型 |
 | ----------- | ------ |
@@ -180,7 +219,7 @@
 
 ---
 
-### 3.4.7 ANSWER_FEEDBACK
+### 3.4.8 ANSWER_FEEDBACK
 
 | 字段名 | 类型 |
 | ------------- | ------------- |
@@ -200,7 +239,7 @@
 
 ---
 
-### 3.4.8 ANSWER_COMMENTS
+### 3.4.9 ANSWER_COMMENTS
 
 | 字段名 | 类型 |
 | ------------- | ------------- |
@@ -229,7 +268,7 @@
 
 ---
 
-### 3.4.9 FAVORITES
+### 3.4.10 FAVORITES
 
 | 字段名 | 类型 |
 | ------------- | ------ |
@@ -248,7 +287,7 @@
 
 ---
 
-### 3.4.10 BROWSE_HISTORY
+### 3.4.11 BROWSE_HISTORY
 
 | 字段名 | 类型 |
 | ----------- | ------ |
@@ -267,7 +306,7 @@
 
 ---
 
-### 3.4.11 SEARCH_HISTORY
+### 3.4.12 SEARCH_HISTORY
 
 | 字段名 | 类型 |
 | ----------- | ------------- |
@@ -282,7 +321,7 @@
 
 ---
 
-### 3.4.12 RECOMMENDATIONS
+### 3.4.13 RECOMMENDATIONS
 
 | 字段名 | 类型 |
 | ----------- | ------------- |
@@ -304,7 +343,7 @@
 
 ---
 
-### 3.4.13 USER_TAG_PROFILE
+### 3.4.14 USER_TAG_PROFILE
 
 | 字段名 | 类型 |
 | ----------- | ----------- |
@@ -322,7 +361,7 @@
 
 ---
 
-### 3.4.14 CHAT_SESSION
+### 3.4.15 CHAT_SESSION
 
 | 字段名 | 类型 |
 | ---------- | ------------ |
@@ -338,7 +377,7 @@
 
 ---
 
-### 3.4.15 CHAT_MESSAGE
+### 3.4.16 CHAT_MESSAGE
 
 | 字段名 | 类型 |
 | ----------- | ------------ |
@@ -355,7 +394,7 @@
 
 ---
 
-### 3.4.16 AI_PROMPT_LOG
+### 3.4.17 AI_PROMPT_LOG
 
 | 字段名 | 类型 |
 | ------------- | ------------ |
@@ -373,7 +412,7 @@
 
 ---
 
-### 3.4.17 LOGIN_LOG
+### 3.4.18 LOGIN_LOG
 
 | 字段名 | 类型 |
 | ---------- | ------------ |
@@ -389,7 +428,7 @@
 
 ---
 
-### 3.4.18 OPERATION_LOG
+### 3.4.19 OPERATION_LOG
 
 | 字段名 | 类型 |
 | ---------- | ------------- |
@@ -415,11 +454,13 @@
 2. 一个问题属于一个分类，`QUESTIONS.CATEGORY_ID -> CATEGORIES.CATEGORY_ID`
 3. 一个问题可以对应多个回答，`ANSWERS.QUESTION_ID -> QUESTIONS.QUESTION_ID`
 4. 人工回答可回溯到真实回答用户，`ANSWERS.USER_ID -> USERS.USER_ID`
-5. 一个回答可以继续挂载评论与回复，`ANSWER_COMMENTS.ANSWER_ID -> ANSWERS.ANSWER_ID`
-6. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
-7. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈和评论，这些行为分别落入独立行为表
-8. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
-9. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
+5. 一个问题可以采纳本问题下的一条回答，`QUESTIONS(QUESTION_ID, ACCEPTED_ANSWER_ID) -> ANSWERS(QUESTION_ID, ANSWER_ID)`
+6. 一个回答可以继续挂载评论与回复，`ANSWER_COMMENTS.ANSWER_ID -> ANSWERS.ANSWER_ID`
+7. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
+8. 用户头像、问题配图和回答配图统一落入 `MEDIA_ASSETS`
+9. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈和评论，这些行为分别落入独立行为表
+10. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
+11. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
 
 整体关系链路可概括为：
 
@@ -436,7 +477,9 @@
 3. 引入 `ANSWER_COMMENTS`，将回答下的评论与楼中楼回复单独建模，避免与反馈表混用
 4. 引入 `USER_TAG_PROFILE`，将用户行为沉淀为标签权重，避免推荐只依赖单次行为
 5. 引入 `RECOMMENDATIONS`，将推荐结果落表，便于查询、排序和状态管理
-6. 通过触发器和存储过程自动回写问题和回答统计字段，避免应用层重复维护统计逻辑
+6. 引入 `MEDIA_ASSETS`，统一管理头像、问题配图和回答配图，避免在不同业务表中散落图片字段
+7. 在 `QUESTIONS` 中引入 `ACCEPTED_ANSWER_ID`，并通过复合外键保证采纳答案必须属于当前问题
+8. 通过触发器和存储过程自动回写问题和回答统计字段，避免应用层重复维护统计逻辑
 
 ---
 
@@ -512,13 +555,15 @@
 4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`
 5. `ANSWERS.ANSWER_TYPE`: `AI`, `MANUAL`, `SYSTEM`
 6. `ANSWER_COMMENTS.STATUS`: `ACTIVE`, `HIDDEN`, `DELETED`
-7. `ANSWER_FEEDBACK.IS_LIKE`: `Y`, `N`
-8. `RECOMMENDATIONS.REC_TYPE`: `TAG_BASED`, `POPULARITY`, `HYBRID`, `MANUAL`
-9. `RECOMMENDATIONS.REC_SOURCE`: `USER_TAG_PROFILE`, `POPULARITY`, `USER_ACTION`, `ADMIN_RULE`, `MANUAL`
-10. `RECOMMENDATIONS.STATUS`: `ACTIVE`, `EXPIRED`, `DISMISSED`
-11. `CHAT_SESSION.STATUS`: `OPEN`, `CLOSED`, `ARCHIVED`
-12. `CHAT_MESSAGE.SENDER_TYPE`: `USER`, `AI`, `SYSTEM`
-13. `LOGIN_LOG.RESULT`: `SUCCESS`, `FAILURE`, `LOCKED`
+7. `MEDIA_ASSETS.OWNER_TYPE`: `USER_AVATAR`, `QUESTION`, `ANSWER`
+8. `MEDIA_ASSETS.STATUS`: `ACTIVE`, `DELETED`
+9. `ANSWER_FEEDBACK.IS_LIKE`: `Y`, `N`
+10. `RECOMMENDATIONS.REC_TYPE`: `TAG_BASED`, `POPULARITY`, `HYBRID`, `MANUAL`
+11. `RECOMMENDATIONS.REC_SOURCE`: `USER_TAG_PROFILE`, `POPULARITY`, `USER_ACTION`, `ADMIN_RULE`, `MANUAL`
+12. `RECOMMENDATIONS.STATUS`: `ACTIVE`, `EXPIRED`, `DISMISSED`
+13. `CHAT_SESSION.STATUS`: `OPEN`, `CLOSED`, `ARCHIVED`
+14. `CHAT_MESSAGE.SENDER_TYPE`: `USER`, `AI`, `SYSTEM`
+15. `LOGIN_LOG.RESULT`: `SUCCESS`, `FAILURE`, `LOCKED`
 
 ---
 
@@ -537,8 +582,10 @@
 - 用户名必须唯一
 - 同一用户不能重复收藏同一问题
 - 同一用户对同一回答只能保留一条反馈
+- 问题采纳的回答必须属于当前问题，不能跨问题引用其他回答
 - 评论挂在回答下，不直接挂在问题下
 - 评论删除采用软删除，不级联删除子回复
+- 媒体资源统一通过 `MEDIA_ASSETS` 管理，头像、问题图、回答图用 `OWNER_TYPE` 区分
 - 评分必须在 `0` 到 `5` 之间
 - 浏览数、收藏数、回答数、点赞数等统计值不能为负数
 

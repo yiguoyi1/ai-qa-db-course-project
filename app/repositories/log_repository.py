@@ -64,3 +64,31 @@ class LogRepository:
                 "model_name": model_name,
             },
         )
+
+    def create_operation_log(
+        self,
+        connection: oracledb.Connection,
+        *,
+        user_id: int,
+        op_type: str,
+        op_content: str,
+    ) -> None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            INSERT INTO operation_log (
+                user_id,
+                op_type,
+                op_content
+            ) VALUES (
+                :user_id,
+                :op_type,
+                :op_content
+            )
+            """,
+            {
+                "user_id": user_id,
+                "op_type": op_type,
+                "op_content": op_content,
+            },
+        )

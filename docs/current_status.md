@@ -56,6 +56,9 @@
 - 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
+- 头像与内容图片：`POST /api/users/me/avatar`、`GET /api/users/me/avatar`、`DELETE /api/users/me/avatar`
+- 问题配图：`POST /api/questions/{question_id}/images`、`GET /api/questions/{question_id}/images`、`DELETE /api/questions/{question_id}/images/{media_id}`
+- 回答配图：`POST /api/answers/{answer_id}/images`、`GET /api/answers/{answer_id}/images`、`DELETE /api/answers/{answer_id}/images/{media_id}`
 
 ### 2.3 网页前端
 
@@ -198,7 +201,23 @@
 4. 收藏列表支持直接取消收藏
 5. 详情页已补记浏览历史，最近浏览链路在网页端可闭环
 
-### 3.8 当前第一优先级：补齐剩余网页互动入口
+### 3.8 已完成阶段：头像、问题配图与回答配图 MVP
+
+当前媒体能力已经从设计推进到后端可用状态：
+
+1. `MEDIA_ASSETS` 统一记录头像、问题配图和回答配图元数据
+2. 用户头像支持上传、查看、删除
+3. 问题配图支持上传、列表、删除，并在问题详情 `images` 中返回
+4. 回答配图支持上传、列表、删除，并在问题详情的回答对象 `images` 中返回
+5. CLI 已补充问题配图和回答配图的上传、列表、删除命令
+
+当前仍保留为后续增强的媒体能力：
+
+- 评论图片
+- 网页端上传 UI
+- 图片审核、隐藏与清理后台
+
+### 3.9 当前第一优先级：补齐社区核心能力
 
 当前最适合继续做的业务能力仍然是：
 
@@ -211,6 +230,7 @@
 - 网页端评论、楼中楼回复的完整展示与交互入口
 - 后台用户状态管理与审计查询
 - 多轮对话正式业务链
+- 评论图片与图片审核后台
 
 ## 5. 当前最稳妥的协作口径
 

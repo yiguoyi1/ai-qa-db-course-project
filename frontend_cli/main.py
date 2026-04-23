@@ -267,6 +267,18 @@ def handle_questions_ask(args: argparse.Namespace, client: APIClient) -> None:
     print_question_detail(data)
 
 
+def handle_questions_publish(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(
+        client.post(
+            "/api/questions",
+            payload={
+                "title": args.title,
+                "content": args.content,
+            },
+        )
+    )
+
+
 def handle_questions_answer(args: argparse.Namespace, client: APIClient) -> None:
     data = client.post(
         f"/api/questions/{args.question_id}/answers",
@@ -287,6 +299,42 @@ def handle_questions_accept(args: argparse.Namespace, client: APIClient) -> None
         },
     )
     print_question_detail(data)
+
+
+def handle_questions_upload_image(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(
+        client.post_file(
+            f"/api/questions/{args.question_id}/images",
+            field_name="file",
+            file_path=args.file_path,
+        )
+    )
+
+
+def handle_questions_list_images(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(client.get(f"/api/questions/{args.question_id}/images"))
+
+
+def handle_questions_delete_image(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(client.delete(f"/api/questions/{args.question_id}/images/{args.media_id}"))
+
+
+def handle_answers_upload_image(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(
+        client.post_file(
+            f"/api/answers/{args.answer_id}/images",
+            field_name="file",
+            file_path=args.file_path,
+        )
+    )
+
+
+def handle_answers_list_images(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(client.get(f"/api/answers/{args.answer_id}/images"))
+
+
+def handle_answers_delete_image(args: argparse.Namespace, client: APIClient) -> None:
+    print_json(client.delete(f"/api/answers/{args.answer_id}/images/{args.media_id}"))
 
 
 def handle_questions_browse(args: argparse.Namespace, client: APIClient) -> None:
@@ -594,6 +642,14 @@ def build_parser(
     questions_ask.add_argument("--tag-ids", type=int, nargs="*")
     _set_handler(questions_ask, handle_questions_ask)
 
+    questions_publish = questions_subparsers.add_parser(
+        "publish",
+        help="Publish a community question without triggering AI answer",
+    )
+    questions_publish.add_argument("--title", required=True)
+    questions_publish.add_argument("--content", required=True)
+    _set_handler(questions_publish, handle_questions_publish)
+
     questions_answer = questions_subparsers.add_parser(
         "answer",
         help="Create a manual answer for a question",
@@ -612,6 +668,29 @@ def build_parser(
     questions_accept.add_argument("--answer-id", type=int, required=True)
     _set_handler(questions_accept, handle_questions_accept)
 
+    questions_upload_image = questions_subparsers.add_parser(
+        "upload-image",
+        help="Upload one image for a question",
+    )
+    questions_upload_image.add_argument("--question-id", type=int, required=True)
+    questions_upload_image.add_argument("--file-path", required=True)
+    _set_handler(questions_upload_image, handle_questions_upload_image)
+
+    questions_list_images = questions_subparsers.add_parser(
+        "list-images",
+        help="List images for a question",
+    )
+    questions_list_images.add_argument("--question-id", type=int, required=True)
+    _set_handler(questions_list_images, handle_questions_list_images)
+
+    questions_delete_image = questions_subparsers.add_parser(
+        "delete-image",
+        help="Delete one image from a question",
+    )
+    questions_delete_image.add_argument("--question-id", type=int, required=True)
+    questions_delete_image.add_argument("--media-id", type=int, required=True)
+    _set_handler(questions_delete_image, handle_questions_delete_image)
+
     questions_browse = questions_subparsers.add_parser(
         "browse",
         help="Record question browse history",
@@ -621,6 +700,32 @@ def build_parser(
     questions_browse.add_argument("--duration", type=int, default=0)
     questions_browse.add_argument("--click-depth", type=int, default=1)
     _set_handler(questions_browse, handle_questions_browse)
+
+    answers_parser = subparsers.add_parser("answers", help="Answer media commands")
+    answers_subparsers = answers_parser.add_subparsers(dest="answers_command")
+
+    answers_upload_image = answers_subparsers.add_parser(
+        "upload-image",
+        help="Upload one image for an answer",
+    )
+    answers_upload_image.add_argument("--answer-id", type=int, required=True)
+    answers_upload_image.add_argument("--file-path", required=True)
+    _set_handler(answers_upload_image, handle_answers_upload_image)
+
+    answers_list_images = answers_subparsers.add_parser(
+        "list-images",
+        help="List images for an answer",
+    )
+    answers_list_images.add_argument("--answer-id", type=int, required=True)
+    _set_handler(answers_list_images, handle_answers_list_images)
+
+    answers_delete_image = answers_subparsers.add_parser(
+        "delete-image",
+        help="Delete one image from an answer",
+    )
+    answers_delete_image.add_argument("--answer-id", type=int, required=True)
+    answers_delete_image.add_argument("--media-id", type=int, required=True)
+    _set_handler(answers_delete_image, handle_answers_delete_image)
 
     favorites_parser = subparsers.add_parser("favorites", help="Favorite commands")
     favorites_subparsers = favorites_parser.add_subparsers(dest="favorites_command")

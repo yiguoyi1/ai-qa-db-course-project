@@ -250,6 +250,15 @@ BEGIN
          )
      );
 
+    UPDATE questions
+       SET accepted_answer_id = NULL
+     WHERE accepted_answer_id IS NOT NULL
+       AND user_id IN (
+        SELECT user_id
+          FROM users
+         WHERE username = 'demo_owner'
+     );
+
     DELETE FROM answers
      WHERE question_id IN (
         SELECT question_id

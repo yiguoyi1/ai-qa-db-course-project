@@ -4,6 +4,7 @@ from app.core.errors import AppError, NotFoundError, ValidationError
 from app.db.connection import get_connection
 from app.repositories.answer_repository import AnswerRepository
 from app.repositories.log_repository import LogRepository
+from app.repositories.media_repository import MediaRepository
 from app.repositories.question_repository import QuestionRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.question import (
@@ -24,12 +25,14 @@ class QuestionService:
         answer_repository: AnswerRepository | None = None,
         log_repository: LogRepository | None = None,
         user_repository: UserRepository | None = None,
+        media_repository: MediaRepository | None = None,
         ai_answer_service: AIAnswerService | None = None,
     ) -> None:
         self._question_repository = question_repository or QuestionRepository()
         self._answer_repository = answer_repository or AnswerRepository()
         self._log_repository = log_repository or LogRepository()
         self._user_repository = user_repository or UserRepository()
+        self._media_repository = media_repository or MediaRepository()
         self._ai_answer_service = ai_answer_service or AIAnswerService()
 
     def ask_question(self, payload: AskQuestionRequest) -> QuestionDetailResponse:
@@ -80,10 +83,16 @@ class QuestionService:
             if question is None:
                 raise NotFoundError("Question was created but could not be reloaded.")
 
+            question["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="QUESTION",
+                owner_id=question_id,
+            )
             question["answers"] = self._answer_repository.list_answers_by_question(
                 connection,
                 question_id,
             )
+            self._attach_answer_images(connection, question["answers"])
             return QuestionDetailResponse(**question)
 
     def get_question_detail(
@@ -103,10 +112,16 @@ class QuestionService:
             if question is None:
                 raise NotFoundError(f"Question {question_id} was not found.")
 
+            question["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="QUESTION",
+                owner_id=question_id,
+            )
             question["answers"] = self._answer_repository.list_answers_by_question(
                 connection,
                 question_id,
             )
+            self._attach_answer_images(connection, question["answers"])
             return QuestionDetailResponse(**question)
 
     def list_questions(
@@ -164,6 +179,18 @@ class QuestionService:
             total=total,
         )
 
+    def _attach_answer_images(
+        self,
+        connection: oracledb.Connection,
+        answers: list[dict],
+    ) -> None:
+        for answer in answers:
+            answer["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="ANSWER",
+                owner_id=answer["answer_id"],
+            )
+
     @staticmethod
     def _translate_database_error(exc: oracledb.DatabaseError) -> AppError:
         details = exc.args[0] if exc.args else exc
@@ -180,10 +207,14 @@ class QuestionService:
 
     def publish_question(self, user_id: int, payload: QuestionCreate) -> dict:
         with get_connection() as connection:
+            default_category_id = self._question_repository.get_first_active_category_id(connection)
+            if default_category_id is None:
+                raise ValidationError("No ACTIVE category is available for publishing questions.")
+
             q_id = self._question_repository.create_question(
                 connection=connection,
                 user_id=user_id,
-                category_id=1,  # 默认归入第一个分类
+                category_id=default_category_id,
                 title=payload.title,
                 content=payload.content,
             )
@@ -261,5 +292,11 @@ class QuestionService:
                 connection,
                 question_id,
             )
+            refreshed_question["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="QUESTION",
+                owner_id=question_id,
+            )
+            self._attach_answer_images(connection, refreshed_question["answers"])
 
         return QuestionDetailResponse(**refreshed_question)
