@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
 from app.api.auth_deps import AuthenticatedUser, get_current_user
 from app.api.deps import get_media_service
@@ -15,6 +15,21 @@ from app.services.media_service import MediaService
 
 
 router = APIRouter(tags=["media"])
+
+
+@router.get(
+    "/media/files/{file_name}",
+    status_code=status.HTTP_200_OK,
+)
+def get_media_file(
+    file_name: str,
+    service: MediaService = Depends(get_media_service),
+) -> Response:
+    try:
+        content, mime_type = service.get_media_content(file_name=file_name)
+        return Response(content=content, media_type=mime_type)
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
 @router.post(

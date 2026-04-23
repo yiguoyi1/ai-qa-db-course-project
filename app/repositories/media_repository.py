@@ -24,6 +24,7 @@ class MediaRepository:
         file_size: int,
         storage_path: str,
         public_url: str,
+        file_content: bytes,
         sort_order: int = 1,
         status: str = "ACTIVE",
     ) -> int:
@@ -42,6 +43,7 @@ class MediaRepository:
                 file_size,
                 storage_path,
                 public_url,
+                file_content,
                 sort_order,
                 status
             ) VALUES (
@@ -55,6 +57,7 @@ class MediaRepository:
                 :file_size,
                 :storage_path,
                 :public_url,
+                :file_content,
                 :sort_order,
                 :status
             )
@@ -71,6 +74,7 @@ class MediaRepository:
                 "file_size": file_size,
                 "storage_path": storage_path,
                 "public_url": public_url,
+                "file_content": file_content,
                 "sort_order": sort_order,
                 "status": status,
                 "media_id": media_id_var,
@@ -267,6 +271,37 @@ class MediaRepository:
         row = cursor.fetchone()
         return self._build_media_record(row) if row is not None else None
 
+    def get_active_media_content_by_file_name(
+        self,
+        connection: oracledb.Connection,
+        *,
+        file_name: str,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                file_name,
+                mime_type,
+                file_size,
+                file_content
+            FROM media_assets
+            WHERE file_name = :file_name
+              AND status = 'ACTIVE'
+            """,
+            {"file_name": file_name},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "file_name": row[0],
+            "mime_type": row[1],
+            "file_size": int(row[2]),
+            "content": self._read_lob_bytes(row[3]),
+        }
+
     def update_user_avatar_media(
         self,
         connection: oracledb.Connection,
@@ -328,3 +363,13 @@ class MediaRepository:
             "update_time": row[14],
             "delete_time": row[15],
         }
+
+    @staticmethod
+    def _read_lob_bytes(value: Any) -> bytes:
+        if value is None:
+            return b""
+        if hasattr(value, "read"):
+            return value.read()
+        if isinstance(value, bytes):
+            return value
+        return bytes(value)

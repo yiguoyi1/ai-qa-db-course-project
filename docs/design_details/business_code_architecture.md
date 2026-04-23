@@ -302,7 +302,6 @@ tests/
 - `services/media_service.py`
 - `repositories/media_repository.py`
 - `schemas/media.py`
-- `core/file_storage.py`
 
 当前能力：
 
@@ -310,7 +309,8 @@ tests/
 - 问题配图上传、列表、删除
 - 回答配图上传、列表、删除
 - 问题详情返回问题 `images` 和回答 `images`
-- 本地文件落盘到 `uploads/`，数据库只保存 `MEDIA_ASSETS` 元数据
+- 图片内容写入 `MEDIA_ASSETS.FILE_CONTENT BLOB`
+- `PUBLIC_URL` 指向 FastAPI 的 BLOB 读取接口 `/api/media/files/{file_name}`
 
 当前暂不包含：
 

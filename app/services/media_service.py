@@ -1,14 +1,9 @@
 from pathlib import Path
+from uuid import uuid4
 
 import oracledb
 
 from app.core.errors import AppError, NotFoundError, ValidationError
-from app.core.file_storage import (
-    delete_stored_file,
-    save_answer_image_bytes,
-    save_avatar_bytes,
-    save_question_image_bytes,
-)
 from app.db.connection import get_connection
 from app.repositories.answer_repository import AnswerRepository
 from app.repositories.media_repository import MediaRepository
@@ -68,8 +63,7 @@ class MediaService:
             original_file_name=original_file_name,
             mime_type=normalized_mime_type,
         )
-
-        stored_file = save_avatar_bytes(content=content, file_ext=file_ext)
+        blob_ref = self._build_blob_media_reference(file_ext=file_ext)
         previous_avatar = None
 
         with get_connection() as connection:
@@ -81,13 +75,14 @@ class MediaService:
                     uploader_user_id=user_id,
                     owner_type="USER_AVATAR",
                     owner_id=user_id,
-                    file_name=stored_file.file_name,
+                    file_name=blob_ref["file_name"],
                     original_file_name=original_file_name,
                     mime_type=normalized_mime_type,
                     file_ext=file_ext.lstrip("."),
                     file_size=len(content),
-                    storage_path=stored_file.storage_path,
-                    public_url=stored_file.public_url,
+                    storage_path=blob_ref["storage_path"],
+                    public_url=blob_ref["public_url"],
+                    file_content=content,
                 )
 
                 updated_count = self._media_repository.update_user_avatar_media(
@@ -109,15 +104,10 @@ class MediaService:
                 assert avatar is not None
             except oracledb.DatabaseError as exc:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise self._translate_database_error(exc) from exc
             except Exception:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise
-
-        if previous_avatar is not None:
-            delete_stored_file(previous_avatar.get("storage_path"))
 
         return self._to_avatar_response(avatar)
 
@@ -145,7 +135,6 @@ class MediaService:
                 connection.rollback()
                 raise
 
-        delete_stored_file(avatar.get("storage_path"))
         return AvatarDeleteResponse(message="Avatar deleted successfully.")
 
     def upload_question_image(
@@ -163,8 +152,7 @@ class MediaService:
             original_file_name=original_file_name,
             mime_type=normalized_mime_type,
         )
-
-        stored_file = save_question_image_bytes(content=content, file_ext=file_ext)
+        blob_ref = self._build_blob_media_reference(file_ext=file_ext)
 
         with get_connection() as connection:
             try:
@@ -188,13 +176,14 @@ class MediaService:
                     uploader_user_id=user_id,
                     owner_type="QUESTION",
                     owner_id=question_id,
-                    file_name=stored_file.file_name,
+                    file_name=blob_ref["file_name"],
                     original_file_name=original_file_name,
                     mime_type=normalized_mime_type,
                     file_ext=file_ext.lstrip("."),
                     file_size=len(content),
-                    storage_path=stored_file.storage_path,
-                    public_url=stored_file.public_url,
+                    storage_path=blob_ref["storage_path"],
+                    public_url=blob_ref["public_url"],
+                    file_content=content,
                     sort_order=sort_order,
                 )
                 connection.commit()
@@ -205,11 +194,9 @@ class MediaService:
                 )
             except oracledb.DatabaseError as exc:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise self._translate_database_error(exc) from exc
             except Exception:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise
 
         return QuestionImageListResponse(
@@ -246,7 +233,6 @@ class MediaService:
                 connection.rollback()
                 raise
 
-        delete_stored_file(media.get("storage_path"))
         return QuestionImageDeleteResponse(
             question_id=question_id,
             media_id=media_id,
@@ -298,8 +284,7 @@ class MediaService:
             original_file_name=original_file_name,
             mime_type=normalized_mime_type,
         )
-
-        stored_file = save_answer_image_bytes(content=content, file_ext=file_ext)
+        blob_ref = self._build_blob_media_reference(file_ext=file_ext)
 
         with get_connection() as connection:
             try:
@@ -323,13 +308,14 @@ class MediaService:
                     uploader_user_id=user_id,
                     owner_type="ANSWER",
                     owner_id=answer_id,
-                    file_name=stored_file.file_name,
+                    file_name=blob_ref["file_name"],
                     original_file_name=original_file_name,
                     mime_type=normalized_mime_type,
                     file_ext=file_ext.lstrip("."),
                     file_size=len(content),
-                    storage_path=stored_file.storage_path,
-                    public_url=stored_file.public_url,
+                    storage_path=blob_ref["storage_path"],
+                    public_url=blob_ref["public_url"],
+                    file_content=content,
                     sort_order=sort_order,
                 )
                 connection.commit()
@@ -340,11 +326,9 @@ class MediaService:
                 )
             except oracledb.DatabaseError as exc:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise self._translate_database_error(exc) from exc
             except Exception:
                 connection.rollback()
-                delete_stored_file(stored_file.storage_path)
                 raise
 
         return AnswerImageListResponse(
@@ -381,7 +365,6 @@ class MediaService:
                 connection.rollback()
                 raise
 
-        delete_stored_file(media.get("storage_path"))
         return AnswerImageDeleteResponse(
             answer_id=answer_id,
             media_id=media_id,
@@ -417,6 +400,20 @@ class MediaService:
             owner_id=answer_id,
         )
         return [self._to_media_item(item) for item in items]
+
+    def get_media_content(self, *, file_name: str) -> tuple[bytes, str]:
+        if not file_name or "/" in file_name or "\\" in file_name:
+            raise ValidationError("Invalid media file name.")
+
+        with get_connection() as connection:
+            media = self._media_repository.get_active_media_content_by_file_name(
+                connection,
+                file_name=file_name,
+            )
+            if media is None:
+                raise NotFoundError("Media asset was not found.")
+
+        return media["content"], media["mime_type"]
 
     def _ensure_question_author(
         self,
@@ -488,6 +485,19 @@ class MediaService:
             return suffix
 
         return fallback_ext
+
+    @staticmethod
+    def _build_blob_media_reference(*, file_ext: str) -> dict[str, str]:
+        normalized_ext = file_ext.lower()
+        if normalized_ext and not normalized_ext.startswith("."):
+            normalized_ext = f".{normalized_ext}"
+
+        file_name = f"{uuid4().hex}{normalized_ext}"
+        return {
+            "file_name": file_name,
+            "storage_path": f"db://media_assets/{file_name}",
+            "public_url": f"/api/media/files/{file_name}",
+        }
 
     @staticmethod
     def _to_avatar_response(item: dict) -> AvatarMediaResponse:

@@ -60,6 +60,8 @@
 - 评论与楼中楼回复
 - 用户画像重建与推荐生成
 - 用户中心聚合接口与最近浏览 / 搜索历史
+- 用户头像、问题配图、回答配图
+- Oracle BLOB 媒体存储与 `/api/media/files/{file_name}` 读取入口
 - 由 FastAPI 提供入口的网页登录页、首页、详情页、用户中心页
 - 独立 CLI 业务测试入口
 
@@ -179,6 +181,19 @@
 - `POST /api/users/{user_id}/recommendations/generate`
 - `GET /api/users/{user_id}/recommendations`
 
+### 6.6 头像与内容图片
+
+- `POST /api/users/me/avatar`
+- `GET /api/users/me/avatar`
+- `DELETE /api/users/me/avatar`
+- `POST /api/questions/{question_id}/images`
+- `GET /api/questions/{question_id}/images`
+- `DELETE /api/questions/{question_id}/images/{media_id}`
+- `POST /api/answers/{answer_id}/images`
+- `GET /api/answers/{answer_id}/images`
+- `DELETE /api/answers/{answer_id}/images/{media_id}`
+- `GET /api/media/files/{file_name}`
+
 ## 7. 当前关键业务规则
 
 这几条是协作者最容易误解的地方，最好先统一口径：
@@ -197,6 +212,8 @@
 - 评论允许自回复
 - 评论不支持编辑
 - 评论删除采用软删除，不级联子回复
+- 头像、问题配图和回答配图统一写入 `MEDIA_ASSETS.FILE_CONTENT BLOB`
+- 媒体访问统一通过 `/api/media/files/{file_name}` 读取 Oracle BLOB
 - 推荐逻辑优先复用数据库里的 `qa_app_pkg`
 
 ## 8. 本地协作最常用的启动方式

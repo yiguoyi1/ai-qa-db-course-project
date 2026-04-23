@@ -54,12 +54,14 @@ CREATE TABLE media_assets (
     file_size              NUMBER             DEFAULT 0        NOT NULL,
     storage_path           VARCHAR2(255 CHAR) NOT NULL,
     public_url             VARCHAR2(255 CHAR) NOT NULL,
+    file_content           BLOB               NOT NULL,
     sort_order             NUMBER             DEFAULT 1        NOT NULL,
     status                 VARCHAR2(20 CHAR)  DEFAULT 'ACTIVE' NOT NULL,
     create_time            DATE               DEFAULT SYSDATE  NOT NULL,
     update_time            DATE               DEFAULT SYSDATE  NOT NULL,
     delete_time            DATE,
     CONSTRAINT pk_media_assets PRIMARY KEY (media_id),
+    CONSTRAINT uq_media_assets_file_name UNIQUE (file_name),
     CONSTRAINT fk_media_assets_uploader
         FOREIGN KEY (uploader_user_id) REFERENCES users (user_id),
     CONSTRAINT ck_media_assets_owner_type CHECK (

@@ -40,12 +40,14 @@ BEGIN
                 file_size              NUMBER             DEFAULT 0        NOT NULL,
                 storage_path           VARCHAR2(255 CHAR) NOT NULL,
                 public_url             VARCHAR2(255 CHAR) NOT NULL,
+                file_content           BLOB               NOT NULL,
                 sort_order             NUMBER             DEFAULT 1        NOT NULL,
                 status                 VARCHAR2(20 CHAR)  DEFAULT ''ACTIVE'' NOT NULL,
                 create_time            DATE               DEFAULT SYSDATE  NOT NULL,
                 update_time            DATE               DEFAULT SYSDATE  NOT NULL,
                 delete_time            DATE,
                 CONSTRAINT pk_media_assets PRIMARY KEY (media_id),
+                CONSTRAINT uq_media_assets_file_name UNIQUE (file_name),
                 CONSTRAINT fk_media_assets_uploader
                     FOREIGN KEY (uploader_user_id) REFERENCES users (user_id),
                 CONSTRAINT ck_media_assets_owner_type CHECK (
@@ -62,6 +64,68 @@ BEGIN
             )
         ';
         DBMS_OUTPUT.PUT_LINE('Created MEDIA_ASSETS table.');
+    END IF;
+END;
+/
+
+DECLARE
+    l_exists NUMBER;
+BEGIN
+    SELECT COUNT(*)
+      INTO l_exists
+      FROM user_tab_cols
+     WHERE table_name = 'MEDIA_ASSETS'
+       AND column_name = 'FILE_CONTENT';
+
+    IF l_exists = 0 THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE media_assets ADD (file_content BLOB)';
+        DBMS_OUTPUT.PUT_LINE('Added MEDIA_ASSETS.FILE_CONTENT column.');
+    END IF;
+END;
+/
+
+UPDATE media_assets
+   SET file_content = EMPTY_BLOB()
+ WHERE file_content IS NULL;
+
+UPDATE media_assets
+   SET public_url = '/api/media/files/' || file_name,
+       storage_path = 'db://media_assets/' || file_name,
+       update_time = SYSDATE
+ WHERE public_url LIKE '/uploads/%'
+    OR storage_path LIKE 'uploads/%';
+
+DECLARE
+    l_nullable VARCHAR2(1);
+BEGIN
+    SELECT nullable
+      INTO l_nullable
+      FROM user_tab_cols
+     WHERE table_name = 'MEDIA_ASSETS'
+       AND column_name = 'FILE_CONTENT';
+
+    IF l_nullable = 'Y' THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE media_assets MODIFY (file_content NOT NULL)';
+        DBMS_OUTPUT.PUT_LINE('Set MEDIA_ASSETS.FILE_CONTENT NOT NULL.');
+    END IF;
+END;
+/
+
+DECLARE
+    l_exists NUMBER;
+BEGIN
+    SELECT COUNT(*)
+      INTO l_exists
+      FROM user_constraints
+     WHERE table_name = 'MEDIA_ASSETS'
+       AND constraint_name = 'UQ_MEDIA_ASSETS_FILE_NAME';
+
+    IF l_exists = 0 THEN
+        EXECUTE IMMEDIATE '
+            ALTER TABLE media_assets
+            ADD CONSTRAINT uq_media_assets_file_name UNIQUE (file_name)
+        ';
+        DBMS_OUTPUT.PUT_LINE('Added UQ_MEDIA_ASSETS_FILE_NAME.');
     END IF;
 END;
 /

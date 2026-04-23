@@ -14,7 +14,7 @@
 | `USERS` | 用户与权限 | 保存账号身份、角色、用户状态和当前头像引用 | `USERNAME`, `ROLE`, `STATUS`, `LAST_LOGIN_TIME`, `AVATAR_MEDIA_ID` | 是登录、提问、收藏、推荐等全部业务的主体表 |
 | `CATEGORIES` | 问题分类 | 管理问题所属分类 | `CATEGORY_NAME`, `STATUS` | 用于问题归类和后台分类运营 |
 | `TAGS` | 标签管理 | 存储可复用标签 | `TAG_NAME` | 是画像与推荐计算的基础标签集合 |
-| `MEDIA_ASSETS` | 媒体资源 | 统一保存头像、问题配图、回答配图的元数据 | `OWNER_TYPE`, `OWNER_ID`, `PUBLIC_URL`, `STATUS` | 数据库存元数据，图片文件保存在 `uploads/` |
+| `MEDIA_ASSETS` | 媒体资源 | 统一保存头像、问题配图、回答配图的元数据和 BLOB 内容 | `OWNER_TYPE`, `OWNER_ID`, `PUBLIC_URL`, `FILE_CONTENT`, `STATUS` | 图片二进制保存在 Oracle `BLOB`，`PUBLIC_URL` 由后端读取 BLOB 返回 |
 | `QUESTIONS` | 问题管理 | 存储用户提出的问题和当前采纳答案 | `USER_ID`, `CATEGORY_ID`, `TITLE`, `STATUS`, `ACCEPTED_ANSWER_ID` | 是问答系统的核心主表 |
 | `ANSWERS` | 回答管理 | 存储 AI、人工或系统回答 | `QUESTION_ID`, `ANSWER_TYPE`, `CONTENT`, `AVG_RATING` | 承载回答内容及其质量统计，并通过 `(QUESTION_ID, ANSWER_ID)` 支撑采纳答案约束 |
 | `QUESTION_TAGS` | 标签关联 | 建立问题与标签的多对多关系 | `QUESTION_ID`, `TAG_ID` | 为推荐、画像和标签展示提供连接关系 |
@@ -88,7 +88,7 @@
 - 行为与主数据分离：便于统计、审计和后续扩展
 - 社区互动结构更完整：回答反馈与评论回复分层建模，避免混用
 - 采纳答案约束更稳：通过 `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID)` 复合外键保证不能跨问题采纳回答
-- 媒体资源统一：头像、问题配图和回答配图全部落入 `MEDIA_ASSETS`
+- 媒体资源统一：头像、问题配图和回答配图全部落入 `MEDIA_ASSETS`，图片内容保存在 `FILE_CONTENT BLOB`
 - 画像与推荐解耦：画像负责沉淀兴趣，推荐负责产出结果
 - 日志能力完整：登录日志、操作日志、Prompt 日志、会话日志分层清晰
 - 设计偏向课程答辩友好：每个模块都能明确说明“业务目的”和“数据库落点”

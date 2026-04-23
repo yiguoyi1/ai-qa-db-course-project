@@ -160,7 +160,7 @@
 
 ### 3.4.5 MEDIA_ASSETS 媒体资源表
 
-用于统一保存用户头像、问题配图和回答配图的元数据。图片文件本身保存在本地 `uploads/` 目录，数据库只保存可追踪的资源信息。
+用于统一保存用户头像、问题配图和回答配图。图片二进制保存在 Oracle `BLOB` 字段中，其他字段保存可追踪的媒体元数据。
 
 | 字段名 | 类型 | 说明 |
 | ------------- | ------------- | ------------ |
@@ -173,8 +173,9 @@
 | MIME_TYPE | VARCHAR2(100) | 文件 MIME 类型 |
 | FILE_EXT | VARCHAR2(20) | 文件扩展名 |
 | FILE_SIZE | NUMBER | 文件大小 |
-| STORAGE_PATH | VARCHAR2(255) | 本地存储路径 |
+| STORAGE_PATH | VARCHAR2(255) | 数据库存储标识 |
 | PUBLIC_URL | VARCHAR2(255) | 对外访问地址 |
+| FILE_CONTENT | BLOB | 图片二进制内容 |
 | SORT_ORDER | NUMBER | 展示顺序 |
 | STATUS | VARCHAR2(20) | ACTIVE / DELETED |
 | CREATE_TIME | DATE | 创建时间 |
@@ -477,7 +478,7 @@
 3. 引入 `ANSWER_COMMENTS`，将回答下的评论与楼中楼回复单独建模，避免与反馈表混用
 4. 引入 `USER_TAG_PROFILE`，将用户行为沉淀为标签权重，避免推荐只依赖单次行为
 5. 引入 `RECOMMENDATIONS`，将推荐结果落表，便于查询、排序和状态管理
-6. 引入 `MEDIA_ASSETS`，统一管理头像、问题配图和回答配图，避免在不同业务表中散落图片字段
+6. 引入 `MEDIA_ASSETS`，统一管理头像、问题配图和回答配图，并用 Oracle `BLOB` 保存图片二进制
 7. 在 `QUESTIONS` 中引入 `ACCEPTED_ANSWER_ID`，并通过复合外键保证采纳答案必须属于当前问题
 8. 通过触发器和存储过程自动回写问题和回答统计字段，避免应用层重复维护统计逻辑
 
@@ -585,7 +586,7 @@
 - 问题采纳的回答必须属于当前问题，不能跨问题引用其他回答
 - 评论挂在回答下，不直接挂在问题下
 - 评论删除采用软删除，不级联删除子回复
-- 媒体资源统一通过 `MEDIA_ASSETS` 管理，头像、问题图、回答图用 `OWNER_TYPE` 区分
+- 媒体资源统一通过 `MEDIA_ASSETS` 管理，头像、问题图、回答图用 `OWNER_TYPE` 区分，图片内容保存在 `FILE_CONTENT BLOB`
 - 评分必须在 `0` 到 `5` 之间
 - 浏览数、收藏数、回答数、点赞数等统计值不能为负数
 

@@ -158,7 +158,8 @@ sql/migrations/20260422_add_question_acceptance.sql
 媒体相关表：
 
 - `MEDIA_ASSETS` 统一保存头像、问题配图、回答配图元数据。
-- 实际文件保存在 `uploads/`，该目录不提交 Git。
+- 图片二进制保存在 `MEDIA_ASSETS.FILE_CONTENT BLOB`。
+- `PUBLIC_URL` 指向 `/api/media/files/{file_name}`，由后端从 Oracle BLOB 读取返回。
 
 ## 7. 代码入口地图
 
@@ -229,7 +230,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 不要提交：
 
 - `.env`
-- `uploads/`
+- 历史本地 `uploads/` 目录如果存在，只作为旧运行残留，不再是媒体主存储。
 - `*.log`
 - `__pycache__/`
 - 临时测试图片

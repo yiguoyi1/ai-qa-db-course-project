@@ -142,7 +142,8 @@
 
 ## Media Rules
 
-- `MEDIA_ASSETS` stores metadata only; image binaries are stored under the local `uploads/` directory.
+- `MEDIA_ASSETS` stores both media metadata and image binaries.
+- `MEDIA_ASSETS.FILE_CONTENT` stores image content as an Oracle `BLOB`.
 - `USER_AVATAR` media is linked from `USERS.AVATAR_MEDIA_ID`.
 - `QUESTION` media belongs to a question through `OWNER_ID = QUESTIONS.QUESTION_ID`.
 - `ANSWER` media belongs to an answer through `OWNER_ID = ANSWERS.ANSWER_ID`.

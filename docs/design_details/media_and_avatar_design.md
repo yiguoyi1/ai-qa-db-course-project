@@ -11,25 +11,26 @@
 
 1. 说明“头像上传与展示”的当前落地方案
 2. 说明“问题 / 回答配图”与当前项目结构的连接方式
-3. 标清当前 MVP 边界，避免协作者误以为已经是完整媒体系统
+3. 标清当前 BLOB 媒体存储边界，避免协作者误以为已经是完整媒体系统
 
 因此，这里采用的原则是：
 
 - 当前阶段先解决“能用”
 - 后续阶段再考虑“更完整”
-- 数据库存元数据，文件不直接存进 Oracle BLOB
+- 图片二进制存入 Oracle BLOB，媒体表同时保存访问和治理所需的元数据
 
 ## 2. 当前落地状态
 
 截至当前版本，项目已经落地：
 
 - `MEDIA_ASSETS` 统一媒体资源表
+- `MEDIA_ASSETS.FILE_CONTENT` 使用 Oracle `BLOB` 保存图片二进制
 - `USERS.AVATAR_MEDIA_ID` 当前头像引用字段
 - 用户头像上传、查看、删除接口
 - 问题配图上传、列表、删除接口
 - 回答配图上传、列表、删除接口
 - 问题详情返回问题 `images` 和回答 `images`
-- 本地 `uploads/` 文件存储目录
+- `PUBLIC_URL` 指向后端读取 BLOB 的接口：`/api/media/files/{file_name}`
 
 当前仍未完整收口：
 
@@ -98,28 +99,29 @@
 
 当前采用：
 
-- 文件存在本地目录
-- 数据库存媒体元数据
+- 图片文件二进制存入 Oracle `BLOB`
+- `MEDIA_ASSETS` 同时保存文件名、MIME 类型、大小、归属对象和访问地址
 
 原因：
 
 - 当前项目是课程设计 / 问答社区 MVP
-- 本地开发和演示优先
-- 用本地目录存储最容易落地
-- 后续如果迁移到 MinIO / OSS / COS，也只需要替换存储实现层
+- 使用 BLOB 可以明确体现数据库大对象能力
+- 图片与业务元数据统一由 Oracle 管理，便于课程答辩说明
+- 后端通过统一接口读取 BLOB，前端和 CLI 不需要直接关心底层存储方式
 
 当前版本不采用：
 
-- 直接把图片二进制存进 Oracle BLOB
 - 一开始就接第三方对象存储
+- 继续把图片文件落盘到本地 `uploads/`
 
-### 4.2 目录结构
+### 4.2 存储标识
 
-当前目录结构定义为：
+当前不再依赖本地目录保存图片文件。为方便兼容既有响应结构，仍保留两个元数据字段：
 
-- `uploads/avatars/`
-- `uploads/questions/`
-- `uploads/answers/`
+- `storage_path`
+  - 使用 `db://media_assets/{file_name}` 表示图片内容来自数据库 BLOB
+- `public_url`
+  - 使用 `/api/media/files/{file_name}` 作为后端读取地址
 
 文件命名规则：
 
@@ -128,19 +130,17 @@
 
 例如：
 
-- `uploads/avatars/20260422_ab12cd34.png`
-- `uploads/questions/20260422_ef56gh78.jpg`
-- `uploads/answers/20260422_ij90kl12.webp`
+- `20260422_ab12cd34.png`
+- `20260422_ef56gh78.jpg`
+- `20260422_ij90kl12.webp`
 
 ### 4.3 访问方式
 
-由 FastAPI 提供静态访问入口，例如：
+由 FastAPI 提供 BLOB 读取入口：
 
-- `/uploads/avatars/...`
-- `/uploads/questions/...`
-- `/uploads/answers/...`
+- `/api/media/files/{file_name}`
 
-这样网页前端和 CLI 返回的媒体 URL 保持统一。
+这样网页前端和 CLI 使用统一 URL，同时图片内容仍由 Oracle BLOB 提供。
 
 ## 5. 数据库设计
 
@@ -161,8 +161,9 @@
 | `mime_type` | `VARCHAR2(100 CHAR)` | MIME 类型 |
 | `file_ext` | `VARCHAR2(20 CHAR)` | 文件扩展名 |
 | `file_size` | `NUMBER` | 文件大小，单位字节 |
-| `storage_path` | `VARCHAR2(255 CHAR)` | 本地存储路径 |
+| `storage_path` | `VARCHAR2(255 CHAR)` | 数据库存储标识 |
 | `public_url` | `VARCHAR2(255 CHAR)` | 对外访问 URL |
+| `file_content` | `BLOB` | 图片二进制内容 |
 | `sort_order` | `NUMBER DEFAULT 1` | 展示顺序 |
 | `status` | `VARCHAR2(20 CHAR)` | 媒体状态 |
 | `create_time` | `DATE DEFAULT SYSDATE` | 创建时间 |
@@ -238,12 +239,14 @@ CREATE TABLE media_assets (
     file_size            NUMBER             DEFAULT 0 NOT NULL,
     storage_path         VARCHAR2(255 CHAR) NOT NULL,
     public_url           VARCHAR2(255 CHAR) NOT NULL,
+    file_content         BLOB               NOT NULL,
     sort_order           NUMBER             DEFAULT 1 NOT NULL,
     status               VARCHAR2(20 CHAR)  DEFAULT 'ACTIVE' NOT NULL,
     create_time          DATE               DEFAULT SYSDATE NOT NULL,
     update_time          DATE               DEFAULT SYSDATE NOT NULL,
     delete_time          DATE,
     CONSTRAINT pk_media_assets PRIMARY KEY (media_id),
+    CONSTRAINT uq_media_assets_file_name UNIQUE (file_name),
     CONSTRAINT fk_media_assets_uploader
         FOREIGN KEY (uploader_user_id) REFERENCES users (user_id),
     CONSTRAINT ck_media_assets_owner_type
@@ -358,7 +361,7 @@ CREATE INDEX idx_media_assets_uploader
   "media_id": 101,
   "owner_type": "QUESTION",
   "owner_id": 62,
-  "public_url": "/uploads/questions/20260422_ab12cd34.jpg",
+  "public_url": "/api/media/files/20260422_ab12cd34.jpg",
   "mime_type": "image/jpeg",
   "file_size": 182734,
   "sort_order": 1,
@@ -416,8 +419,8 @@ CREATE INDEX idx_media_assets_uploader
 ### 9.4 删除规则
 
 - 图片删除先走软删除
-- 不立即物理删除文件
-- 后续可通过清理脚本定期删除 `DELETED` 文件
+- 不物理清空 BLOB 内容，保留审计和恢复空间
+- 后续可通过清理脚本定期清理长期 `DELETED` 的 BLOB 内容
 
 ## 10. 后端实现
 
@@ -428,10 +431,6 @@ CREATE INDEX idx_media_assets_uploader
 - `app/repositories/media_repository.py`
 - `app/schemas/media.py`
 
-另外增加：
-
-- `app/core/file_storage.py`
-
 职责划分：
 
 - `route`
@@ -440,9 +439,8 @@ CREATE INDEX idx_media_assets_uploader
 - `service`
   - 处理上传规则、数量限制、替换逻辑
 - `repository`
-  - 负责 `MEDIA_ASSETS` 和 `USERS.avatar_media_id` 读写
-- `file_storage`
-  - 负责本地文件落盘、删除、URL 生成
+  - 负责 `MEDIA_ASSETS`、`MEDIA_ASSETS.FILE_CONTENT` 和 `USERS.avatar_media_id` 读写
+  - 负责按 `file_name` 读取 BLOB 内容
 
 ## 11. 前端改造
 
@@ -520,4 +518,4 @@ CREATE INDEX idx_media_assets_uploader
 - 对象存储
 - 图片审核后台
 
-这套范围与当前问答社区 MVP、Oracle、FastAPI 和原生网页前端结构保持一致。
+这套范围与当前问答社区 MVP、Oracle BLOB、FastAPI 和原生网页前端结构保持一致。
