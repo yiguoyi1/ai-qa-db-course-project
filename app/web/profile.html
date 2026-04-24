@@ -453,6 +453,340 @@
             flex-wrap: wrap;
         }
 
+        .inline-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .recommendation-controls {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding: 16px;
+            border: 1px solid #dbeafe;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        }
+
+        .recommendation-controls-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .recommendation-summary {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .recommendation-config {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .recommendation-config label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .recommendation-select {
+            min-width: 108px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            padding: 9px 12px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .recommendation-filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .recommendation-sort-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-chip {
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #475569;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .filter-chip.active {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .filter-chip:disabled,
+        .recommendation-select:disabled,
+        .btn-primary:disabled,
+        .btn-outline:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .recommendation-helper {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .recommendation-meta-grid {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .recommendation-overview {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .featured-recommendation {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            padding: 22px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 42%, #60a5fa 100%);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.18);
+        }
+
+        .featured-recommendation::after {
+            content: "";
+            position: absolute;
+            right: -52px;
+            top: -46px;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .featured-recommendation > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .featured-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .featured-title {
+            margin: 14px 0 10px;
+            font-size: 24px;
+            line-height: 1.45;
+            letter-spacing: -0.02em;
+        }
+
+        .featured-description {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.88);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .featured-reason-list {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .featured-reason-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .featured-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .featured-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease;
+        }
+
+        .featured-link.primary {
+            background: #ffffff;
+            color: #1d4ed8;
+        }
+
+        .featured-link.secondary {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .featured-link:hover {
+            transform: translateY(-1px);
+        }
+
+        .recommendation-insights {
+            display: grid;
+            gap: 12px;
+        }
+
+        .insight-card {
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            padding: 16px 18px;
+        }
+
+        .insight-card .label {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .insight-card .value {
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .insight-card .subvalue {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .recommendation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .recommendation-card-status {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .recommendation-score-bar {
+            margin-top: 14px;
+            height: 8px;
+            border-radius: 999px;
+            background: #dbeafe;
+            overflow: hidden;
+        }
+
+        .recommendation-score-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+        }
+
+        .reason-chip-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .reason-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .recommendation-meta-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            padding: 12px 14px;
+        }
+
+        .recommendation-meta-card .label {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .recommendation-meta-card .value {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
         .btn-link {
             border: none;
             background: transparent;
@@ -511,6 +845,12 @@
                 align-items: flex-start;
             }
         }
+
+        @media (max-width: 980px) {
+            .recommendation-overview {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -528,18 +868,18 @@
     <div id="page-message" class="message"></div>
 
     <section class="hero-card">
-        <div class="hero-top">
-            <div class="profile-head">
-                <div class="avatar" id="profile-avatar">我</div>
-                <div class="profile-meta">
+            <div class="hero-top">
+                <div class="profile-head">
+                    <div class="avatar" id="profile-avatar">我</div>
+                    <div class="profile-meta">
                     <h1 id="profile-title">我的用户中心</h1>
                     <p id="profile-subtitle">正在整理你的提问、回答、收藏、推荐与历史记录...</p>
                 </div>
             </div>
 
             <div class="hero-actions">
-                <button class="btn-outline" onclick="rebuildProfile()">重建兴趣画像</button>
-                <button class="btn-primary" onclick="generateRecommendations()">刷新推荐</button>
+                <button id="rebuild-profile-btn" class="btn-outline" onclick="rebuildProfile()">重建兴趣画像</button>
+                <button id="generate-recommendations-btn" class="btn-primary" onclick="generateRecommendations()">刷新推荐</button>
             </div>
         </div>
 
@@ -627,10 +967,44 @@
                             <h2>推荐给我的内容</h2>
                             <p>根据兴趣画像和历史行为生成的候选问题。</p>
                         </div>
-                        <button class="btn-primary btn-inline" type="button" onclick="generateRecommendations()">刷新推荐</button>
+                        <div class="inline-actions">
+                            <button id="generate-recommendations-inline-btn" class="btn-primary btn-inline" type="button" onclick="generateRecommendations()">刷新推荐</button>
+                            <button id="rebuild-and-generate-btn" class="btn-outline btn-inline" type="button" onclick="rebuildProfileAndGenerate()">重建画像并刷新</button>
+                        </div>
                     </div>
                     <div class="panel-body" id="recommendations-panel">
-                        <div class="loading-state">正在加载推荐内容...</div>
+                        <div class="recommendation-controls">
+                            <div class="recommendation-controls-top">
+                                <div class="recommendation-summary">
+                                    <span class="summary-chip" id="recommendation-active-count">活跃推荐 -</span>
+                                    <span class="summary-chip" id="recommendation-last-request">本次生成条数 10</span>
+                                </div>
+                                <div class="recommendation-config">
+                                    <label for="recommendation-limit">生成数量</label>
+                                    <select id="recommendation-limit" class="recommendation-select" onchange="updateRecommendationLimit(this.value)">
+                                        <option value="5">5 条</option>
+                                        <option value="10" selected>10 条</option>
+                                        <option value="20">20 条</option>
+                                        <option value="30">30 条</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="recommendation-filter-group">
+                                <button id="recommendation-filter-ACTIVE" class="filter-chip active" type="button" onclick="setRecommendationStatus('ACTIVE')">活跃推荐</button>
+                                <button id="recommendation-filter-EXPIRED" class="filter-chip" type="button" onclick="setRecommendationStatus('EXPIRED')">已过期</button>
+                                <button id="recommendation-filter-DISMISSED" class="filter-chip" type="button" onclick="setRecommendationStatus('DISMISSED')">已忽略</button>
+                            </div>
+                            <div class="recommendation-sort-group">
+                                <button id="recommendation-sort-score" class="filter-chip active" type="button" onclick="setRecommendationSort('score')">按分值排序</button>
+                                <button id="recommendation-sort-time" class="filter-chip" type="button" onclick="setRecommendationSort('time')">按时间排序</button>
+                            </div>
+                            <div class="recommendation-helper" id="recommendation-helper-text">
+                                当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。
+                            </div>
+                        </div>
+                        <div id="recommendations-list-container">
+                            <div class="loading-state">正在加载推荐内容...</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -686,6 +1060,11 @@
     const HOME_PAGE_URL = '/home';
     const USER_CENTER_TAB_KEY = 'user_center_active_tab';
     const DEFAULT_ACTIVE_TAB = 'answers';
+    const RECOMMENDATION_STATUS_META = {
+        ACTIVE: '当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。',
+        EXPIRED: '这里展示已经过期的历史推荐，方便回看系统之前给过什么内容。',
+        DISMISSED: '这里展示已经被忽略的推荐结果，便于后续人工核对推荐策略。'
+    };
     const VALID_TABS = new Set([
         'answers',
         'questions',
@@ -695,6 +1074,16 @@
         'search',
         'tags',
     ]);
+    const recommendationUiState = {
+        status: 'ACTIVE',
+        limit: 10,
+        sortBy: 'score',
+        activeCount: null,
+        requestedLimit: 10,
+        loadingList: false,
+        generating: false,
+        rebuilding: false,
+    };
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -707,10 +1096,10 @@
     }
 
     function clearSession() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('username');
-        localStorage.removeItem('user_role');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('user_id');
+        sessionStorage.removeItem('username');
+        sessionStorage.removeItem('user_role');
     }
 
     function redirectToLogin(message) {
@@ -738,13 +1127,13 @@
     }
 
     function getCurrentUserId() {
-        const raw = localStorage.getItem('user_id');
+        const raw = sessionStorage.getItem('user_id');
         const parsed = raw ? Number(raw) : NaN;
         return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
     }
 
     function getAccessToken() {
-        return localStorage.getItem('access_token');
+        return sessionStorage.getItem('access_token');
     }
 
     function initializeTabs() {
@@ -821,6 +1210,178 @@
         showMessage._timer = window.setTimeout(() => {
             box.style.display = 'none';
         }, 3200);
+    }
+
+    function getRecommendationTypeLabel(value) {
+        switch (value) {
+            case 'TAG_BASED':
+                return '标签匹配';
+            case 'POPULARITY':
+                return '热度推荐';
+            case 'HYBRID':
+                return '混合推荐';
+            case 'MANUAL':
+                return '人工推荐';
+            default:
+                return value || '未知类型';
+        }
+    }
+
+    function getRecommendationStatusLabel(value) {
+        switch (value) {
+            case 'ACTIVE':
+                return '活跃推荐';
+            case 'EXPIRED':
+                return '已过期';
+            case 'DISMISSED':
+                return '已忽略';
+            default:
+                return value || '未知状态';
+        }
+    }
+
+    function updateRecommendationControls() {
+        const limitSelect = document.getElementById('recommendation-limit');
+        const activeCount = document.getElementById('recommendation-active-count');
+        const lastRequest = document.getElementById('recommendation-last-request');
+        const helper = document.getElementById('recommendation-helper-text');
+        const generateButton = document.getElementById('generate-recommendations-btn');
+        const generateInlineButton = document.getElementById('generate-recommendations-inline-btn');
+        const rebuildButton = document.getElementById('rebuild-profile-btn');
+        const rebuildAndGenerateButton = document.getElementById('rebuild-and-generate-btn');
+        const busy = recommendationUiState.generating || recommendationUiState.rebuilding || recommendationUiState.loadingList;
+
+        if (limitSelect) {
+            limitSelect.value = String(recommendationUiState.limit);
+            limitSelect.disabled = busy;
+        }
+
+        if (activeCount) {
+            activeCount.textContent = recommendationUiState.activeCount === null
+                ? '活跃推荐 -'
+                : `活跃推荐 ${recommendationUiState.activeCount}`;
+        }
+
+        if (lastRequest) {
+            lastRequest.textContent = `本次生成条数 ${recommendationUiState.requestedLimit}`;
+        }
+
+        if (helper) {
+            const baseText = RECOMMENDATION_STATUS_META[recommendationUiState.status] || RECOMMENDATION_STATUS_META.ACTIVE;
+            if (recommendationUiState.generating) {
+                helper.textContent = `正在按 ${recommendationUiState.limit} 条的配置生成推荐，请稍候...`;
+            } else if (recommendationUiState.rebuilding) {
+                helper.textContent = '正在重建兴趣画像，这会影响后续推荐结果。';
+            } else if (recommendationUiState.loadingList) {
+                helper.textContent = `正在查询${getRecommendationStatusLabel(recommendationUiState.status)}...`;
+            } else {
+                helper.textContent = baseText;
+            }
+        }
+
+        [
+            generateButton,
+            generateInlineButton,
+            rebuildButton,
+            rebuildAndGenerateButton,
+        ].forEach(button => {
+            if (button) {
+                button.disabled = busy;
+            }
+        });
+
+        if (generateButton) {
+            generateButton.textContent = recommendationUiState.generating ? '正在刷新推荐...' : '刷新推荐';
+        }
+        if (generateInlineButton) {
+            generateInlineButton.textContent = recommendationUiState.generating ? '正在刷新推荐...' : '刷新推荐';
+        }
+        if (rebuildButton) {
+            rebuildButton.textContent = recommendationUiState.rebuilding ? '正在重建画像...' : '重建兴趣画像';
+        }
+        if (rebuildAndGenerateButton) {
+            rebuildAndGenerateButton.textContent = recommendationUiState.rebuilding
+                ? '正在重建画像...'
+                : (recommendationUiState.generating ? '正在刷新推荐...' : '重建画像并刷新');
+        }
+
+        Object.keys(RECOMMENDATION_STATUS_META).forEach(statusKey => {
+            const filterButton = document.getElementById(`recommendation-filter-${statusKey}`);
+            if (!filterButton) {
+                return;
+            }
+            filterButton.classList.toggle('active', recommendationUiState.status === statusKey);
+            filterButton.disabled = busy;
+        });
+
+        ['score', 'time'].forEach(sortKey => {
+            const sortButton = document.getElementById(`recommendation-sort-${sortKey}`);
+            if (!sortButton) {
+                return;
+            }
+            sortButton.classList.toggle('active', recommendationUiState.sortBy === sortKey);
+            sortButton.disabled = busy;
+        });
+    }
+
+    function updateRecommendationLimit(value) {
+        const parsed = Number(value);
+        recommendationUiState.limit = Number.isInteger(parsed) && parsed > 0 ? parsed : 10;
+        updateRecommendationControls();
+    }
+
+    function setRecommendationSort(sortBy) {
+        if (!['score', 'time'].includes(sortBy) || recommendationUiState.sortBy === sortBy) {
+            return;
+        }
+        recommendationUiState.sortBy = sortBy;
+        updateRecommendationControls();
+        loadRecommendations().catch(error => {
+            console.error('切换推荐排序失败:', error);
+            showMessage(error.message || '推荐列表刷新失败，请稍后重试。', false);
+        });
+    }
+
+    function getRecommendationReasons(item) {
+        const reasons = [];
+        if (item.rec_reason) {
+            reasons.push(`原因：${truncateText(item.rec_reason, 28)}`);
+        }
+        if (item.rec_type) {
+            reasons.push(getRecommendationTypeLabel(item.rec_type));
+        }
+        if (item.rec_source) {
+            reasons.push(`来源 ${item.rec_source}`);
+        }
+        const tags = Array.isArray(item.question?.tags) ? item.question.tags.slice(0, 2) : [];
+        tags.forEach(tag => reasons.push(`#${tag.tag_name}`));
+        return reasons.slice(0, 4);
+    }
+
+    function sortRecommendationItems(items) {
+        const cloned = [...items];
+        if (recommendationUiState.sortBy === 'time') {
+            return cloned.sort((a, b) => new Date(b.rec_time) - new Date(a.rec_time));
+        }
+        return cloned.sort((a, b) => Number(b.rec_score || 0) - Number(a.rec_score || 0));
+    }
+
+    async function setRecommendationStatus(status) {
+        if (recommendationUiState.status === status) {
+            return;
+        }
+        recommendationUiState.status = status;
+        recommendationUiState.loadingList = true;
+        updateRecommendationControls();
+        try {
+            await loadRecommendations();
+        } catch (error) {
+            console.error('切换推荐筛选失败:', error);
+            showMessage(error.message || '推荐列表刷新失败，请稍后重试。', false);
+        } finally {
+            recommendationUiState.loadingList = false;
+            updateRecommendationControls();
+        }
     }
 
     function getQuestionStatusMeta(status) {
@@ -941,7 +1502,7 @@
 
     async function loadRecommendations() {
         const userId = getCurrentUserId();
-        const data = await fetchJson(`/api/users/${userId}/recommendations`, { status: 'ACTIVE' });
+        const data = await fetchJson(`/api/users/${userId}/recommendations`, { status: recommendationUiState.status });
         renderRecommendations(data);
     }
 
@@ -984,7 +1545,9 @@
             return;
         }
 
-        const container = document.getElementById(panelId);
+        const container = sectionKey === 'recommendations'
+            ? document.getElementById('recommendations-list-container')
+            : document.getElementById(panelId);
         if (container) {
             container.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
         }
@@ -1131,30 +1694,120 @@
     }
 
     function renderRecommendations(data) {
-        const container = document.getElementById('recommendations-panel');
-        setTabCount('recommendations', data.total ?? data.items.length ?? 0);
+        const container = document.getElementById('recommendations-list-container');
+        recommendationUiState.loadingList = false;
+        if (recommendationUiState.status === 'ACTIVE') {
+            recommendationUiState.activeCount = data.total ?? data.items.length ?? 0;
+        }
+        updateRecommendationControls();
+        const items = sortRecommendationItems(Array.isArray(data.items) ? data.items : []);
+        setTabCount('recommendations', data.total ?? items.length ?? 0);
 
-        if (!data.items.length) {
-            container.innerHTML = '<div class="empty-state">当前还没有可展示的推荐内容，先重建画像再刷新推荐会更有效。</div>';
+        if (!items.length) {
+            const emptyText = recommendationUiState.status === 'ACTIVE'
+                ? '当前还没有可展示的活跃推荐，先重建画像再刷新推荐会更有效。'
+                : `当前没有“${getRecommendationStatusLabel(recommendationUiState.status)}”记录。`;
+            container.innerHTML = `
+                <div class="empty-state">
+                    ${escapeHtml(emptyText)}
+                    ${recommendationUiState.status === 'ACTIVE' ? `
+                        <div class="item-actions" style="justify-content:center; margin-top:16px;">
+                            <button class="btn-link" onclick="rebuildProfile()">先重建画像</button>
+                            <button class="btn-link" onclick="generateRecommendations()">直接刷新推荐</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
             return;
         }
 
+        const topItem = items[0];
+        const scores = items.map(item => Number(item.rec_score || 0));
+        const topScore = Math.max(...scores, 0);
+        const averageScore = scores.reduce((sum, value) => sum + value, 0) / scores.length;
+        const featuredReasons = getRecommendationReasons(topItem);
+
         container.innerHTML = `
+            <div class="recommendation-overview">
+                <div class="featured-recommendation">
+                    <span class="featured-kicker">本轮最值得先看的推荐</span>
+                    <h3 class="featured-title">${escapeHtml(topItem.question.title)}</h3>
+                    <p class="featured-description">${escapeHtml(topItem.rec_reason || '这条内容在当前画像与行为数据下得分最高，适合优先查看。')}</p>
+                    <div class="featured-reason-list">
+                        ${featuredReasons.map(reason => `<span class="featured-reason-chip">${escapeHtml(reason)}</span>`).join('')}
+                    </div>
+                    <div class="featured-actions">
+                        <button class="featured-link primary" type="button" onclick="goToQuestion(${topItem.question.question_id})">先看这条推荐</button>
+                        <button class="featured-link secondary" type="button" onclick="setRecommendationSort('time')">切到按时间排序</button>
+                    </div>
+                </div>
+                <div class="recommendation-insights">
+                    <div class="insight-card">
+                        <span class="label">当前推荐池</span>
+                        <div class="value">${items.length} 条</div>
+                        <div class="subvalue">当前筛选为“${escapeHtml(getRecommendationStatusLabel(recommendationUiState.status))}”。</div>
+                    </div>
+                    <div class="insight-card">
+                        <span class="label">最高推荐分值</span>
+                        <div class="value">${topScore.toFixed(2)}</div>
+                        <div class="subvalue">这通常意味着标签匹配和热度信号都比较强。</div>
+                    </div>
+                    <div class="insight-card">
+                        <span class="label">平均推荐分值</span>
+                        <div class="value">${averageScore.toFixed(2)}</div>
+                        <div class="subvalue">可以快速感知本轮推荐整体质量是否稳定。</div>
+                    </div>
+                </div>
+            </div>
             <div class="item-list">
-                ${data.items.map(item => {
+                ${items.map(item => {
+                    const relativeWidth = topScore > 0
+                        ? Math.max(12, Math.min(100, (Number(item.rec_score || 0) / topScore) * 100))
+                        : 0;
+                    const reasons = getRecommendationReasons(item);
                     const status = getQuestionStatusMeta(item.question.status);
                     return `
                         <div class="item-card">
-                            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                            <div class="recommendation-card-header">
                                 <h3>${escapeHtml(item.question.title)}</h3>
-                                <span class="pill" style="${status.style}">${status.label}</span>
+                                <div class="recommendation-card-status">
+                                    <span class="pill" style="${status.style}">${status.label}</span>
+                                    <span class="pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">${escapeHtml(getRecommendationTypeLabel(item.rec_type))}</span>
+                                </div>
                             </div>
                             <p>${escapeHtml(item.rec_reason || '系统根据你的兴趣画像和历史行为进行了推荐。')}</p>
                             ${buildTagHtml(item.question.tags)}
+                            ${reasons.length ? `
+                                <div class="reason-chip-list">
+                                    ${reasons.map(reason => `<span class="reason-chip">${escapeHtml(reason)}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div class="recommendation-score-bar">
+                                <div class="recommendation-score-fill" style="width:${relativeWidth}%;"></div>
+                            </div>
+                            <div class="recommendation-meta-grid">
+                                <div class="recommendation-meta-card">
+                                    <span class="label">推荐分值</span>
+                                    <div class="value">🎯 ${Number(item.rec_score || 0).toFixed(2)}</div>
+                                </div>
+                                <div class="recommendation-meta-card">
+                                    <span class="label">推荐类型</span>
+                                    <div class="value">${escapeHtml(getRecommendationTypeLabel(item.rec_type))}</div>
+                                </div>
+                                <div class="recommendation-meta-card">
+                                    <span class="label">推荐状态</span>
+                                    <div class="value">${escapeHtml(getRecommendationStatusLabel(item.status))}</div>
+                                </div>
+                                <div class="recommendation-meta-card">
+                                    <span class="label">生成时间</span>
+                                    <div class="value">${formatDate(item.rec_time)}</div>
+                                </div>
+                            </div>
                             <div class="meta-row">
-                                <span>🎯 分值 ${Number(item.rec_score || 0).toFixed(2)}</span>
-                                <span>🕒 ${formatDate(item.rec_time)}</span>
-                                <span>📌 ${escapeHtml(item.rec_type)}</span>
+                                <span>💬 ${item.question.answer_count || 0} 个回答</span>
+                                <span>⭐ ${item.question.favorite_count || 0} 次收藏</span>
+                                <span>👀 ${item.question.view_count || 0} 次浏览</span>
+                                ${item.rec_source ? `<span>📦 ${escapeHtml(item.rec_source)}</span>` : ''}
                             </div>
                             <div class="item-actions">
                                 <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">查看推荐问题</button>
@@ -1247,6 +1900,8 @@
 
     async function rebuildProfile() {
         const userId = getCurrentUserId();
+        recommendationUiState.rebuilding = true;
+        updateRecommendationControls();
         try {
             const data = await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
                 method: 'POST',
@@ -1258,22 +1913,71 @@
         } catch (error) {
             console.error('重建画像失败:', error);
             showMessage(error.message || '重建画像失败，请稍后重试。', false);
+        } finally {
+            recommendationUiState.rebuilding = false;
+            updateRecommendationControls();
         }
     }
 
     async function generateRecommendations() {
         const userId = getCurrentUserId();
+        recommendationUiState.generating = true;
+        recommendationUiState.requestedLimit = recommendationUiState.limit;
+        updateRecommendationControls();
         try {
-            const data = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: 10 }, {
+            const data = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: recommendationUiState.limit }, {
                 method: 'POST',
                 body: JSON.stringify({})
             });
+            recommendationUiState.activeCount = data.active_count ?? recommendationUiState.activeCount;
+            recommendationUiState.status = 'ACTIVE';
             await loadRecommendations();
             setActiveTab('recommendations');
             showMessage(`推荐已刷新，当前共有 ${data.active_count} 条活跃推荐。`, true);
         } catch (error) {
             console.error('刷新推荐失败:', error);
             showMessage(error.message || '刷新推荐失败，请稍后重试。', false);
+        } finally {
+            recommendationUiState.generating = false;
+            updateRecommendationControls();
+        }
+    }
+
+    async function rebuildProfileAndGenerate() {
+        const userId = getCurrentUserId();
+        recommendationUiState.rebuilding = true;
+        updateRecommendationControls();
+
+        try {
+            const profileData = await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            renderProfileTags(profileData.items || []);
+            recommendationUiState.rebuilding = false;
+            recommendationUiState.generating = true;
+            recommendationUiState.requestedLimit = recommendationUiState.limit;
+            recommendationUiState.status = 'ACTIVE';
+            updateRecommendationControls();
+
+            const recommendationData = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: recommendationUiState.limit }, {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            recommendationUiState.activeCount = recommendationData.active_count ?? recommendationUiState.activeCount;
+            await loadRecommendations();
+            setActiveTab('recommendations');
+            showMessage(
+                `画像已重建，推荐也已刷新完成，当前共有 ${recommendationData.active_count} 条活跃推荐。`,
+                true
+            );
+        } catch (error) {
+            console.error('重建画像并刷新推荐失败:', error);
+            showMessage(error.message || '推荐刷新失败，请稍后重试。', false);
+        } finally {
+            recommendationUiState.rebuilding = false;
+            recommendationUiState.generating = false;
+            updateRecommendationControls();
         }
     }
 
@@ -1299,8 +2003,8 @@
     window.onload = async function() {
         const token = getAccessToken();
         const userId = getCurrentUserId();
-        const username = localStorage.getItem('username');
-        const role = localStorage.getItem('user_role');
+        const username = sessionStorage.getItem('username');
+        const role = sessionStorage.getItem('user_role');
 
         if (!token || !userId) {
             redirectToLogin('请先登录后再进入用户中心。');
@@ -1308,6 +2012,7 @@
         }
 
         initializeTabs();
+        updateRecommendationControls();
         document.getElementById('user-greeting').innerText = username
             ? `欢迎回来, ${username}`
             : '欢迎回来';

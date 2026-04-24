@@ -67,7 +67,7 @@
 - [app/web/login.html](../app/web/login.html)
   - 登录
   - 注册
-  - 登录成功后将 `access_token`、`user_id`、`username` 保存到 `localStorage`
+  - 登录成功后将 `access_token`、`user_id`、`username`、`user_role` 保存到 `sessionStorage`，不同标签页之间互不干扰
 - [app/web/home.html](../app/web/home.html)
   - 首页问题流
   - 搜索问题

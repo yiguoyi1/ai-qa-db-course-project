@@ -247,11 +247,11 @@
           if (response.ok) {
                 showMessage(`✅ 登录成功！正在进入社区...`, true);
 
-                // 🌟 关键操作：把房卡存进浏览器的保险箱 🌟
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('user_id', data.user_id);
-                localStorage.setItem('username', data.username);
-                localStorage.setItem('user_role', data.role);
+                // 🌟 关键操作：把登录态保存在当前标签页，避免多个账号互相覆盖 🌟
+                sessionStorage.setItem('access_token', data.access_token);
+                sessionStorage.setItem('user_id', data.user_id);
+                sessionStorage.setItem('username', data.username);
+                sessionStorage.setItem('user_role', data.role);
 
                 // 🌟 跳转大招：延迟 0.5 秒后（让用户看清成功提示），跳入大厅 🌟
                 setTimeout(() => {

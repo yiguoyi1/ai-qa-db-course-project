@@ -219,6 +219,307 @@
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
         }
 
+        .comment-shell {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .comment-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .comment-toolbar-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .comment-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .comment-toolbar-hint {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .comment-toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .comment-btn {
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .comment-btn:hover:not(:disabled) {
+            border-color: #93c5fd;
+            color: #1d4ed8;
+            background: #eff6ff;
+        }
+
+        .comment-btn.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .comment-btn.primary:hover:not(:disabled) {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: white;
+        }
+
+        .comment-btn.subtle {
+            background: #f8fafc;
+        }
+
+        .comment-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .comment-panel {
+            margin-top: 16px;
+            padding: 18px;
+            border-radius: 16px;
+            background: #ffffff;
+            border: 1px solid #dbeafe;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .comment-panel.loading,
+        .comment-empty {
+            color: #64748b;
+            font-size: 14px;
+            text-align: center;
+            padding: 24px 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .comment-item {
+            background: #f8fbff;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            padding: 16px;
+            transition: box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .comment-item.reply {
+            background: #fcfdff;
+        }
+
+        .comment-item.highlighted {
+            border-color: #60a5fa;
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .comment-item.deleted,
+        .comment-item.hidden {
+            background: #f8fafc;
+            border-style: dashed;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .comment-author-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .comment-author {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .comment-time {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .comment-status-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .comment-status-badge.active {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .comment-status-badge.hidden {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .comment-status-badge.deleted {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .comment-content {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .comment-reply-target {
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .comment-action-link {
+            border: none;
+            background: none;
+            color: #2563eb;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .comment-action-link.muted {
+            color: #64748b;
+        }
+
+        .comment-action-link.danger {
+            color: #dc2626;
+        }
+
+        .comment-action-link:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .comment-children {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comment-composer {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid #bfdbfe;
+            background: #f8fbff;
+        }
+
+        .comment-composer-title {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 88px;
+            resize: vertical;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+            background: white;
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .comment-composer-footer {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .comment-composer-hint {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .comment-composer-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-sticky {
+                position: static;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -272,6 +573,9 @@
         let detailOpenedAt = Date.now();
         let browseHistoryRecorded = false;
         let selectedAnswerImages = [];
+        let currentQuestionDetail = null;
+        const commentStateByAnswerId = {};
+        const DEFAULT_VISIBLE_REPLIES = 2;
 
         function buildApiUrl(path, params = {}) {
             const url = new URL(path, window.location.origin);
@@ -284,10 +588,10 @@
         }
 
         function clearSession() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('user_id');
-            localStorage.removeItem('username');
-            localStorage.removeItem('user_role');
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('user_id');
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('user_role');
         }
 
         function redirectToLogin(message) {
@@ -322,13 +626,13 @@
         }
 
         function getCurrentUserId() {
-            const raw = localStorage.getItem('user_id');
+            const raw = sessionStorage.getItem('user_id');
             const parsed = raw ? Number(raw) : NaN;
             return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
         }
 
         function getCurrentUserRole() {
-            return localStorage.getItem('user_role') || '';
+            return sessionStorage.getItem('user_role') || '';
         }
 
         function getQuestionStatusMeta(status) {
@@ -627,8 +931,521 @@
             setFeedbackButtonState(dislikeBtn, selectedFeedback === 'N');
         }
 
+        function canCommentOnQuestion(question) {
+            return Boolean(question) && ['OPEN', 'RESOLVED'].includes(question.status);
+        }
+
+        function formatDateTime(value) {
+            return value ? new Date(value).toLocaleString() : '';
+        }
+
+        function countComments(items) {
+            return (items || []).reduce((total, item) => total + 1 + countComments(item.children || []), 0);
+        }
+
+        function getDisplayName(username, nickname, fallbackUserId) {
+            return nickname || username || `社区用户 ${fallbackUserId ?? '未知'}`;
+        }
+
+        function getCommentState(answerId) {
+            if (!commentStateByAnswerId[answerId]) {
+                commentStateByAnswerId[answerId] = {
+                    visible: false,
+                    loading: false,
+                    loaded: false,
+                    total: 0,
+                    items: [],
+                    showComposer: false,
+                    draft: '',
+                    activeReplyCommentId: null,
+                    replyDrafts: {},
+                    expandedThreads: {},
+                    hiddenThreads: {},
+                    highlightCommentId: null,
+                    submittingTarget: null,
+                };
+            }
+
+            return commentStateByAnswerId[answerId];
+        }
+
+        function focusElementSoon(elementId) {
+            window.setTimeout(() => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.focus();
+                    if (typeof element.selectionStart === 'number') {
+                        element.selectionStart = element.selectionEnd = element.value.length;
+                    }
+                }
+            }, 0);
+        }
+
+        function scheduleCommentHighlightClear(answerId, commentId) {
+            window.setTimeout(() => {
+                const state = getCommentState(answerId);
+                if (state.highlightCommentId === commentId) {
+                    state.highlightCommentId = null;
+                    renderComments(answerId);
+                }
+            }, 2400);
+        }
+
+        function updateCommentDraft(answerId, value) {
+            const state = getCommentState(answerId);
+            state.draft = value;
+        }
+
+        function updateReplyDraft(answerId, commentId, value) {
+            const state = getCommentState(answerId);
+            state.replyDrafts[commentId] = value;
+        }
+
+        function toggleReplyThread(answerId, commentId) {
+            const state = getCommentState(answerId);
+            state.expandedThreads[commentId] = !state.expandedThreads[commentId];
+            renderComments(answerId);
+        }
+
+        function toggleReplyVisibility(answerId, commentId) {
+            const state = getCommentState(answerId);
+            state.hiddenThreads[commentId] = !state.hiddenThreads[commentId];
+            renderComments(answerId);
+        }
+
+        function updateCommentToolbar(answerId) {
+            const state = getCommentState(answerId);
+            const counter = document.getElementById(`comment-count-${answerId}`);
+            const hint = document.getElementById(`comment-toolbar-hint-${answerId}`);
+            const toggleBtn = document.getElementById(`toggle-comments-btn-${answerId}`);
+            const createBtn = document.getElementById(`open-comment-btn-${answerId}`);
+            const canComment = canCommentOnQuestion(currentQuestionDetail);
+
+            if (counter) {
+                counter.innerText = state.loaded ? `${state.total} 条评论` : '评论区';
+            }
+
+            if (hint) {
+                if (state.loading) {
+                    hint.innerText = '评论加载中...';
+                } else if (!canComment) {
+                    hint.innerText = '当前问题不再接受新评论，但仍可查看已有讨论。';
+                } else if (state.loaded && state.total > 0) {
+                    hint.innerText = '围绕这条回答继续交流，也可以直接回复他人的评论。';
+                } else {
+                    hint.innerText = '还没有评论，来发表第一条看法吧。';
+                }
+            }
+
+            if (toggleBtn) {
+                toggleBtn.innerText = state.visible ? '收起评论' : '展开评论';
+            }
+
+            if (createBtn) {
+                createBtn.disabled = !canComment;
+                createBtn.innerText = canComment ? '发表评论' : '当前不可评论';
+            }
+        }
+
+        function renderCommentComposer(answerId, options = {}) {
+            const {
+                parentCommentId = null,
+                title = '发表评论',
+                placeholder = '写下你的看法，帮助更多同学理解这条回答...',
+            } = options;
+            const state = getCommentState(answerId);
+            const draft = parentCommentId === null
+                ? state.draft
+                : (state.replyDrafts[parentCommentId] || '');
+            const submitTarget = parentCommentId === null ? 'root' : String(parentCommentId);
+            const isSubmitting = state.submittingTarget === submitTarget;
+            const textareaId = parentCommentId === null
+                ? `comment-textarea-${answerId}`
+                : `reply-textarea-${answerId}-${parentCommentId}`;
+            const onInputCall = parentCommentId === null
+                ? `updateCommentDraft(${answerId}, this.value)`
+                : `updateReplyDraft(${answerId}, ${parentCommentId}, this.value)`;
+            const submitCall = parentCommentId === null
+                ? `submitComment(${answerId})`
+                : `submitComment(${answerId}, ${parentCommentId})`;
+            const cancelCall = parentCommentId === null
+                ? `cancelCommentComposer(${answerId})`
+                : `cancelReplyComposer(${answerId}, ${parentCommentId})`;
+
+            return `
+                <div class="comment-composer">
+                    <p class="comment-composer-title">${escapeHtml(title)}</p>
+                    <textarea id="${textareaId}" class="comment-textarea" placeholder="${escapeAttr(placeholder)}" oninput="${onInputCall}">${escapeHtml(draft)}</textarea>
+                    <div class="comment-composer-footer">
+                        <span class="comment-composer-hint">支持换行，发布后会立即出现在当前回答下。</span>
+                        <div class="comment-composer-actions">
+                            <button type="button" class="comment-btn subtle" onclick="${cancelCall}">取消</button>
+                            <button type="button" class="comment-btn primary" onclick="${submitCall}" ${isSubmitting ? 'disabled' : ''}>${isSubmitting ? '发布中...' : (parentCommentId === null ? '发布评论' : '发布回复')}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCommentItem(answerId, comment, depth = 0) {
+            const state = getCommentState(answerId);
+            const canComment = canCommentOnQuestion(currentQuestionDetail);
+            const currentUserId = getCurrentUserId();
+            const authorDisplay = getDisplayName(
+                comment.author_username,
+                comment.author_nickname,
+                comment.user_id
+            );
+            const replyTargetName = getDisplayName(
+                comment.reply_to_username,
+                comment.reply_to_nickname,
+                comment.reply_to_user_id
+            );
+            const isReply = comment.parent_comment_id !== null;
+            const showReplyAction = canComment && comment.status === 'ACTIVE';
+            const showDeleteAction = currentUserId === comment.user_id && comment.status !== 'DELETED';
+            const showReplyComposer = state.activeReplyCommentId === comment.comment_id;
+            const children = Array.isArray(comment.children) ? comment.children : [];
+            const repliesHidden = children.length > 0
+                ? state.hiddenThreads[comment.comment_id] !== false
+                : false;
+            const expanded = Boolean(state.expandedThreads[comment.comment_id]);
+            const visibleChildren = repliesHidden
+                ? []
+                : (expanded ? children : children.slice(0, DEFAULT_VISIBLE_REPLIES));
+            const hiddenChildCount = Math.max(0, children.length - visibleChildren.length);
+            const indent = Math.min(depth, 3) * 18;
+            const statusClass = String(comment.status || '').toLowerCase();
+            const highlightClass = state.highlightCommentId === comment.comment_id ? ' highlighted' : '';
+            const deletedOrHiddenClass = statusClass === 'deleted' || statusClass === 'hidden'
+                ? ` ${statusClass}`
+                : '';
+            const statusLabel = comment.status === 'HIDDEN'
+                ? '已隐藏'
+                : (comment.status === 'DELETED' ? '已删除' : '正常');
+            const replyPrefix = isReply
+                ? `<span class="comment-reply-target">回复 @${escapeHtml(replyTargetName)}：</span>`
+                : '';
+
+            return `
+                <div class="comment-item ${isReply ? 'reply' : ''}${highlightClass}${deletedOrHiddenClass}" style="margin-left:${indent}px;">
+                    <div class="comment-header">
+                        <div class="comment-author-line">
+                            <span class="comment-author">${escapeHtml(authorDisplay)}</span>
+                            <span class="comment-time">${formatDateTime(comment.create_time)}</span>
+                            <span class="comment-status-badge ${statusClass === 'active' ? 'active' : statusClass}">${statusLabel}</span>
+                        </div>
+                    </div>
+
+                    <div class="comment-content">${replyPrefix}${escapeHtml(comment.content)}</div>
+
+                    <div class="comment-actions">
+                        ${showReplyAction ? `<button type="button" class="comment-action-link" onclick="toggleReplyComposer(${answerId}, ${comment.comment_id})">${showReplyComposer ? '收起回复框' : '回复'}</button>` : ''}
+                        ${showDeleteAction ? `<button type="button" class="comment-action-link danger" onclick="deleteComment(${answerId}, ${comment.comment_id})">删除</button>` : ''}
+                        ${children.length > 0 ? `<button type="button" class="comment-action-link muted" onclick="toggleReplyVisibility(${answerId}, ${comment.comment_id})">${repliesHidden ? `展开回复（${children.length}）` : '折叠回复'}</button>` : ''}
+                        ${children.length > DEFAULT_VISIBLE_REPLIES && !repliesHidden ? `<button type="button" class="comment-action-link muted" onclick="toggleReplyThread(${answerId}, ${comment.comment_id})">${expanded ? '收起部分回复' : `展开另外 ${hiddenChildCount} 条回复`}</button>` : ''}
+                        ${children.length > 0 ? `<span class="comment-composer-hint">共 ${children.length} 条回复</span>` : ''}
+                    </div>
+
+                    ${showReplyComposer ? renderCommentComposer(answerId, {
+                        parentCommentId: comment.comment_id,
+                        title: `回复 ${authorDisplay}`,
+                        placeholder: `回复 @${authorDisplay}...`,
+                    }) : ''}
+
+                    ${visibleChildren.length > 0 ? `
+                        <div class="comment-children">
+                            ${visibleChildren.map(child => renderCommentItem(answerId, child, depth + 1)).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderComments(answerId) {
+            const panel = document.getElementById(`comments-panel-${answerId}`);
+            if (!panel) {
+                return;
+            }
+
+            const state = getCommentState(answerId);
+            updateCommentToolbar(answerId);
+
+            if (!state.visible) {
+                panel.style.display = 'none';
+                panel.innerHTML = '';
+                return;
+            }
+
+            panel.style.display = 'block';
+
+            if (state.loading) {
+                panel.className = 'comment-panel loading';
+                panel.innerHTML = '评论加载中，请稍候...';
+                return;
+            }
+
+            panel.className = 'comment-panel';
+
+            const listHtml = state.items.length > 0
+                ? `<div class="comment-list">${state.items.map(item => renderCommentItem(answerId, item, 0)).join('')}</div>`
+                : '<div class="comment-empty">还没有评论，来发表第一条看法吧。</div>';
+            const composerHtml = state.showComposer
+                ? renderCommentComposer(answerId)
+                : '';
+
+            panel.innerHTML = `
+                ${composerHtml}
+                ${listHtml}
+            `;
+        }
+
+        async function loadComments(answerId, options = {}) {
+            const state = getCommentState(answerId);
+            if (state.loading) {
+                return;
+            }
+
+            state.loading = true;
+            renderComments(answerId);
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.items = Array.isArray(data.items) ? data.items : [];
+                    state.total = Number.isFinite(Number(data.total))
+                        ? Number(data.total)
+                        : countComments(state.items);
+                    state.loaded = true;
+                    if (options.highlightCommentId) {
+                        state.highlightCommentId = options.highlightCommentId;
+                        scheduleCommentHighlightClear(answerId, options.highlightCommentId);
+                    }
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(`❌ 拉取评论失败: ${err.detail || response.status}`);
+                }
+            } catch (error) {
+                console.error('拉取评论失败:', error);
+                alert('❌ 网络错误，评论暂时无法加载。');
+            } finally {
+                state.loading = false;
+                renderComments(answerId);
+            }
+        }
+
+        async function preloadComments(answerId) {
+            const state = getCommentState(answerId);
+            if (state.loaded || state.loading) {
+                updateCommentToolbar(answerId);
+                return;
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.items = Array.isArray(data.items) ? data.items : [];
+                    state.total = Number.isFinite(Number(data.total))
+                        ? Number(data.total)
+                        : countComments(state.items);
+                    state.loaded = true;
+                    updateCommentToolbar(answerId);
+                    if (state.visible) {
+                        renderComments(answerId);
+                    }
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                }
+            } catch (error) {
+                console.error('预加载评论失败:', error);
+            }
+        }
+
+        async function toggleCommentPanel(answerId) {
+            const state = getCommentState(answerId);
+            state.visible = !state.visible;
+            renderComments(answerId);
+
+            if (state.visible && !state.loaded) {
+                await loadComments(answerId);
+            }
+        }
+
+        async function openCommentComposer(answerId) {
+            if (!canCommentOnQuestion(currentQuestionDetail)) {
+                alert('当前问题不再接受新评论。');
+                return;
+            }
+
+            const state = getCommentState(answerId);
+            state.visible = true;
+            state.showComposer = true;
+            renderComments(answerId);
+
+            if (!state.loaded) {
+                await loadComments(answerId);
+            }
+
+            renderComments(answerId);
+            focusElementSoon(`comment-textarea-${answerId}`);
+        }
+
+        function cancelCommentComposer(answerId) {
+            const state = getCommentState(answerId);
+            state.showComposer = false;
+            state.draft = '';
+            renderComments(answerId);
+        }
+
+        async function toggleReplyComposer(answerId, commentId) {
+            if (!canCommentOnQuestion(currentQuestionDetail)) {
+                alert('当前问题不再接受新评论。');
+                return;
+            }
+
+            const state = getCommentState(answerId);
+            state.visible = true;
+            state.activeReplyCommentId = state.activeReplyCommentId === commentId ? null : commentId;
+            renderComments(answerId);
+
+            if (!state.loaded) {
+                await loadComments(answerId);
+            }
+
+            if (state.activeReplyCommentId === commentId) {
+                focusElementSoon(`reply-textarea-${answerId}-${commentId}`);
+            }
+        }
+
+        function cancelReplyComposer(answerId, commentId) {
+            const state = getCommentState(answerId);
+            state.activeReplyCommentId = null;
+            delete state.replyDrafts[commentId];
+            renderComments(answerId);
+        }
+
+        async function submitComment(answerId, parentCommentId = null) {
+            const state = getCommentState(answerId);
+            const draft = parentCommentId === null
+                ? state.draft
+                : (state.replyDrafts[parentCommentId] || '');
+            const content = draft.trim();
+            const currentUserId = getCurrentUserId();
+            const token = sessionStorage.getItem('access_token');
+
+            if (!content) {
+                alert('评论内容不能为空。');
+                return;
+            }
+
+            if (!currentUserId || !token) {
+                redirectToLogin('请先登录后再发表评论。');
+                return;
+            }
+
+            state.submittingTarget = parentCommentId === null ? 'root' : String(parentCommentId);
+            renderComments(answerId);
+
+            try {
+                const payload = {
+                    user_id: currentUserId,
+                    content,
+                };
+                if (parentCommentId !== null) {
+                    payload.parent_comment_id = parentCommentId;
+                }
+
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (parentCommentId === null) {
+                        state.draft = '';
+                        state.showComposer = false;
+                    } else {
+                        delete state.replyDrafts[parentCommentId];
+                        state.activeReplyCommentId = null;
+                        state.expandedThreads[parentCommentId] = true;
+                        state.hiddenThreads[parentCommentId] = false;
+                    }
+                    await loadComments(answerId, { highlightCommentId: data.comment_id });
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(`❌ 发布评论失败: ${err.detail || response.status}`);
+                }
+            } catch (error) {
+                console.error('发布评论失败:', error);
+                alert('❌ 网络错误，请稍后再试。');
+            } finally {
+                state.submittingTarget = null;
+                renderComments(answerId);
+            }
+        }
+
+        async function deleteComment(answerId, commentId) {
+            const token = sessionStorage.getItem('access_token');
+            if (!token) {
+                redirectToLogin('请先登录后再删除评论。');
+                return;
+            }
+
+            const confirmed = window.confirm('删除后会保留楼层结构，仅当前评论内容会变为占位提示，确认继续吗？');
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/comments/${commentId}`), {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    await loadComments(answerId);
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(`❌ 删除评论失败: ${err.detail || response.status}`);
+                }
+            } catch (error) {
+                console.error('删除评论失败:', error);
+                alert('❌ 网络错误，请稍后再试。');
+            }
+        }
+
         async function loadQuestionDetail(resetBrowseSession = false) {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             const questionId = getCurrentQuestionId();
 
             if (!questionId) {
@@ -644,6 +1461,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    currentQuestionDetail = data;
                     if (resetBrowseSession) {
                         detailOpenedAt = Date.now();
                         browseHistoryRecorded = false;
@@ -662,9 +1480,9 @@
         }
 
         window.onload = async function() {
-            const token = localStorage.getItem('access_token');
-            const username = localStorage.getItem('username');
-            const role = localStorage.getItem('user_role');
+            const token = sessionStorage.getItem('access_token');
+            const username = sessionStorage.getItem('username');
+            const role = sessionStorage.getItem('user_role');
             if (!token) {
                 alert('请先登录！');
                 window.location.href = LOGIN_PAGE_URL;
@@ -687,6 +1505,7 @@
             const statusBadge = buildQuestionStatusBadge(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
             const canAcceptAnswers = canCurrentUserAccept(q);
+            const canComment = canCommentOnQuestion(q);
             const resolutionText = q.accepted_answer_id
                 ? '✅ 已采纳最佳答案'
                 : (q.status === 'OPEN' ? '🟦 仍在征集回答' : '📌 当前暂无已采纳答案');
@@ -778,6 +1597,22 @@
                                 ${acceptButtonHtml}
                             </div>
 
+                            <div class="comment-shell">
+                                <div class="comment-toolbar">
+                                    <div class="comment-toolbar-main">
+                                        <span class="comment-counter" id="comment-count-${ansId}">评论区</span>
+                                        <span class="comment-toolbar-hint" id="comment-toolbar-hint-${ansId}">
+                                            ${canComment ? '围绕这条回答继续交流，也可以直接回复他人的评论。' : '当前问题不再接受新评论，但仍可查看已有讨论。'}
+                                        </span>
+                                    </div>
+                                    <div class="comment-toolbar-actions">
+                                        <button id="toggle-comments-btn-${ansId}" type="button" class="comment-btn subtle" onclick="toggleCommentPanel(${ansId})">展开评论</button>
+                                        <button id="open-comment-btn-${ansId}" type="button" class="comment-btn primary" onclick="openCommentComposer(${ansId})" ${canComment ? '' : 'disabled'}>${canComment ? '发表评论' : '当前不可评论'}</button>
+                                    </div>
+                                </div>
+                                <div id="comments-panel-${ansId}" class="comment-panel" style="display:none;"></div>
+                            </div>
+
                         </div>
                     `;
                 });
@@ -826,10 +1661,24 @@
             if (qId) {
                 loadMyFeedbacks(qId);
             }
+
+            if (q.answers && q.answers.length > 0) {
+                q.answers.forEach(ans => {
+                    const state = getCommentState(ans.answer_id);
+                    updateCommentToolbar(ans.answer_id);
+                    preloadComments(ans.answer_id);
+                    if (state.visible) {
+                        renderComments(ans.answer_id);
+                        if (!state.loaded) {
+                            loadComments(ans.answer_id);
+                        }
+                    }
+                });
+            }
         }
 
         async function acceptAnswer(questionId, answerId) {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
 
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}/accept-answer`), {
@@ -858,7 +1707,7 @@
         }
 
         async function toggleFavorite(questionId, isFavorited) {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             const userId = getCurrentUserId();
             if (!token || !userId) {
                 redirectToLogin('请先登录后再执行收藏操作。');
@@ -918,7 +1767,7 @@
             }
 
             const questionId = getCurrentQuestionId();
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             const imagesToUpload = [...selectedAnswerImages];
 
             // 按钮变灰，防止用户狂点
@@ -982,7 +1831,7 @@
 
         // 🌟 商业级反馈交互：无刷新、带变色动画、局部 DOM 更新
         async function toggleFeedback(answerId, isLike) {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             const likeCountSpan = document.getElementById(`like-count-${answerId}`);
             const dislikeCountSpan = document.getElementById(`dislike-count-${answerId}`);
 
@@ -1014,7 +1863,7 @@
 
         // 🌟 页面加载后，自动去后端拉取“我”的私人点赞状态，并给按钮涂上蓝色！
         async function loadMyFeedbacks(questionId) {
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             if (!token) return; // 没登录就不拉取了
 
             try {
@@ -1044,7 +1893,7 @@
                 return;
             }
 
-            const token = localStorage.getItem('access_token');
+            const token = sessionStorage.getItem('access_token');
             const userId = getCurrentUserId();
             if (!token || !userId || !questionId) {
                 return;

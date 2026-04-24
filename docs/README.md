@@ -14,11 +14,12 @@
 1. [README.md](../README.md)
 2. [handoff.md](handoff.md)
 3. [current_status.md](current_status.md)
-4. [onboarding_checklist.md](onboarding_checklist.md)
-5. [admin_governance_guide.md](admin_governance_guide.md)
-6. [community_platform_design.md](design_details/community_platform_design.md)
-7. [business_code_architecture.md](design_details/business_code_architecture.md)
-8. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+4. [testing_guide.md](testing_guide.md)
+5. [onboarding_checklist.md](onboarding_checklist.md)
+6. [admin_governance_guide.md](admin_governance_guide.md)
+7. [community_platform_design.md](design_details/community_platform_design.md)
+8. [business_code_architecture.md](design_details/business_code_architecture.md)
+9. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
 
 ## 2. 项目当前定位
 
