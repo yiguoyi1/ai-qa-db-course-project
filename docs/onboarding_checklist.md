@@ -259,9 +259,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 
 如果你是新加入的协作者，最适合接着推进的是：
 
-1. 网页端评论与回复入口
-2. 媒体审核与清理后台
-3. 多轮对话正式业务链
+1. 评论图片与媒体审核、清理后台
+2. 推荐规则人工干预入口
+3. 多轮对话前端入口与页面交互
 4. 少量写接口兼容字段的继续清理
 
 如果你只想先熟悉系统，不建议一上来就碰：
@@ -279,6 +279,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 - 能至少用网页前端或 CLI 跑通一条业务链
 - 知道当前受保护写接口已经以 JWT 为主，兼容 `user_id` 仅用于过渡校验
 - 知道评论和推荐的关键规则
+- 知道多轮追问后端已经可用，并且能独立运行 `python -B .\\scripts\\validate_chat_followup.py`
 - 知道改数据库要同步改文档
 - 知道当前下一阶段优先级是什么
 

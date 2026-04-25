@@ -1,11 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 from app.schemas.question import QuestionSummaryItem, TagItem
 
 
-class UserCenterProfileResponse(BaseModel):
+class UserCenterProfileResponse(APIModel):
     user_id: int
     username: str
     nickname: str | None = None
@@ -21,7 +23,7 @@ class UserCenterProfileResponse(BaseModel):
     accepted_answer_count: int = Field(ge=0)
 
 
-class UserQuestionListResponse(BaseModel):
+class UserQuestionListResponse(APIModel):
     user_id: int
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
@@ -29,14 +31,14 @@ class UserQuestionListResponse(BaseModel):
     items: list[QuestionSummaryItem] = Field(default_factory=list)
 
 
-class UserAnswerQuestionItem(BaseModel):
+class UserAnswerQuestionItem(APIModel):
     question_id: int
     title: str
     status: str
     tags: list[TagItem] = Field(default_factory=list)
 
 
-class UserAnswerSummaryItem(BaseModel):
+class UserAnswerSummaryItem(APIModel):
     answer_id: int
     question: UserAnswerQuestionItem
     answer_type: str
@@ -51,7 +53,7 @@ class UserAnswerSummaryItem(BaseModel):
     is_accepted: bool = False
 
 
-class UserAnswerListResponse(BaseModel):
+class UserAnswerListResponse(APIModel):
     user_id: int
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
@@ -59,7 +61,7 @@ class UserAnswerListResponse(BaseModel):
     items: list[UserAnswerSummaryItem] = Field(default_factory=list)
 
 
-class UserFavoriteQuestionItem(BaseModel):
+class UserFavoriteQuestionItem(APIModel):
     question_id: int
     user_id: int
     category_id: int
@@ -73,13 +75,13 @@ class UserFavoriteQuestionItem(BaseModel):
     tags: list[TagItem] = Field(default_factory=list)
 
 
-class UserFavoriteItem(BaseModel):
+class UserFavoriteItem(APIModel):
     favorite_id: int
     favorite_time: datetime
     question: UserFavoriteQuestionItem
 
 
-class UserFavoriteListResponse(BaseModel):
+class UserFavoriteListResponse(APIModel):
     user_id: int
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
@@ -87,7 +89,7 @@ class UserFavoriteListResponse(BaseModel):
     items: list[UserFavoriteItem] = Field(default_factory=list)
 
 
-class UserBrowseHistoryItem(BaseModel):
+class UserBrowseHistoryItem(APIModel):
     history_id: int
     question_id: int
     question_title: str
@@ -97,19 +99,19 @@ class UserBrowseHistoryItem(BaseModel):
     click_depth: int = Field(ge=1)
 
 
-class UserBrowseHistoryResponse(BaseModel):
+class UserBrowseHistoryResponse(APIModel):
     user_id: int
     limit: int = Field(ge=1)
     item_count: int = Field(ge=0)
     items: list[UserBrowseHistoryItem] = Field(default_factory=list)
 
 
-class UserSearchHistoryItem(BaseModel):
+class UserSearchHistoryItem(APIModel):
     keyword: str
     last_search_time: datetime
 
 
-class UserSearchHistoryResponse(BaseModel):
+class UserSearchHistoryResponse(APIModel):
     user_id: int
     limit: int = Field(ge=1)
     item_count: int = Field(ge=0)

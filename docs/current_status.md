@@ -53,6 +53,7 @@
 - 浏览、收藏：`POST /api/questions/{question_id}/browse`、`POST /api/questions/{question_id}/favorite`、`DELETE /api/questions/{question_id}/favorite`
 - 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
 - 评论与楼中楼：`POST /api/answers/{answer_id}/comments`、`GET /api/answers/{answer_id}/comments`、`DELETE /api/comments/{comment_id}`
+- AI 多轮追问：`POST /api/questions/{question_id}/answers/{answer_id}/follow-up`、`GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`、`GET /api/chat/sessions/{session_id}`
 - 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
@@ -235,18 +236,40 @@
 5. 后台支持总览、用户治理、分类管理、内容治理和审计日志查询
 6. 内容治理页支持查询最近问题，查看回答 ID 和评论 ID，并一键填入状态调整表单
 
-### 3.10 当前第一优先级：补齐社区核心能力
+### 3.10 已完成阶段：网页端评论与楼中楼互动
+
+这一阶段已经完成到“网页端首版互动闭环”的状态，主要包括：
+
+1. 问题详情页回答卡片支持展开和收起评论区
+2. 用户可发布一级评论，并可回复评论形成楼中楼
+3. 子回复支持默认折叠、展开与收起
+4. 用户可删除自己的评论，删除后保留楼层结构并显示占位状态
+5. 页面通过现有评论接口完成评论加载、发布与删除交互
+
+### 3.11 已完成阶段：AI 多轮追问后端闭环
+
+这一阶段已经完成到“后端可用、可自检”的状态，主要包括：
+
+1. 会话正式锚定到 `QUESTION_ID + SEED_ANSWER_ID`
+2. 支持创建新追问会话
+3. 支持向已有会话继续追加一轮追问
+4. 支持读取当前用户围绕某条 AI 首答的会话列表
+5. 支持读取某条会话的完整消息历史
+6. 每轮追问都会写入 `CHAT_MESSAGE`
+7. 每轮 AI 回复都会写入 `AI_PROMPT_LOG`
+8. 已提供本地自检脚本 `python -B .\\scripts\\validate_chat_followup.py`
+
+### 3.12 当前第一优先级：治理与高级能力
 
 当前最适合继续做的业务能力仍然是：
 
-1. 网页端评论与楼中楼入口
-2. 媒体审核与清理后台
-3. 多轮对话正式业务链
+1. 评论图片与媒体审核、清理后台
+2. 推荐规则人工干预入口
+3. 多轮对话前端入口与页面交互
 
 ## 4. 当前仍未完成或未完全收口的能力
 
-- 网页端评论、楼中楼回复的完整展示与交互入口
-- 多轮对话正式业务链
+- 多轮对话前端入口与页面交互
 - 评论图片与图片审核后台
 - 推荐规则人工干预入口
 
@@ -261,6 +284,6 @@
 
 如果后续继续开发，建议优先顺序为：
 
-1. 先补网页端评论、回复完整闭环
-2. 再补媒体审核与清理后台
-3. 补多轮对话正式业务链
+1. 先补评论图片与媒体审核、清理后台
+2. 再补推荐规则人工干预入口
+3. 补多轮对话前端入口与页面交互

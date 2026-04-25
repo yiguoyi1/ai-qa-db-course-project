@@ -1,9 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class AdminUserItem(BaseModel):
+class AdminUserItem(APIModel):
     user_id: int
     username: str
     nickname: str | None = None
@@ -15,30 +17,30 @@ class AdminUserItem(BaseModel):
     last_login_time: datetime | None = None
 
 
-class AdminUserListResponse(BaseModel):
+class AdminUserListResponse(APIModel):
     items: list[AdminUserItem] = Field(default_factory=list)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
     total: int = Field(ge=0)
 
 
-class UpdateUserStatusRequest(BaseModel):
+class UpdateUserStatusRequest(APIModel):
     status: str = Field(min_length=1, max_length=20)
 
 
-class UpdateUserRoleRequest(BaseModel):
+class UpdateUserRoleRequest(APIModel):
     role: str = Field(min_length=1, max_length=20)
 
 
-class UpdateQuestionStatusRequest(BaseModel):
+class UpdateQuestionStatusRequest(APIModel):
     status: str = Field(min_length=1, max_length=20)
 
 
-class UpdateCommentStatusRequest(BaseModel):
+class UpdateCommentStatusRequest(APIModel):
     status: str = Field(min_length=1, max_length=20)
 
 
-class AdminUserMutationResponse(BaseModel):
+class AdminUserMutationResponse(APIModel):
     user_id: int
     username: str
     role: str
@@ -46,33 +48,33 @@ class AdminUserMutationResponse(BaseModel):
     message: str
 
 
-class AdminCategoryItem(BaseModel):
+class AdminCategoryItem(APIModel):
     category_id: int
     category_name: str
     description: str | None = None
     status: str
 
 
-class AdminCategoryListResponse(BaseModel):
+class AdminCategoryListResponse(APIModel):
     items: list[AdminCategoryItem] = Field(default_factory=list)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
     total: int = Field(ge=0)
 
 
-class CreateCategoryRequest(BaseModel):
+class CreateCategoryRequest(APIModel):
     category_name: str = Field(min_length=1, max_length=50)
     description: str | None = Field(default=None, max_length=200)
     status: str = Field(default="ACTIVE", min_length=1, max_length=20)
 
 
-class UpdateCategoryRequest(BaseModel):
+class UpdateCategoryRequest(APIModel):
     category_name: str | None = Field(default=None, min_length=1, max_length=50)
     description: str | None = Field(default=None, max_length=200)
     status: str | None = Field(default=None, min_length=1, max_length=20)
 
 
-class AdminCategoryMutationResponse(BaseModel):
+class AdminCategoryMutationResponse(APIModel):
     category_id: int
     category_name: str
     description: str | None = None
@@ -80,19 +82,19 @@ class AdminCategoryMutationResponse(BaseModel):
     message: str
 
 
-class AdminQuestionStatusResponse(BaseModel):
+class AdminQuestionStatusResponse(APIModel):
     question_id: int
     status: str
     message: str
 
 
-class AdminCommentStatusResponse(BaseModel):
+class AdminCommentStatusResponse(APIModel):
     comment_id: int
     status: str
     message: str
 
 
-class AdminLoginLogItem(BaseModel):
+class AdminLoginLogItem(APIModel):
     log_id: int
     user_id: int
     username: str | None = None
@@ -101,14 +103,14 @@ class AdminLoginLogItem(BaseModel):
     result: str
 
 
-class AdminLoginLogListResponse(BaseModel):
+class AdminLoginLogListResponse(APIModel):
     items: list[AdminLoginLogItem] = Field(default_factory=list)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
     total: int = Field(ge=0)
 
 
-class AdminOperationLogItem(BaseModel):
+class AdminOperationLogItem(APIModel):
     op_id: int
     user_id: int
     username: str | None = None
@@ -117,7 +119,7 @@ class AdminOperationLogItem(BaseModel):
     op_time: datetime
 
 
-class AdminOperationLogListResponse(BaseModel):
+class AdminOperationLogListResponse(APIModel):
     items: list[AdminOperationLogItem] = Field(default_factory=list)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)

@@ -1,11 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 from app.schemas.media import MediaAssetItem
 
 
-class AskQuestionRequest(BaseModel):
+class AskQuestionRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
     category_id: int = Field(gt=0)
     title: str = Field(min_length=1, max_length=200)
@@ -13,12 +15,12 @@ class AskQuestionRequest(BaseModel):
     tag_ids: list[int] = Field(default_factory=list)
 
 
-class TagItem(BaseModel):
+class TagItem(APIModel):
     tag_id: int
     tag_name: str
 
 
-class AnswerItem(BaseModel):
+class AnswerItem(APIModel):
     answer_id: int
     user_id: int | None = None
     answer_type: str
@@ -37,7 +39,7 @@ class AnswerItem(BaseModel):
     images: list[MediaAssetItem] = Field(default_factory=list)
 
 
-class QuestionSummaryItem(BaseModel):
+class QuestionSummaryItem(APIModel):
     question_id: int
     user_id: int
     category_id: int
@@ -53,14 +55,14 @@ class QuestionSummaryItem(BaseModel):
     author_avatar_url: str | None = None
 
 
-class QuestionListResponse(BaseModel):
+class QuestionListResponse(APIModel):
     items: list[QuestionSummaryItem] = Field(default_factory=list)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
     total: int = Field(ge=0)
 
 
-class QuestionDetailResponse(BaseModel):
+class QuestionDetailResponse(APIModel):
     question_id: int
     user_id: int
     category_id: int
@@ -80,6 +82,6 @@ class QuestionDetailResponse(BaseModel):
     author_avatar_url: str | None = None
 
 
-class QuestionCreate(BaseModel):
+class QuestionCreate(APIModel):
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)

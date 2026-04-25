@@ -1,24 +1,26 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 from app.schemas.question import TagItem
 
 
-class UserTagProfileItem(BaseModel):
+class UserTagProfileItem(APIModel):
     tag_id: int
     tag_name: str
     weight: float
     update_time: datetime
 
 
-class ProfileRebuildResponse(BaseModel):
+class ProfileRebuildResponse(APIModel):
     user_id: int
     item_count: int = Field(ge=0)
     items: list[UserTagProfileItem] = Field(default_factory=list)
 
 
-class RecommendationQuestionItem(BaseModel):
+class RecommendationQuestionItem(APIModel):
     question_id: int
     user_id: int
     category_id: int
@@ -31,7 +33,7 @@ class RecommendationQuestionItem(BaseModel):
     tags: list[TagItem] = Field(default_factory=list)
 
 
-class RecommendationItem(BaseModel):
+class RecommendationItem(APIModel):
     rec_id: int
     rec_type: str
     rec_source: str | None = None
@@ -42,14 +44,14 @@ class RecommendationItem(BaseModel):
     question: RecommendationQuestionItem
 
 
-class RecommendationListResponse(BaseModel):
+class RecommendationListResponse(APIModel):
     user_id: int
     status: str
     total: int = Field(ge=0)
     items: list[RecommendationItem] = Field(default_factory=list)
 
 
-class RecommendationGenerationResponse(BaseModel):
+class RecommendationGenerationResponse(APIModel):
     user_id: int
     requested_limit: int = Field(ge=1)
     active_count: int = Field(ge=0)

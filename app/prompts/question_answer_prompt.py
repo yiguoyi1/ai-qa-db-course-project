@@ -22,6 +22,54 @@ def build_question_answer_messages(title: str, content: str) -> list[dict[str, s
     ]
 
 
+def build_follow_up_messages(
+    *,
+    title: str,
+    content: str,
+    seed_answer_content: str,
+    history_messages: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = [
+        {
+            "role": "system",
+            "content": (
+                "你是问答社区中的 AI 连续追问助手。"
+                "你需要基于原始问题、你此前给出的 AI 首答，以及当前会话历史继续回答用户追问。"
+                "请保持上下文连续，不要每轮都重新写成陌生问题的首答。"
+                "回答要使用中文，优先给出直接结论、补充说明和下一步建议。"
+                "如果用户是在追问某个细节，就只回答该细节，不要重复整篇长答案。"
+                "如果上下文信息不足，请明确指出缺少什么条件。"
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"原始问题标题：{title}\n"
+                f"原始问题内容：{content}\n"
+                "请先理解这是同一个问题下的连续追问场景。"
+            ),
+        },
+        {
+            "role": "assistant",
+            "content": f"我之前给出的首答是：\n{seed_answer_content}",
+        },
+    ]
+
+    role_map = {
+        "USER": "user",
+        "AI": "assistant",
+        "SYSTEM": "system",
+    }
+    for item in history_messages:
+        sender_type = str(item.get("sender_type", "")).upper()
+        role = role_map.get(sender_type)
+        content_text = str(item.get("content", "")).strip()
+        if role and content_text:
+            messages.append({"role": role, "content": content_text})
+
+    return messages
+
+
 def render_prompt_text(messages: list[dict[str, str]]) -> str:
     return "\n\n".join(
         f"{message['role'].upper()}:\n{message['content']}" for message in messages

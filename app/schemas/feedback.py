@@ -1,17 +1,19 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class SaveAnswerFeedbackRequest(BaseModel):
+class SaveAnswerFeedbackRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
     is_like: Literal["Y", "N"]
     rating: float | None = Field(default=None, ge=0, le=5)
     comment_text: str | None = Field(default=None, max_length=500)
 
 
-class AnswerFeedbackResponse(BaseModel):
+class AnswerFeedbackResponse(APIModel):
     feedback_id: int
     answer_id: int
     user_id: int

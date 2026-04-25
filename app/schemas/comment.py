@@ -2,23 +2,25 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class CreateCommentRequest(BaseModel):
+class CreateCommentRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
     content: str = Field(min_length=1)
     parent_comment_id: int | None = Field(default=None, gt=0)
 
 
-class DeleteCommentResponse(BaseModel):
+class DeleteCommentResponse(APIModel):
     comment_id: int
     user_id: int
     status: str
     deleted: bool
 
 
-class CommentItem(BaseModel):
+class CommentItem(APIModel):
     comment_id: int
     answer_id: int
     user_id: int
@@ -38,7 +40,7 @@ class CommentItem(BaseModel):
     children: list["CommentItem"] = Field(default_factory=list)
 
 
-class CommentTreeResponse(BaseModel):
+class CommentTreeResponse(APIModel):
     answer_id: int
     total: int = Field(ge=0)
     items: list[CommentItem] = Field(default_factory=list)

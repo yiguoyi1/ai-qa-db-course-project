@@ -20,6 +20,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - [docs/current_status.md](docs/current_status.md)
 - [docs/README.md](docs/README.md)
 - [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
+- [docs/chat_followup_api_guide.md](docs/chat_followup_api_guide.md)
 
 ## 当前已完成能力
 
@@ -44,6 +45,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 分类、标签、搜索、搜索历史
 - 浏览、收藏、反馈、评论
+- 基于 AI 首答的多轮追问会话
 - 用户画像重建与推荐生成
 
 ### 3. 网页前端
@@ -124,7 +126,7 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 接下来最值得继续推进的是：
 
 1. 补齐社区核心能力
-   网页端评论入口与更细的互动操作仍待补齐，用户中心已完成主链路。
+   网页端评论与楼中楼首版闭环已经完成，下一步更值得补评论图片、通知联动和更细的互动细节。
 2. 完善后台治理深度能力
    管理员网页后台、审计查询和基础治理入口已经可用，后续更值得补媒体审核、推荐规则干预和更细的导出能力。
 3. 继续压缩写接口里的兼容字段
@@ -221,6 +223,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
 @sql/migrations/20260422_add_question_acceptance.sql
 ```
 
+如果你需要使用 AI 多轮追问后端能力，还需要补跑：
+
+```sql
+@sql/migrations/20260425_extend_chat_session_for_follow_up.sql
+```
+
 5. 导入固定演示数据：
 
 ```powershell
@@ -243,6 +251,42 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 - 运行正向与逆向测试
 - 验证触发器、统计字段、推荐逻辑
 - 最后自动清理临时用户
+
+## AI 多轮追问后端
+
+当前仓库已经完成“AI 首答后，用户继续追问”的后端闭环，但暂时还没有单独的网页入口页面。
+
+这条业务链的语义是：
+
+- 用户先通过 `POST /api/questions/ask` 获得一条 `AI` 类型首答
+- 后续追问不是通用聊天，而是绑定在“某个问题 + 某条 AI 首答”上
+- 系统会把这段连续交流保存为一条独立会话
+
+当前接口包括：
+
+- `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
+- `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
+- `GET /api/chat/sessions/{session_id}`
+
+当前已经落实的业务约束包括：
+
+- 只有 `AI` 类型回答可以发起追问
+- `answer_id` 必须属于当前 `question_id`
+- 用户只能查看和续写自己的会话
+- `session_id` 必须和当前问题、首答锚点一致
+- `CLOSED` 状态会话不能继续追问
+
+仓库也提供了这条链路的独立自检脚本：
+
+```powershell
+python -B .\scripts\validate_chat_followup.py
+```
+
+该脚本使用 fake LLM 响应，不依赖真实 DeepSeek 调用，适合本地快速回归。
+
+如果需要看完整接口示例、返回结构和迁移说明，请直接查看：
+
+- [docs/chat_followup_api_guide.md](docs/chat_followup_api_guide.md)
 
 ## 启动 API
 
@@ -352,6 +396,13 @@ CLI 现在支持：
 - `GET /api/questions`
 - `GET /api/questions/{question_id}`
 - `POST /api/questions/{question_id}/answers`
+- `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
+- `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
+- `GET /api/chat/sessions/{session_id}`
+
+多轮追问接口的请求体、响应体和业务规则详见：
+
+- [docs/chat_followup_api_guide.md](docs/chat_followup_api_guide.md)
 
 ### 搜索与行为
 
@@ -376,11 +427,20 @@ CLI 现在支持：
 
 ## 当前仍未完全完成或未收口的能力
 
-- 网页端评论 / 楼中楼回复的完整交互入口
 - 评论图片
 - 媒体审核、隐藏与清理后台
 - 推荐规则人工干预入口
-- 多轮对话正式业务链
+- 多轮对话前端入口与页面交互
+
+## 多轮追问自检
+
+如果你想验证“AI 首答后继续追问”的后端约束，可以运行：
+
+```powershell
+python -B .\scripts\validate_chat_followup.py
+```
+
+这个自检不会调用真实 DeepSeek，而是使用 fake LLM 响应完成本地 smoke。
 
 ## 文档地图
 

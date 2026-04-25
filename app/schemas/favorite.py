@@ -1,13 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class CreateFavoriteRequest(BaseModel):
+class CreateFavoriteRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
 
 
-class FavoriteRecordResponse(BaseModel):
+class FavoriteRecordResponse(APIModel):
     favorite_id: int
     question_id: int
     user_id: int
@@ -15,7 +17,7 @@ class FavoriteRecordResponse(BaseModel):
     favorite_count: int = Field(ge=0)
 
 
-class FavoriteDeleteResponse(BaseModel):
+class FavoriteDeleteResponse(APIModel):
     question_id: int
     user_id: int
     favorite_count: int = Field(ge=0)

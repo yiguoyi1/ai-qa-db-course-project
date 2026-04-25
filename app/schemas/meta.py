@@ -1,21 +1,23 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class CategoryItem(BaseModel):
+class CategoryItem(APIModel):
     category_id: int
     category_name: str
     description: str | None = None
     status: str
 
 
-class CategoryListResponse(BaseModel):
+class CategoryListResponse(APIModel):
     items: list[CategoryItem] = Field(default_factory=list)
 
 
-class TagOptionItem(BaseModel):
+class TagOptionItem(APIModel):
     tag_id: int
     tag_name: str
 
 
-class TagListResponse(BaseModel):
+class TagListResponse(APIModel):
     items: list[TagOptionItem] = Field(default_factory=list)

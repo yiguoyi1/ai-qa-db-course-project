@@ -1,9 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import APIModel
 
 
-class MediaAssetItem(BaseModel):
+class MediaAssetItem(APIModel):
     media_id: int
     owner_type: str
     owner_id: int
@@ -16,7 +18,7 @@ class MediaAssetItem(BaseModel):
     update_time: datetime
 
 
-class AvatarMediaResponse(BaseModel):
+class AvatarMediaResponse(APIModel):
     media_id: int
     owner_type: str
     owner_id: int
@@ -28,29 +30,29 @@ class AvatarMediaResponse(BaseModel):
     update_time: datetime
 
 
-class AvatarDeleteResponse(BaseModel):
+class AvatarDeleteResponse(APIModel):
     message: str
 
 
-class QuestionImageListResponse(BaseModel):
+class QuestionImageListResponse(APIModel):
     question_id: int
     items: list[MediaAssetItem] = Field(default_factory=list)
     total: int = 0
 
 
-class QuestionImageDeleteResponse(BaseModel):
+class QuestionImageDeleteResponse(APIModel):
     question_id: int
     media_id: int
     message: str
 
 
-class AnswerImageListResponse(BaseModel):
+class AnswerImageListResponse(APIModel):
     answer_id: int
     items: list[MediaAssetItem] = Field(default_factory=list)
     total: int = 0
 
 
-class AnswerImageDeleteResponse(BaseModel):
+class AnswerImageDeleteResponse(APIModel):
     answer_id: int
     media_id: int
     message: str

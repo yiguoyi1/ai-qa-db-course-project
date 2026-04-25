@@ -417,7 +417,11 @@ tests/
 
 ### 7.6 多轮对话
 
-- 当前未实现，保留为后续扩展能力
+- 当前已完成后端第一版闭环：
+- `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
+- `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
+- `GET /api/chat/sessions/{session_id}`
+- 当前仍待补的是前端入口、会话关闭接口和更细的展示体验
 
 ## 8. 各模块与数据库表映射
 
@@ -431,6 +435,7 @@ tests/
 | 收藏 | `favorite_service` | `favorite_repository` | `FAVORITES` |
 | 回答反馈 | `feedback_service` | `feedback_repository` | `ANSWER_FEEDBACK` |
 | 评论与回复 | `comment_service` | `comment_repository` | `ANSWER_COMMENTS` |
+| 多轮追问 | `chat_service`, `ai_answer_service` | `chat_repository`, `answer_repository`, `question_repository`, `log_repository` | `CHAT_SESSION`, `CHAT_MESSAGE`, `AI_PROMPT_LOG`, `ANSWERS`, `QUESTIONS` |
 | 头像与内容图片 | `media_service` | `media_repository` | `MEDIA_ASSETS`, `USERS` |
 | 推荐 | `recommendation_service` | `recommendation_repository` | `USER_TAG_PROFILE`, `RECOMMENDATIONS` |
 | 审计日志 | `log_repository` | `log_repository` | `AI_PROMPT_LOG`, `LOGIN_LOG`, `OPERATION_LOG` |
@@ -479,10 +484,10 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 下一阶段更值得优先补的是：
 
-### 10.1 网页端社区互动入口
+### 10.1 网页端社区互动增强
 
-- 把评论与楼中楼回复入口补到 `app/web/detail.html`
-- 在问题详情页补齐评论树展示、回复和删除动作
+- `app/web/detail.html` 已经接入评论树展示、回复、删除和楼中楼互动
+- 下一步更适合补评论图片、通知联动和更细的互动反馈
 - 保持网页端继续通过 `/api/...` 调后端，不直接绕过 service 层
 
 ### 10.2 管理员与媒体治理增强
@@ -612,4 +617,4 @@ scripts/
 - 继续保持单体后端，同时维护网页前端和独立 CLI 两条验证链路
 - 继续复用 Oracle 里已经写好的约束、触发器和推荐过程
 - 优先收口接口契约、鉴权和网页前端交付方式
-- 当前采纳答案、用户中心、管理员治理、头像和内容图片已经进入可演示状态，下一阶段可继续补网页端评论互动、媒体治理页面、多轮对话和更复杂推荐策略
+- 当前采纳答案、用户中心、管理员治理、网页端评论互动、头像和内容图片已经进入可演示状态，下一阶段可继续补媒体治理页面、多轮对话和更复杂推荐策略
