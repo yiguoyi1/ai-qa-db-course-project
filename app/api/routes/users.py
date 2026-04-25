@@ -1,9 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
-from app.api.auth_deps import ensure_path_user_access, get_current_user_id
+from app.api.auth_deps import (
+    AuthenticatedUser,
+    ensure_path_user_access,
+    get_current_user,
+    get_current_user_id,
+)
 from app.api.deps import get_user_center_service
 from app.core.errors import AppError
 from app.schemas.user_center import (
+    UpdateCurrentUserProfileRequest,
     UserAnswerListResponse,
     UserBrowseHistoryResponse,
     UserCenterProfileResponse,
@@ -15,6 +21,40 @@ from app.services.user_center_service import UserCenterService
 
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get(
+    "/me/profile",
+    response_model=UserCenterProfileResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_current_user_profile(
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    service: UserCenterService = Depends(get_user_center_service),
+) -> UserCenterProfileResponse:
+    try:
+        return service.get_profile(user_id=current_user.user_id)
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.patch(
+    "/me/profile",
+    response_model=UserCenterProfileResponse,
+    status_code=status.HTTP_200_OK,
+)
+def update_current_user_profile(
+    payload: UpdateCurrentUserProfileRequest = Body(...),
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    service: UserCenterService = Depends(get_user_center_service),
+) -> UserCenterProfileResponse:
+    try:
+        return service.update_current_profile(
+            user_id=current_user.user_id,
+            payload=payload,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
 @router.get(

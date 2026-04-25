@@ -1,7 +1,10 @@
+import re
+
 from app.core.errors import NotFoundError, ValidationError
 from app.db.connection import get_connection
 from app.repositories.user_center_repository import UserCenterRepository
 from app.schemas.user_center import (
+    UpdateCurrentUserProfileRequest,
     UserAnswerListResponse,
     UserBrowseHistoryResponse,
     UserCenterProfileResponse,
@@ -12,6 +15,9 @@ from app.schemas.user_center import (
 
 
 class UserCenterService:
+    _EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    _PHONE_PATTERN = re.compile(r"^[0-9+\-\s()]{6,20}$")
+
     def __init__(
         self,
         user_center_repository: UserCenterRepository | None = None,
@@ -29,6 +35,63 @@ class UserCenterService:
             profile = self._user_center_repository.get_user_profile(connection, user_id)
             if profile is None:
                 raise NotFoundError(f"User {user_id} was not found.")
+
+        return UserCenterProfileResponse(**profile)
+
+    def update_current_profile(
+        self,
+        *,
+        user_id: int,
+        payload: UpdateCurrentUserProfileRequest,
+    ) -> UserCenterProfileResponse:
+        self._validate_user_id(user_id)
+
+        updates = payload.model_dump(exclude_unset=True)
+        if not updates:
+            raise ValidationError("At least one profile field must be provided.")
+
+        with get_connection() as connection:
+            current_profile = self._user_center_repository.get_user_profile(connection, user_id)
+            if current_profile is None:
+                raise NotFoundError(f"User {user_id} was not found.")
+
+            nickname = self._normalize_nickname(
+                updates["nickname"] if "nickname" in updates else current_profile.get("nickname")
+            )
+            email = self._normalize_email(
+                updates["email"] if "email" in updates else current_profile.get("email")
+            )
+            phone = self._normalize_phone(
+                updates["phone"] if "phone" in updates else current_profile.get("phone")
+            )
+
+            if email is not None and self._user_center_repository.email_exists_for_other_user(
+                connection,
+                email=email,
+                user_id=user_id,
+            ):
+                raise ValidationError("该邮箱已被其他账号使用。")
+
+            if phone is not None and self._user_center_repository.phone_exists_for_other_user(
+                connection,
+                phone=phone,
+                user_id=user_id,
+            ):
+                raise ValidationError("该手机号已被其他账号使用。")
+
+            updated_count = self._user_center_repository.update_user_profile(
+                connection,
+                user_id=user_id,
+                nickname=nickname,
+                email=email,
+                phone=phone,
+            )
+            if updated_count <= 0:
+                raise NotFoundError(f"User {user_id} was not found.")
+
+            connection.commit()
+            profile = self._user_center_repository.get_user_profile(connection, user_id)
+            assert profile is not None
 
         return UserCenterProfileResponse(**profile)
 
@@ -193,3 +256,37 @@ class UserCenterService:
     def _validate_limit(limit: int) -> None:
         if limit <= 0 or limit > 50:
             raise ValidationError("limit must be between 1 and 50.")
+
+    def _normalize_nickname(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        if len(normalized) > 50:
+            raise ValidationError("nickname must be 50 characters or fewer.")
+        return normalized
+
+    def _normalize_email(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        if len(normalized) > 100:
+            raise ValidationError("email must be 100 characters or fewer.")
+        if not self._EMAIL_PATTERN.fullmatch(normalized):
+            raise ValidationError("email format is invalid.")
+        return normalized
+
+    def _normalize_phone(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        if len(normalized) > 20:
+            raise ValidationError("phone must be 20 characters or fewer.")
+        if not self._PHONE_PATTERN.fullmatch(normalized):
+            raise ValidationError("phone format is invalid.")
+        return normalized

@@ -137,8 +137,6 @@ class ChatService:
             session = self._chat_repository.get_session_by_id(connection, session_id)
             if session is None:
                 raise NotFoundError(f"Session {session_id} was not found.")
-            if session["user_id"] != current_user_id:
-                raise ValidationError("只能查看当前登录用户自己的 AI 会话。")
 
             messages = self._chat_repository.list_messages_by_session(
                 connection,
@@ -173,7 +171,6 @@ class ChatService:
 
             items = self._chat_repository.list_sessions_by_anchor(
                 connection,
-                user_id=current_user_id,
                 question_id=question_id,
                 seed_answer_id=answer_id,
             )

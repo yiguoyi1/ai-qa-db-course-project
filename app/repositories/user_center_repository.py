@@ -87,6 +87,8 @@ class UserCenterRepository:
                 u.nickname,
                 u.email,
                 u.phone,
+                u.avatar_media_id,
+                m.public_url,
                 u.role,
                 u.status,
                 u.register_time,
@@ -106,6 +108,9 @@ class UserCenterRepository:
                      ON q.accepted_answer_id = a.answer_id
                   WHERE a.user_id = u.user_id) AS accepted_answer_count
             FROM users u
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE u.user_id = :user_id
             """,
             {"user_id": user_id},
@@ -120,15 +125,90 @@ class UserCenterRepository:
             "nickname": row[2],
             "email": row[3],
             "phone": row[4],
-            "role": row[5],
-            "status": row[6],
-            "register_time": row[7],
-            "last_login_time": row[8],
-            "question_count": int(row[9]),
-            "answer_count": int(row[10]),
-            "favorite_count": int(row[11]),
-            "accepted_answer_count": int(row[12]),
+            "avatar_media_id": int(row[5]) if row[5] is not None else None,
+            "avatar_url": row[6],
+            "role": row[7],
+            "status": row[8],
+            "register_time": row[9],
+            "last_login_time": row[10],
+            "question_count": int(row[11]),
+            "answer_count": int(row[12]),
+            "favorite_count": int(row[13]),
+            "accepted_answer_count": int(row[14]),
         }
+
+    def email_exists_for_other_user(
+        self,
+        connection: oracledb.Connection,
+        *,
+        email: str,
+        user_id: int,
+    ) -> bool:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT 1
+            FROM users
+            WHERE LOWER(email) = LOWER(:email)
+              AND user_id <> :user_id
+            FETCH FIRST 1 ROWS ONLY
+            """,
+            {
+                "email": email,
+                "user_id": user_id,
+            },
+        )
+        return cursor.fetchone() is not None
+
+    def phone_exists_for_other_user(
+        self,
+        connection: oracledb.Connection,
+        *,
+        phone: str,
+        user_id: int,
+    ) -> bool:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT 1
+            FROM users
+            WHERE phone = :phone
+              AND user_id <> :user_id
+            FETCH FIRST 1 ROWS ONLY
+            """,
+            {
+                "phone": phone,
+                "user_id": user_id,
+            },
+        )
+        return cursor.fetchone() is not None
+
+    def update_user_profile(
+        self,
+        connection: oracledb.Connection,
+        *,
+        user_id: int,
+        nickname: str | None,
+        email: str | None,
+        phone: str | None,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE users
+               SET nickname = :nickname,
+                   email = :email,
+                   phone = :phone
+             WHERE user_id = :user_id
+            """,
+            {
+                "nickname": nickname,
+                "email": email,
+                "phone": phone,
+                "user_id": user_id,
+            },
+        )
+        return int(cursor.rowcount or 0)
 
     def count_user_questions(
         self,

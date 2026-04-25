@@ -13,6 +13,8 @@ class UserCenterProfileResponse(APIModel):
     nickname: str | None = None
     email: str | None = None
     phone: str | None = None
+    avatar_media_id: int | None = None
+    avatar_url: str | None = None
     role: str
     status: str
     register_time: datetime
@@ -21,6 +23,12 @@ class UserCenterProfileResponse(APIModel):
     answer_count: int = Field(ge=0)
     favorite_count: int = Field(ge=0)
     accepted_answer_count: int = Field(ge=0)
+
+
+class UpdateCurrentUserProfileRequest(APIModel):
+    nickname: str | None = Field(default=None, max_length=50)
+    email: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(default=None, max_length=20)
 
 
 class UserQuestionListResponse(APIModel):

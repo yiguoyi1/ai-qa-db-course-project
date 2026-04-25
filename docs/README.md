@@ -178,6 +178,8 @@
 
 ### 6.5 推荐
 
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
 - `GET /api/users/{user_id}/profile`
 - `GET /api/users/{user_id}/questions`
 - `GET /api/users/{user_id}/answers`

@@ -506,9 +506,14 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 ### 10.4 用户中心
 
+- 已提供 `/api/users/me/profile`
+- 已提供 `PATCH /api/users/me/profile`
 - 已提供 `/api/users/{user_id}/profile`
 - 已提供 `/api/users/{user_id}/questions`、`/answers`、`/favorites`
 - 已提供 `/api/users/{user_id}/browse-history`、`/search-history`
+- 当前个人资料查询已返回 `avatar_media_id`、`avatar_url`、`nickname`、`email`、`phone`
+- 当前个人资料修改支持 `nickname`、`email`、`phone`
+- 头像修改继续复用 `/api/users/me/avatar`
 - 网页端已提供 `/me` 用户中心页面
 
 ### 10.5 登录与鉴权收口
@@ -519,8 +524,10 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 ### 10.6 多轮对话
 
-- 当前未实现
-- 等社区主链路稳定后再扩展
+- 已提供 `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
+- 已提供 `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
+- 已提供 `GET /api/chat/sessions/{session_id}`
+- 当前规则为“会话可查看、仅创建者可续写”
 
 ## 11. 当前核心代码文件
 

@@ -41,7 +41,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 问题列表 / 详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
-- 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
+- 用户中心：`GET /api/users/me/profile`、`PATCH /api/users/me/profile`、`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 分类、标签、搜索、搜索历史
 - 浏览、收藏、反馈、评论
@@ -272,7 +272,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 
 - 只有 `AI` 类型回答可以发起追问
 - `answer_id` 必须属于当前 `question_id`
-- 用户只能查看和续写自己的会话
+- 任何已登录用户都可以查看会话，但只有会话创建者可以续写
 - `session_id` 必须和当前问题、首答锚点一致
 - `CLOSED` 状态会话不能继续追问
 

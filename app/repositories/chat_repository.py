@@ -136,7 +136,6 @@ class ChatRepository:
         self,
         connection: oracledb.Connection,
         *,
-        user_id: int,
         question_id: int,
         seed_answer_id: int,
     ) -> list[dict[str, Any]]:
@@ -156,8 +155,7 @@ class ChatRepository:
             FROM chat_session cs
             LEFT JOIN chat_message cm
               ON cm.session_id = cs.session_id
-            WHERE cs.user_id = :user_id
-              AND cs.question_id = :question_id
+            WHERE cs.question_id = :question_id
               AND cs.seed_answer_id = :seed_answer_id
             GROUP BY
                 cs.session_id,
@@ -170,7 +168,6 @@ class ChatRepository:
             ORDER BY cs.start_time DESC, cs.session_id DESC
             """,
             {
-                "user_id": user_id,
                 "question_id": question_id,
                 "seed_answer_id": seed_answer_id,
             },

@@ -279,6 +279,31 @@ def run_self_check() -> list[CheckResult]:
             )
         )
 
+        foreign_listed = chat_service.list_sessions_by_anchor(
+            question_id=data["question_id"],
+            answer_id=data["ai_answer_id"],
+            current_user_id=secondary_user_id,
+        )
+        results.append(
+            CheckResult(
+                name="allow_foreign_session_list",
+                passed=foreign_listed.item_count == 1 and foreign_listed.items[0].session_id == session_id,
+                detail=f"item_count={foreign_listed.item_count}",
+            )
+        )
+
+        foreign_detail = chat_service.get_session_detail(
+            session_id=session_id,
+            current_user_id=secondary_user_id,
+        )
+        results.append(
+            CheckResult(
+                name="allow_foreign_session_detail",
+                passed=len(foreign_detail.messages) == 4 and foreign_detail.session.session_id == session_id,
+                detail=f"message_count={len(foreign_detail.messages)}",
+            )
+        )
+
         results.append(
             expect_validation_error(
                 name="reject_manual_answer_seed",
@@ -302,17 +327,6 @@ def run_self_check() -> list[CheckResult]:
                     payload=CreateFollowUpTurnRequest(content="错位锚点不应该通过"),
                 ),
                 contains="does not belong",
-            )
-        )
-
-        results.append(
-            expect_validation_error(
-                name="reject_foreign_session_detail",
-                fn=lambda: chat_service.get_session_detail(
-                    session_id=session_id,
-                    current_user_id=secondary_user_id,
-                ),
-                contains="只能查看当前登录用户自己的 AI 会话",
             )
         )
 

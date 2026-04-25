@@ -54,7 +54,7 @@
 - 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
 - 评论与楼中楼：`POST /api/answers/{answer_id}/comments`、`GET /api/answers/{answer_id}/comments`、`DELETE /api/comments/{comment_id}`
 - AI 多轮追问：`POST /api/questions/{question_id}/answers/{answer_id}/follow-up`、`GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`、`GET /api/chat/sessions/{session_id}`
-- 用户中心：`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
+- 用户中心：`GET /api/users/me/profile`、`PATCH /api/users/me/profile`、`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
 - 头像与内容图片：`POST /api/users/me/avatar`、`GET /api/users/me/avatar`、`DELETE /api/users/me/avatar`
@@ -253,7 +253,7 @@
 1. 会话正式锚定到 `QUESTION_ID + SEED_ANSWER_ID`
 2. 支持创建新追问会话
 3. 支持向已有会话继续追加一轮追问
-4. 支持读取当前用户围绕某条 AI 首答的会话列表
+4. 支持读取围绕某条 AI 首答的会话列表
 5. 支持读取某条会话的完整消息历史
 6. 每轮追问都会写入 `CHAT_MESSAGE`
 7. 每轮 AI 回复都会写入 `AI_PROMPT_LOG`

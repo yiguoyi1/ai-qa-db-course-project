@@ -268,6 +268,9 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 
 当前版本已经提供用户中心，用于强化社区身份感，目前包括：
 
+- 个人资料展示
+- 个人资料修改
+- 头像上传、查看与删除
 - 我的问题
 - 我的回答
 - 我的收藏
@@ -275,6 +278,14 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 - 我的浏览记录
 - 我的搜索记录
 - 兴趣画像重建入口
+
+当前用户资料相关接口包括：
+
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
+- `POST /api/users/me/avatar`
+- `GET /api/users/me/avatar`
+- `DELETE /api/users/me/avatar`
 
 ### 6.5 管理后台
 
@@ -402,6 +413,7 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 3. AI 结合原问题、首答和历史消息回复
 4. 用户消息与 AI 消息写入 `CHAT_MESSAGE`
 5. 会话列表与会话详情支持读取
+6. 其他用户可以查看会话，但不能续写别人的会话
 
 当前已提供接口：
 
@@ -565,6 +577,8 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 
 当前已提供接口：
 
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
 - `GET /api/users/{user_id}/favorites`
 - `GET /api/users/{user_id}/profile`
 - `GET /api/users/{user_id}/browse-history`
