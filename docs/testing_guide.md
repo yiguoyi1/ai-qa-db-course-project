@@ -64,7 +64,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 
 ## 4. 模块测试清单
 
-### 4.1 登录、注册与登录态
+### 4.1 登录、注册与登录态（√）
 
 #### TC-LOGIN-01 注册新用户
 
@@ -139,7 +139,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 标签页 B 仍显示普通用户 B。
 3. 两个标签页互不顶号。
 
-### 4.2 首页问题流、搜索与发帖
+### 4.2 首页问题流、搜索与发帖（√）
 
 #### TC-HOME-01 首页问题流加载
 
@@ -232,7 +232,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 两种发帖方式都不允许提交空正文。
 2. 页面给出明确提示。
 
-### 4.3 问题详情、回答、收藏、反馈与采纳
+### 4.3 问题详情、回答、收藏、反馈与采纳（√）
 
 #### TC-DETAIL-01 详情页基础加载
 
@@ -320,7 +320,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 不允许采纳。
 2. 页面应有权限不足提示，或不展示采纳入口。
 
-### 4.4 评论与楼中楼回复
+### 4.4 评论与楼中楼回复（√）
 
 #### TC-COMMENT-01 评论数预加载
 
@@ -422,7 +422,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 评论节点不会直接消失，而是显示占位文案。
 3. 若该评论下仍有子回复，楼层结构应保持不乱。
 
-### 4.5 问题图片、回答图片与头像
+### 4.5 问题图片、回答图片与头像（√）
 
 #### TC-MEDIA-01 上传问题图片
 
@@ -468,7 +468,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 头像上传成功。
 2. 用户中心可看到新头像。
 
-### 4.6 用户中心
+### 4.6 用户中心（√）
 
 #### TC-PROFILE-01 用户中心模块切换
 
@@ -582,7 +582,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能展示推荐标题、分值、状态、推荐类型、生成时间等信息。
 2. 页面存在空状态、加载态和推荐概览。
 
-### 4.8 管理员后台
+### 4.8 管理员后台（√）
 
 #### TC-ADMIN-01 进入管理员后台
 
