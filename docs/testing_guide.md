@@ -2,21 +2,28 @@
 
 这份文档面向负责测试的同学，目标是基于当前仓库已经完成的功能，提供一套可以直接执行的网页端功能测试清单。
 
-适用范围：
+## 1. 测试范围
+
+### 1.1 本轮覆盖
 
 - 网页前端：`/login`、`/home`、`/questions/{question_id}`、`/me`、`/admin`
 - 首页分区入口：`/home?section=recommend`、`/home?section=hot`
 - FastAPI 后端现有接口
 - Oracle 数据库中已经落地的业务能力
 
-不在本轮测试范围内：
+### 1.2 本轮暂不覆盖
 
 - 评论图片上传
 - 图片审核后台
 - 推荐规则人工干预后台
 - 普通评论区内嵌 AI 机器人式对话；当前已实现的是围绕 AI 回答的追问会话
 
-## 1. 测试前置条件
+### 1.3 状态标记
+
+- ✅：已经完成测试确认
+- 待测：新增或需要测试同学补测
+
+## 2. 测试准备
 
 执行测试前，先确认以下环境已经准备完成：
 
@@ -41,7 +48,15 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <your_username>
 ```
 
-## 2. 推荐测试顺序
+## 3. 测试账号建议
+
+- 普通用户 A：用于提问、回答、评论、收藏、删除自己的评论、创建 AI 追问会话。
+- 普通用户 B：用于回复 A、验证跨用户展示、权限隔离和“我”的显示口径。
+- 管理员用户：用于进入 `/admin` 做治理、分类维护和日志查看。
+
+如果需要验证“不同标签页互不干扰”，建议在两个标签页分别登录不同账号。
+
+## 4. 推荐测试顺序
 
 为了减少测试过程中的相互影响，建议按下面顺序执行：
 
@@ -57,21 +72,27 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 10. 兴趣画像与推荐
 11. 管理员后台
 
-## 3. 测试账号建议
+## 5. 测试用例总览
 
-建议至少准备以下三类账号：
+| 模块 | 用例范围 | 状态 |
+| --- | --- | --- |
+| 登录与登录态 | TC-LOGIN-01 至 TC-LOGIN-05 | ✅ |
+| 全站导航与搜索 | TC-NAV-01 至 TC-NAV-03 | 待测 |
+| 首页问题流与发帖 | TC-HOME-01 至 TC-HOME-06 | ✅ |
+| 首页推荐与热榜 | TC-HOME-07 至 TC-HOME-08 | 待测 |
+| 详情页回答业务 | TC-DETAIL-01 至 TC-DETAIL-06 | ✅ |
+| AI 回答追问会话 | TC-AI-01 至 TC-AI-03 | 待测 |
+| 评论与楼中楼 | TC-COMMENT-01 至 TC-COMMENT-07 | ✅ |
+| 媒体与头像 | TC-MEDIA-01 至 TC-MEDIA-06 | 前 3 项 ✅，其余待测 |
+| 用户中心 | TC-PROFILE-01 至 TC-PROFILE-07 | 前 4 项 ✅，其余待测 |
+| 兴趣画像与推荐 | TC-REC-01 至 TC-REC-06 | 待测 |
+| 管理员后台 | TC-ADMIN-01 至 TC-ADMIN-05 | ✅ |
 
-- 普通用户 A：用于提问、回答、评论、收藏、删除自己的评论
-- 普通用户 B：用于回复 A、验证跨用户展示和权限隔离
-- 管理员用户：用于进入 `/admin` 做治理与日志查看
+## 6. 测试用例详情
 
-如果需要验证“不同标签页互不干扰”，建议在两个标签页分别登录不同账号。
+### 6.1 登录与登录态
 
-## 4. 模块测试清单
-
-### 4.1 登录、注册与登录态（√）
-
-#### TC-LOGIN-01 注册新用户
+#### TC-LOGIN-01 注册新用户 ✅
 
 前置条件：进入 `/login` 页面。
 
@@ -86,7 +107,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 注册成功。
 2. 页面可继续使用该账号登录。
 
-#### TC-LOGIN-02 正常登录
+#### TC-LOGIN-02 正常登录 ✅
 
 前置条件：已存在可用普通用户账号。
 
@@ -98,10 +119,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 预期结果：
 
 1. 登录成功并跳转到 `/home`。
-2. 页面右上角显示当前登录用户名。
+2. 页面右上角显示当前登录用户信息。
 3. 后续受保护接口操作可正常执行。
 
-#### TC-LOGIN-03 错误密码登录
+#### TC-LOGIN-03 错误密码登录 ✅
 
 前置条件：已存在用户账号。
 
@@ -115,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 页面提示登录失败。
 2. 不应进入首页。
 
-#### TC-LOGIN-04 退出登录
+#### TC-LOGIN-04 退出登录 ✅
 
 前置条件：用户已登录。
 
@@ -129,7 +150,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 登录态被清除。
 2. 页面回到登录页或重新要求登录。
 
-#### TC-LOGIN-05 不同标签页登录态隔离
+#### TC-LOGIN-05 不同标签页登录态隔离 ✅
 
 前置条件：准备两个普通用户账号。
 
@@ -145,9 +166,59 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 标签页 B 仍显示普通用户 B。
 3. 两个标签页互不顶号。
 
-### 4.2 首页问题流、搜索与发帖（√）
+### 6.2 全站导航与搜索
 
-#### TC-HOME-01 首页问题流加载
+#### TC-NAV-01 顶部导航统一展示 待测
+
+前置条件：用户已登录。
+
+测试步骤：
+
+1. 分别进入 `/home`、问题详情页、`/me`。
+2. 观察顶部导航栏。
+3. 点击“推荐”“热榜”和搜索框。
+
+预期结果：
+
+1. 顶部导航在主要页面风格一致。
+2. “推荐”“热榜”和搜索框位于同一层级。
+3. 搜索框位置、按钮和页面整体间距正常。
+
+#### TC-NAV-02 头像下拉菜单 待测
+
+前置条件：用户已登录。
+
+测试步骤：
+
+1. 点击右上角头像打开下拉菜单。
+2. 分别点击菜单中的“首页”“我的中心”“管理后台”“退出登录”等入口。
+3. 在首页、详情页、用户中心重复上述操作。
+
+预期结果：
+
+1. 头像下拉菜单可正常展开和收起。
+2. 菜单入口跳转正确。
+3. 非管理员账号不应看到不可用的后台入口，或点击后被权限拦截。
+4. 下拉菜单中不再需要单独提供“返回首页”按钮，首页入口由统一导航承担。
+
+#### TC-NAV-03 跨页面搜索跳转 待测
+
+前置条件：用户已登录。
+
+测试步骤：
+
+1. 在问题详情页输入关键词并搜索。
+2. 在用户中心输入关键词并搜索。
+
+预期结果：
+
+1. 两处搜索都应跳转到首页搜索结果。
+2. 首页列表展示与关键词相关的问题。
+3. 搜索历史记录归属于当前用户。
+
+### 6.3 首页问题流、分区与发帖
+
+#### TC-HOME-01 首页问题流加载 ✅
 
 前置条件：用户已登录并进入 `/home`。
 
@@ -162,7 +233,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 热门标签能正常显示。
 3. 问题卡片能显示标题、作者、回答数、收藏数、时间等信息。
 
-#### TC-HOME-02 搜索问题
+#### TC-HOME-02 搜索问题 ✅
 
 前置条件：首页有可搜索的问题标题或关键词。
 
@@ -176,7 +247,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 首页列表切换到搜索结果。
 2. 结果内容与关键词相关。
 
-#### TC-HOME-03 搜索历史记录
+#### TC-HOME-03 搜索历史记录 ✅
 
 前置条件：当前用户已经执行过至少一次搜索。
 
@@ -190,7 +261,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能看到当前用户的搜索历史。
 2. 不同用户的搜索历史应相互隔离。
 
-#### TC-HOME-04 纯社区发帖
+#### TC-HOME-04 纯社区发帖 ✅
 
 前置条件：用户已登录。
 
@@ -207,7 +278,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 首页问题流出现新问题。
 3. 新问题详情页可正常打开。
 
-#### TC-HOME-05 AI 发帖
+#### TC-HOME-05 AI 发帖 ✅
 
 前置条件：`.env` 中 DeepSeek 配置可用。
 
@@ -223,7 +294,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 发帖成功。
 2. 问题详情页中可看到 AI 首答。
 
-#### TC-HOME-06 发帖正文必填校验
+#### TC-HOME-06 发帖正文必填校验 ✅
 
 前置条件：用户已登录。
 
@@ -238,64 +309,41 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 两种发帖方式都不允许提交空正文。
 2. 页面给出明确提示。
 
-<<<<<<< HEAD
-#### TC-HOME-07 顶部导航与头像下拉菜单
+#### TC-HOME-07 推荐分区 待测
 
-前置条件：用户已登录。
-
-测试步骤：
-
-1. 分别进入 `/home`、问题详情页和 `/me`。
-2. 观察顶部导航栏。
-3. 点击右上角头像打开下拉菜单。
-4. 点击菜单中的“首页”“我的中心”“管理后台”“退出登录”等入口。
-
-预期结果：
-
-1. 顶部导航在主要页面风格一致。
-2. “推荐”“热榜”和搜索框位于同一层级，不再单独占用第二行。
-3. 头像下拉菜单可正常展开和收起。
-4. 菜单入口跳转正确。
-5. 非管理员账号不应看到不可用的后台入口，或点击后被权限拦截。
-
-#### TC-HOME-08 推荐与热榜分区切换
-
-前置条件：用户已登录，系统中已有问题数据。
+前置条件：用户已登录，最好已有推荐数据。
 
 测试步骤：
 
 1. 进入 `/home?section=recommend`。
-2. 点击顶部“热榜”。
-3. 再点击顶部“推荐”。
+2. 观察推荐分区问题列表。
+3. 点击推荐问题卡片进入详情页。
 
 预期结果：
 
 1. 推荐分区能展示推荐问题或合理空状态。
-2. 热榜分区能展示热度较高的问题。
-3. 当前分区有明确选中态。
-4. 切换分区不会导致登录态、搜索框或头像菜单异常。
+2. 推荐卡片保留标题、作者、回答数、收藏数、时间等基础信息。
+3. 点击问题可正常进入详情页。
 
-#### TC-HOME-09 跨页面搜索跳转
+#### TC-HOME-08 热榜分区 待测
 
-前置条件：用户已登录。
+前置条件：系统中存在多条问题，且回答数、收藏数或浏览量不同。
 
 测试步骤：
 
-1. 在问题详情页输入关键词并搜索。
-2. 在用户中心输入关键词并搜索。
+1. 进入 `/home?section=hot`。
+2. 观察问题顺序。
+3. 对某个问题增加回答、收藏或浏览行为后刷新热榜。
 
 预期结果：
 
-1. 两处搜索都应跳转到首页搜索结果。
-2. 首页列表展示与关键词相关的问题。
-3. 搜索历史记录归属于当前用户。
+1. 热榜优先展示讨论度、收藏度或浏览量更高的问题。
+2. 当前分区有明确选中态。
+3. 如果数据较少，页面仍应正常展示，不应报错。
 
-### 4.3 问题详情、回答、收藏、反馈与采纳
-=======
-### 4.3 问题详情、回答、收藏、反馈与采纳（√）
->>>>>>> 480241f1a5d84056f93ed33905bcbd2f50d60547
+### 6.4 问题详情、回答、反馈与采纳
 
-#### TC-DETAIL-01 详情页基础加载
+#### TC-DETAIL-01 详情页基础加载 ✅
 
 前置条件：存在至少一条问题数据。
 
@@ -309,7 +357,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 能展示回答列表。
 3. Markdown 内容可正常渲染。
 
-#### TC-DETAIL-02 发布人工回答
+#### TC-DETAIL-02 发布人工回答 ✅
 
 前置条件：问题状态为可回答状态。
 
@@ -323,7 +371,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 回答发布成功。
 2. 回答列表立即出现新回答。
 
-#### TC-DETAIL-03 收藏与取消收藏
+#### TC-DETAIL-03 收藏与取消收藏 ✅
 
 前置条件：用户已登录。
 
@@ -338,7 +386,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 收藏状态和数量实时更新。
 2. 刷新页面后状态保持正确。
 
-#### TC-DETAIL-04 点赞与点踩
+#### TC-DETAIL-04 点赞与点踩 ✅
 
 前置条件：问题下存在回答。
 
@@ -353,7 +401,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 数量变化正确。
 3. 返回首页后再进入详情页，状态仍正确。
 
-#### TC-DETAIL-05 采纳答案
+#### TC-DETAIL-05 采纳答案 ✅
 
 前置条件：当前登录用户是提问者，且问题下存在至少一条回答。
 
@@ -368,7 +416,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 3. 问题状态变为 `RESOLVED`。
 4. 不再允许继续发布新回答。
 
-#### TC-DETAIL-06 非提问者采纳答案权限校验
+#### TC-DETAIL-06 非提问者采纳答案权限校验 ✅
 
 前置条件：使用非提问者账号进入同一问题。
 
@@ -381,8 +429,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 不允许采纳。
 2. 页面应有权限不足提示，或不展示采纳入口。
 
-<<<<<<< HEAD
-#### TC-DETAIL-07 AI 回答追问入口
+### 6.5 AI 回答追问会话
+
+#### TC-AI-01 AI 回答追问入口 待测
 
 前置条件：问题详情页中存在 AI 首答。
 
@@ -398,7 +447,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 没有历史会话时显示可理解的空状态。
 3. 加载失败时页面应有错误提示，而不是卡在加载中。
 
-#### TC-DETAIL-08 新建 AI 追问会话
+#### TC-AI-02 新建 AI 追问会话 待测
 
 前置条件：当前用户已登录，问题详情页中存在 AI 首答。
 
@@ -415,7 +464,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 3. AI 回复返回后显示在同一会话内。
 4. AI 回复文本格式应与 AI 首答一样易读，支持段落、列表等基础排版。
 
-#### TC-DETAIL-09 AI 追问历史与跨用户展示
+#### TC-AI-03 AI 追问历史与跨用户展示 待测
 
 前置条件：普通用户 A 已经创建过一条 AI 追问会话，普通用户 B 可访问同一问题详情页。
 
@@ -431,12 +480,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 3. 其他用户的消息应显示真实用户名或昵称。
 4. 非会话创建者只能查看历史追问，不应误显示可继续追问的入口。
 
-### 4.4 评论与楼中楼回复
-=======
-### 4.4 评论与楼中楼回复（√）
->>>>>>> 480241f1a5d84056f93ed33905bcbd2f50d60547
+### 6.6 评论与楼中楼回复
 
-#### TC-COMMENT-01 评论数预加载
+#### TC-COMMENT-01 评论数预加载 ✅
 
 前置条件：某条回答下已有评论。
 
@@ -450,7 +496,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 评论数在首次进入详情页时即显示正确。
 2. 不需要先展开评论再刷新数字。
 
-#### TC-COMMENT-02 展开评论
+#### TC-COMMENT-02 展开评论 ✅
 
 前置条件：某条回答下已有评论或可发表评论。
 
@@ -463,7 +509,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 可加载当前回答对应的评论区。
 2. 没有评论时显示空状态。
 
-#### TC-COMMENT-03 发布一级评论
+#### TC-COMMENT-03 发布一级评论 ✅
 
 前置条件：问题状态允许评论。
 
@@ -479,7 +525,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 新评论立即出现在当前回答下。
 3. 评论数同步增加。
 
-#### TC-COMMENT-04 回复评论形成楼中楼
+#### TC-COMMENT-04 回复评论形成楼中楼 ✅
 
 前置条件：当前回答下至少有一条评论。
 
@@ -494,7 +540,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 该回复挂载在对应评论下面。
 3. 若页面有“回复 @用户名”提示，应指向被回复对象。
 
-#### TC-COMMENT-05 楼中楼默认折叠
+#### TC-COMMENT-05 楼中楼默认折叠 ✅
 
 前置条件：某条评论存在子回复。
 
@@ -508,7 +554,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 子回复默认处于折叠状态。
 2. 页面提供“展开回复”入口。
 
-#### TC-COMMENT-06 楼中楼展开与折叠
+#### TC-COMMENT-06 楼中楼展开与折叠 ✅
 
 前置条件：某条评论存在子回复。
 
@@ -522,7 +568,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能看到该评论下对应的子回复。
 2. 再次点击后可折叠回去。
 
-#### TC-COMMENT-07 删除自己的评论
+#### TC-COMMENT-07 删除自己的评论 ✅
 
 前置条件：当前用户拥有自己发布的评论。
 
@@ -536,9 +582,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 评论节点不会直接消失，而是显示占位文案。
 3. 若该评论下仍有子回复，楼层结构应保持不乱。
 
-### 4.5 问题图片、回答图片与头像（√）
+### 6.7 媒体与头像
 
-#### TC-MEDIA-01 上传问题图片
+#### TC-MEDIA-01 上传问题图片 ✅
 
 前置条件：用户已登录。
 
@@ -553,7 +599,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 发帖成功。
 2. 问题图片显示在问题正文下方。
 
-#### TC-MEDIA-02 上传回答图片
+#### TC-MEDIA-02 上传回答图片 ✅
 
 前置条件：存在可回答的问题。
 
@@ -568,7 +614,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 回答发布成功。
 2. 回答图片显示在回答正文下方。
 
-#### TC-MEDIA-03 上传头像
+#### TC-MEDIA-03 上传头像 ✅
 
 前置条件：用户已登录。
 
@@ -582,8 +628,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 头像上传成功。
 2. 用户中心可看到新头像。
 
-<<<<<<< HEAD
-#### TC-MEDIA-04 全站头像展示
+#### TC-MEDIA-04 全站头像展示 待测
 
 前置条件：用户已上传头像，并存在该用户发布的问题、回答或评论。
 
@@ -600,7 +645,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 未上传头像的用户应显示默认头像或用户名首字母占位。
 3. 各页面同一用户的头像展示应一致。
 
-#### TC-MEDIA-05 删除头像后的回退展示
+#### TC-MEDIA-05 删除头像后的回退展示 待测
 
 前置条件：用户已上传头像。
 
@@ -616,7 +661,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 页面回退到默认头像或首字母占位。
 3. 不应出现破图图标。
 
-#### TC-MEDIA-06 头像上传格式与大小校验
+#### TC-MEDIA-06 头像上传格式与大小校验 待测
 
 前置条件：用户已登录。
 
@@ -632,25 +677,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 超过大小限制的图片应被拦截并提示。
 3. 合法图片可上传成功并刷新展示。
 
-### 4.6 用户中心
-=======
-### 4.6 用户中心（√）
->>>>>>> 480241f1a5d84056f93ed33905bcbd2f50d60547
+### 6.8 用户中心
 
-#### TC-PROFILE-01 用户中心模块切换
+#### TC-PROFILE-01 用户中心模块切换 ✅
 
 前置条件：用户已登录并进入 `/me`。
 
 测试步骤：
 
-1. 依次切换“我的问题”“我的回答”“我的收藏”“我的推荐”“最近浏览”“最近搜索”等模块。
+1. 依次切换“个人信息”“我的问题”“我的回答”“我的收藏”“我的推荐”“最近浏览”“最近搜索”等模块。
 
 预期结果：
 
 1. 各模块可独立切换。
 2. 页面无需长距离滚动即可定位模块。
 
-#### TC-PROFILE-02 我的问题与我的回答
+#### TC-PROFILE-02 我的问题与我的回答 ✅
 
 前置条件：当前用户已有提问和回答数据。
 
@@ -664,7 +706,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 数据列表正确。
 2. 点击后可进入对应详情页。
 
-#### TC-PROFILE-03 我的收藏取消收藏
+#### TC-PROFILE-03 我的收藏取消收藏 ✅
 
 前置条件：当前用户已有收藏的问题。
 
@@ -678,7 +720,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 取消收藏成功。
 2. 列表即时刷新。
 
-#### TC-PROFILE-04 最近浏览与最近搜索
+#### TC-PROFILE-04 最近浏览与最近搜索 ✅
 
 前置条件：当前用户已经有浏览问题和搜索行为。
 
@@ -692,7 +734,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能看到当前用户自己的历史数据。
 2. 不同用户之间历史记录相互隔离。
 
-#### TC-PROFILE-05 个人信息展示与修改
+#### TC-PROFILE-05 个人信息展示与修改 待测
 
 前置条件：用户已登录并进入 `/me`。
 
@@ -710,7 +752,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 3. 刷新后仍显示修改后的内容。
 4. 用户名、角色、账号状态等只读字段不应被前端误改。
 
-#### TC-PROFILE-06 昵称与顶部欢迎语一致性
+#### TC-PROFILE-06 昵称与顶部欢迎语一致性 待测
 
 前置条件：用户已设置昵称。
 
@@ -727,7 +769,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 用户中心标题和基础资料中的昵称保持一致。
 3. 修改昵称后刷新页面，展示结果仍一致。
 
-#### TC-PROFILE-07 用户中心顶部快捷操作
+#### TC-PROFILE-07 用户中心顶部快捷操作 待测
 
 前置条件：用户已登录并进入 `/me`。
 
@@ -743,9 +785,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 重建画像和刷新推荐能给出成功或失败提示。
 3. 操作后推荐相关数据能刷新或展示合理空状态。
 
-### 4.7 兴趣画像与推荐
+### 6.9 兴趣画像与推荐
 
-#### TC-REC-01 重建兴趣画像
+#### TC-REC-01 重建兴趣画像 待测
 
 前置条件：当前用户已产生一定行为数据，例如提问、收藏、浏览、反馈。
 
@@ -759,7 +801,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 操作成功。
 2. 页面能展示兴趣画像相关结果或更新后的推荐数据。
 
-#### TC-REC-02 生成推荐
+#### TC-REC-02 生成推荐 待测
 
 前置条件：当前用户已登录。
 
@@ -773,7 +815,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 推荐生成成功。
 2. 推荐列表刷新。
 
-#### TC-REC-03 推荐筛选与排序
+#### TC-REC-03 推荐筛选与排序 待测
 
 前置条件：当前用户已有推荐数据。
 
@@ -787,7 +829,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 列表可根据筛选条件变化。
 2. 排序结果符合页面展示逻辑。
 
-#### TC-REC-04 推荐卡片信息展示
+#### TC-REC-04 推荐卡片信息展示 待测
 
 前置条件：当前用户已有推荐数据。
 
@@ -800,8 +842,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能展示推荐标题、分值、状态、推荐类型、生成时间等信息。
 2. 页面存在空状态、加载态和推荐概览。
 
-<<<<<<< HEAD
-#### TC-REC-05 首页推荐分区展示
+#### TC-REC-05 首页推荐分区展示 待测
 
 前置条件：当前用户已有活跃推荐数据。
 
@@ -817,7 +858,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 推荐卡片应保留问题标题、作者、回答数、收藏数、时间等基础信息。
 3. 点击问题可正常进入详情页。
 
-#### TC-REC-06 首页热榜排序
+#### TC-REC-06 首页热榜排序 待测
 
 前置条件：系统中存在多条问题，且回答数、收藏数或浏览量不同。
 
@@ -833,12 +874,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 刷新后热度变化应能反映到列表排序中。
 3. 如果数据较少，页面仍应正常展示，不应报错。
 
-### 4.8 管理员后台
-=======
-### 4.8 管理员后台（√）
->>>>>>> 480241f1a5d84056f93ed33905bcbd2f50d60547
+### 6.10 管理员后台
 
-#### TC-ADMIN-01 进入管理员后台
+#### TC-ADMIN-01 进入管理员后台 ✅
 
 前置条件：当前账号已被提权为管理员。
 
@@ -852,7 +890,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 可成功进入管理员后台。
 2. 页面整体风格与社区页面保持一致的蓝色主视觉。
 
-#### TC-ADMIN-02 用户治理
+#### TC-ADMIN-02 用户治理 ✅
 
 前置条件：存在多个普通用户账号。
 
@@ -868,7 +906,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 角色和状态可调整。
 3. 页面使用中文友好的角色和状态文案。
 
-#### TC-ADMIN-03 分类管理
+#### TC-ADMIN-03 分类管理 ✅
 
 前置条件：管理员已登录。
 
@@ -884,7 +922,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 分类修改成功。
 3. 分类列表实时刷新。
 
-#### TC-ADMIN-04 内容治理
+#### TC-ADMIN-04 内容治理 ✅
 
 前置条件：系统内已有问题、回答和评论数据。
 
@@ -902,7 +940,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 2. 一键填入表单有效。
 3. 内容状态修改成功。
 
-#### TC-ADMIN-05 审计日志
+#### TC-ADMIN-05 审计日志 ✅
 
 前置条件：系统中已产生登录和治理行为。
 
@@ -916,7 +954,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 1. 能查询到登录成功、登录失败或锁定等记录。
 2. 能查询到管理员治理相关操作日志。
 
-## 5. 关键业务口径
+## 7. 关键业务口径
 
 测试时请统一以下口径，避免把业务规则误判为缺陷：
 
@@ -933,7 +971,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 11. AI 追问会话可以被其他可访问该问题的用户查看，但只有创建者可以继续追问。
 12. 顶部欢迎语、头像下拉和用户中心应统一使用同一份当前用户资料。
 
-## 6. 建议记录的缺陷信息
+## 8. 缺陷记录建议
 
 测试同学在提交缺陷时，建议至少记录以下内容：
 
@@ -945,7 +983,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\grant-admin.ps1 -Username <yo
 6. 是否稳定复现
 7. 截图或录屏
 
-## 7. 相关文档
+## 9. 相关文档
 
 - [README.md](../README.md)
 - [docs/current_status.md](current_status.md)
