@@ -52,18 +52,182 @@
             text-decoration: none;
         }
 
+        .navbar-sections {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            margin-left: 28px;
+            flex: 0 0 auto;
+        }
+
+        .section-link {
+            color: #374151;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 22px 0 19px;
+            text-decoration: none;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .section-link:hover {
+            color: #1d4ed8;
+        }
+
+        .nav-search-shell {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 520px;
+            margin: 0 32px 0 46px;
+        }
+
+        .nav-search-input {
+            flex: 1;
+            min-width: 0;
+            height: 42px;
+            padding: 0 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .nav-search-input:focus {
+            border-color: #93c5fd;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        .nav-search-button {
+            height: 42px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .navbar-user {
             display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
             justify-content: flex-end;
+            position: relative;
         }
 
         .user-greeting {
             font-size: 14px;
             color: var(--text-muted);
             font-weight: 500;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar-button {
+            width: 46px;
+            height: 46px;
+            border: 1px solid #dbeafe;
+            border-radius: 999px;
+            padding: 3px;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .user-avatar-button:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.14);
+        }
+
+        .nav-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .nav-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .user-menu-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 58px;
+            width: 190px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+            z-index: 1200;
+        }
+
+        .user-menu-panel.open {
+            display: grid;
+            gap: 6px;
+        }
+
+        .user-menu-panel::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            right: 18px;
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-left: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+            transform: rotate(45deg);
+        }
+
+        .user-menu-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #475569;
+            padding: 11px 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .user-menu-item:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .user-menu-item.danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
         }
 
         .btn-primary,
@@ -167,6 +331,16 @@
             font-weight: 800;
             letter-spacing: 0.02em;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            flex: 0 0 auto;
+        }
+
+        .avatar img,
+        .profile-avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .profile-meta h1 {
@@ -339,6 +513,151 @@
 
         .panel-body {
             padding: 20px 28px 28px;
+        }
+
+        .profile-info-layout {
+            display: grid;
+            grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .profile-avatar-card,
+        .profile-form-card {
+            border: 1px solid #dbeafe;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            padding: 20px;
+        }
+
+        .profile-avatar-preview {
+            width: 116px;
+            height: 116px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #2563eb, #60a5fa);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: 800;
+            overflow: hidden;
+            box-shadow: 0 16px 32px rgba(37, 99, 235, 0.18);
+        }
+
+        .profile-avatar-card h3,
+        .profile-form-card h3 {
+            margin: 16px 0 8px;
+            font-size: 16px;
+        }
+
+        .profile-avatar-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .profile-avatar-actions,
+        .profile-form-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .profile-file-name {
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .author-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #64748b;
+            font-weight: 650;
+        }
+
+        .mini-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid #bfdbfe;
+            flex: 0 0 auto;
+        }
+
+        .mini-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .profile-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .profile-field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .profile-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .profile-field label {
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .profile-field input,
+        .profile-readonly {
+            width: 100%;
+            min-height: 44px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #0f172a;
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .profile-field input:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .profile-readonly {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .profile-form-helper {
+            margin: 0 0 16px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
         }
 
         .item-list {
@@ -812,6 +1131,28 @@
         @media (max-width: 720px) {
             .navbar {
                 padding: 14px 18px;
+                align-items: stretch;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .nav-search-shell {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+                margin: 0;
+            }
+
+            .navbar-sections {
+                order: 2;
+                margin-left: auto;
+                gap: 20px;
+            }
+
+            .section-link {
+                font-size: 16px;
+                white-space: nowrap;
+                padding: 8px 0 10px;
             }
 
             .hero-card {
@@ -832,7 +1173,7 @@
             }
 
             .module-tab-bar {
-                top: 76px;
+                top: 126px;
                 padding: 0 10px;
             }
 
@@ -840,6 +1181,10 @@
             .panel-body {
                 padding-left: 16px;
                 padding-right: 16px;
+            }
+
+            .profile-form-grid {
+                grid-template-columns: 1fr;
             }
 
             .plain-row {
@@ -852,17 +1197,36 @@
             .recommendation-overview {
                 grid-template-columns: 1fr;
             }
+
+            .profile-info-layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 <nav class="navbar">
     <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
+    <div class="navbar-sections">
+        <a class="section-link" href="/home?section=recommend">推荐</a>
+        <a class="section-link" href="/home?section=hot">热榜</a>
+    </div>
+    <div class="nav-search-shell">
+        <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." onkeypress="if(event.key === 'Enter') submitNavSearch()">
+        <button class="nav-search-button" type="button" onclick="submitNavSearch()">搜索</button>
+    </div>
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
-        <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
-        <button class="btn-outline" onclick="goHome()">返回首页</button>
-        <button class="btn-outline" onclick="logout()">退出登录</button>
+        <div class="user-menu">
+            <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
+                <span class="nav-avatar" id="nav-avatar">我</span>
+            </button>
+            <div class="user-menu-panel" id="user-menu-panel">
+                <button class="user-menu-item" type="button" onclick="openProfileInfo()">👤 个人信息</button>
+                <button id="admin-entry" class="user-menu-item" type="button" onclick="goToAdmin()" style="display:none;">🛡️ 管理后台</button>
+                <button class="user-menu-item danger" type="button" onclick="logout()">⏻ 退出登录</button>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -880,6 +1244,7 @@
             </div>
 
             <div class="hero-actions">
+                <button class="btn-outline" type="button" onclick="openProfileInfo()">个人信息</button>
                 <button id="rebuild-profile-btn" class="btn-outline" onclick="rebuildProfile()">重建兴趣画像</button>
                 <button id="generate-recommendations-btn" class="btn-primary" onclick="generateRecommendations()">刷新推荐</button>
             </div>
@@ -896,6 +1261,9 @@
 
     <section class="module-shell">
         <div class="module-tab-bar" id="module-tab-bar">
+            <button class="module-tab" type="button" data-tab="profile-info">
+                个人信息 <span class="module-tab-count" id="tab-count-profile-info">-</span>
+            </button>
             <button class="module-tab active" type="button" data-tab="answers">
                 回答 <span class="module-tab-count" id="tab-count-answers">-</span>
             </button>
@@ -920,6 +1288,76 @@
         </div>
 
         <div class="module-content">
+            <section class="tab-panel" data-tab="profile-info">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>个人信息</h2>
+                            <p>维护头像、昵称、邮箱和手机号。用户名、角色和账号状态由系统维护。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="profile-info-layout">
+                            <div class="profile-avatar-card">
+                                <div class="profile-avatar-preview" id="profile-info-avatar">我</div>
+                                <h3>头像设置</h3>
+                                <p id="profile-avatar-helper">支持 JPG、PNG、WEBP，单张不超过 2MB。</p>
+                                <input id="profile-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarSelection(event)">
+                                <div class="profile-avatar-actions">
+                                    <button class="btn-outline btn-inline" type="button" onclick="chooseAvatarFile()">选择图片</button>
+                                    <button id="upload-avatar-btn" class="btn-primary btn-inline" type="button" onclick="uploadSelectedAvatar()" disabled>上传头像</button>
+                                    <button id="delete-avatar-btn" class="btn-outline btn-inline" type="button" onclick="deleteCurrentAvatar()" disabled>删除头像</button>
+                                </div>
+                                <div class="profile-file-name" id="profile-avatar-file-name">暂未选择新头像。</div>
+                            </div>
+
+                            <div class="profile-form-card">
+                                <h3>基础资料</h3>
+                                <p class="profile-form-helper">修改后会立即刷新用户中心展示；留空表示暂不填写该项。</p>
+                                <div class="profile-form-grid">
+                                    <div class="profile-field">
+                                        <label>用户名</label>
+                                        <div class="profile-readonly" id="profile-info-username">-</div>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>账号状态</label>
+                                        <div class="profile-readonly" id="profile-info-status">-</div>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label for="profile-info-nickname">昵称</label>
+                                        <input id="profile-info-nickname" type="text" maxlength="50" placeholder="例如 Corld">
+                                    </div>
+                                    <div class="profile-field">
+                                        <label for="profile-info-email">邮箱</label>
+                                        <input id="profile-info-email" type="email" maxlength="100" placeholder="例如 name@example.com">
+                                    </div>
+                                    <div class="profile-field">
+                                        <label for="profile-info-phone">手机号</label>
+                                        <input id="profile-info-phone" type="tel" maxlength="20" placeholder="例如 13800000000">
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>角色</label>
+                                        <div class="profile-readonly" id="profile-info-role">-</div>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>注册时间</label>
+                                        <div class="profile-readonly" id="profile-info-register-time">-</div>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>最近登录</label>
+                                        <div class="profile-readonly" id="profile-info-last-login-time">-</div>
+                                    </div>
+                                </div>
+                                <div class="profile-form-actions">
+                                    <button id="save-profile-btn" class="btn-primary" type="button" onclick="saveProfileInfo()">保存个人信息</button>
+                                    <button class="btn-outline" type="button" onclick="renderProfileInfo(currentProfile)">恢复当前资料</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="tab-panel active" data-tab="answers">
                 <div class="panel">
                     <div class="panel-header">
@@ -1062,12 +1500,14 @@
     const HOME_PAGE_URL = '/home';
     const USER_CENTER_TAB_KEY = 'user_center_active_tab';
     const DEFAULT_ACTIVE_TAB = 'answers';
+    const MAX_AVATAR_UPLOAD_SIZE = 2 * 1024 * 1024;
     const RECOMMENDATION_STATUS_META = {
         ACTIVE: '当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。',
         EXPIRED: '这里展示已经过期的历史推荐，方便回看系统之前给过什么内容。',
         DISMISSED: '这里展示已经被忽略的推荐结果，便于后续人工核对推荐策略。'
     };
     const VALID_TABS = new Set([
+        'profile-info',
         'answers',
         'questions',
         'favorites',
@@ -1086,6 +1526,9 @@
         generating: false,
         rebuilding: false,
     };
+    let currentProfile = null;
+    let selectedAvatarFile = null;
+    let selectedAvatarPreviewUrl = '';
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -1122,6 +1565,46 @@
 
     function goToAdmin() {
         window.location.href = '/admin';
+    }
+
+    function submitNavSearch() {
+        const keyword = document.getElementById('nav-search-input')?.value.trim();
+        const url = new URL('/home', window.location.origin);
+        if (keyword) {
+            url.searchParams.set('q', keyword);
+        } else {
+            url.searchParams.set('section', 'hot');
+        }
+        window.location.href = url.toString();
+    }
+
+    function openProfileInfo() {
+        closeUserMenu();
+        setActiveTab('profile-info');
+        document.querySelector('.module-shell')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeUserMenu() {
+        const panel = document.getElementById('user-menu-panel');
+        const trigger = document.getElementById('user-menu-trigger');
+        if (panel) {
+            panel.classList.remove('open');
+        }
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        const panel = document.getElementById('user-menu-panel');
+        const trigger = document.getElementById('user-menu-trigger');
+        if (!panel || !trigger) {
+            return;
+        }
+        const willOpen = !panel.classList.contains('open');
+        panel.classList.toggle('open', willOpen);
+        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     }
 
     function goToQuestion(questionId) {
@@ -1424,6 +1907,299 @@
         }
     }
 
+    function getRoleLabel(role) {
+        switch (role) {
+            case 'ADMIN':
+                return '管理员';
+            case 'USER':
+                return '普通用户';
+            default:
+                return role || '未知角色';
+        }
+    }
+
+    function getProfileDisplayName(profile) {
+        return profile?.nickname || profile?.username || '我';
+    }
+
+    function getProfileInitial(profile) {
+        return getProfileDisplayName(profile).trim().slice(0, 1).toUpperCase() || '我';
+    }
+
+    function resolvePublicUrl(url) {
+        if (!url) {
+            return '';
+        }
+        if (/^(https?:|data:|blob:)/i.test(url)) {
+            return url;
+        }
+        return new URL(url, window.location.origin).toString();
+    }
+
+    function setAvatarElement(element, profile, previewUrl = '') {
+        if (!element) {
+            return;
+        }
+        const avatarUrl = previewUrl || resolvePublicUrl(profile?.avatar_url);
+        element.innerHTML = '';
+        if (avatarUrl) {
+            const img = document.createElement('img');
+            img.src = avatarUrl;
+            img.alt = `${getProfileDisplayName(profile)} 的头像`;
+            element.appendChild(img);
+            return;
+        }
+        element.textContent = getProfileInitial(profile);
+    }
+
+    function getInitial(name) {
+        return String(name || '我').trim().slice(0, 1).toUpperCase() || '我';
+    }
+
+    function renderMiniAvatar(name, avatarUrl) {
+        const resolvedUrl = resolvePublicUrl(avatarUrl);
+        if (resolvedUrl) {
+            return `<span class="mini-avatar"><img src="${escapeHtml(resolvedUrl)}" alt="${escapeHtml(name)} 的头像"></span>`;
+        }
+        return `<span class="mini-avatar">${escapeHtml(getInitial(name))}</span>`;
+    }
+
+    function renderAuthorMeta(name, avatarUrl) {
+        return `
+            <span class="author-meta">
+                ${renderMiniAvatar(name, avatarUrl)}
+                <span>${escapeHtml(name)}</span>
+            </span>
+        `;
+    }
+
+    function getProfileCompletionLabel(profile) {
+        if (!profile) {
+            return '-';
+        }
+        const fields = [
+            profile.nickname,
+            profile.email,
+            profile.phone,
+            profile.avatar_url,
+        ];
+        const completed = fields.filter(value => String(value || '').trim()).length;
+        return completed >= fields.length ? '已完善' : `${completed}/${fields.length}`;
+    }
+
+    function normalizeOptionalInput(value) {
+        const trimmed = String(value || '').trim();
+        return trimmed || null;
+    }
+
+    function setProfileBusy(isBusy) {
+        const saveButton = document.getElementById('save-profile-btn');
+        const uploadButton = document.getElementById('upload-avatar-btn');
+        const deleteButton = document.getElementById('delete-avatar-btn');
+        if (saveButton) {
+            saveButton.disabled = isBusy;
+            saveButton.textContent = isBusy ? '正在保存...' : '保存个人信息';
+        }
+        if (uploadButton) {
+            uploadButton.disabled = isBusy || !selectedAvatarFile;
+        }
+        if (deleteButton) {
+            deleteButton.disabled = isBusy || !currentProfile?.avatar_url;
+        }
+    }
+
+    function clearSelectedAvatarFile() {
+        selectedAvatarFile = null;
+        if (selectedAvatarPreviewUrl) {
+            URL.revokeObjectURL(selectedAvatarPreviewUrl);
+            selectedAvatarPreviewUrl = '';
+        }
+        const input = document.getElementById('profile-avatar-input');
+        const fileName = document.getElementById('profile-avatar-file-name');
+        if (input) {
+            input.value = '';
+        }
+        if (fileName) {
+            fileName.textContent = '暂未选择新头像。';
+        }
+    }
+
+    function renderProfileInfo(profile) {
+        if (!profile) {
+            return;
+        }
+        clearSelectedAvatarFile();
+        setAvatarElement(document.getElementById('profile-info-avatar'), profile);
+        const status = getAccountStatusMeta(profile.status);
+        const helper = document.getElementById('profile-avatar-helper');
+        const fields = {
+            'profile-info-username': profile.username,
+            'profile-info-status': status.label,
+            'profile-info-role': getRoleLabel(profile.role),
+            'profile-info-register-time': formatDate(profile.register_time),
+            'profile-info-last-login-time': formatDate(profile.last_login_time),
+        };
+        Object.entries(fields).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = value || '暂无';
+            }
+        });
+        const nickname = document.getElementById('profile-info-nickname');
+        const email = document.getElementById('profile-info-email');
+        const phone = document.getElementById('profile-info-phone');
+        if (nickname) {
+            nickname.value = profile.nickname || '';
+        }
+        if (email) {
+            email.value = profile.email || '';
+        }
+        if (phone) {
+            phone.value = profile.phone || '';
+        }
+        if (helper) {
+            helper.textContent = profile.avatar_url
+                ? '当前已设置头像。支持 JPG、PNG、WEBP，单张不超过 2MB。'
+                : '当前还没有头像。支持 JPG、PNG、WEBP，单张不超过 2MB。';
+        }
+        setProfileBusy(false);
+    }
+
+    function chooseAvatarFile() {
+        document.getElementById('profile-avatar-input')?.click();
+    }
+
+    function handleAvatarSelection(event) {
+        const file = event.target.files?.[0];
+        if (!file) {
+            return;
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            clearSelectedAvatarFile();
+            showMessage('头像只支持 JPG、PNG 或 WEBP 图片。', false);
+            return;
+        }
+        if (file.size > MAX_AVATAR_UPLOAD_SIZE) {
+            clearSelectedAvatarFile();
+            showMessage('头像不能超过 2MB。', false);
+            return;
+        }
+        clearSelectedAvatarFile();
+        selectedAvatarFile = file;
+        selectedAvatarPreviewUrl = URL.createObjectURL(file);
+        setAvatarElement(document.getElementById('profile-info-avatar'), currentProfile, selectedAvatarPreviewUrl);
+        const fileName = document.getElementById('profile-avatar-file-name');
+        if (fileName) {
+            fileName.textContent = `已选择：${file.name}`;
+        }
+        setProfileBusy(false);
+    }
+
+    async function fetchWithAuth(path, options = {}) {
+        const token = getAccessToken();
+        const response = await fetch(buildApiUrl(path), {
+            ...options,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...(options.headers || {})
+            }
+        });
+
+        if (response.ok) {
+            return response.status === 204 ? null : response.json();
+        }
+
+        let detail = `请求失败（${response.status}）`;
+        try {
+            const err = await response.json();
+            detail = err.detail || detail;
+        } catch (error) {
+            console.error('解析错误响应失败:', error);
+        }
+
+        if ([401, 403, 423].includes(response.status)) {
+            redirectToLogin(detail);
+            throw new Error(detail);
+        }
+
+        throw new Error(detail);
+    }
+
+    async function uploadSelectedAvatar() {
+        if (!selectedAvatarFile) {
+            showMessage('请先选择一张头像图片。', false);
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', selectedAvatarFile);
+        setProfileBusy(true);
+        try {
+            await fetchWithAuth('/api/users/me/avatar', {
+                method: 'POST',
+                body: formData,
+            });
+            clearSelectedAvatarFile();
+            await loadProfile();
+            showMessage('头像已更新。', true);
+        } catch (error) {
+            console.error('上传头像失败:', error);
+            showMessage(error.message || '上传头像失败，请稍后重试。', false);
+        } finally {
+            setProfileBusy(false);
+        }
+    }
+
+    async function deleteCurrentAvatar() {
+        if (!currentProfile?.avatar_url) {
+            showMessage('当前没有可删除的头像。', false);
+            return;
+        }
+        if (!window.confirm('确认删除当前头像吗？')) {
+            return;
+        }
+        setProfileBusy(true);
+        try {
+            await fetchWithAuth('/api/users/me/avatar', { method: 'DELETE' });
+            clearSelectedAvatarFile();
+            await loadProfile();
+            showMessage('头像已删除。', true);
+        } catch (error) {
+            console.error('删除头像失败:', error);
+            showMessage(error.message || '删除头像失败，请稍后重试。', false);
+        } finally {
+            setProfileBusy(false);
+        }
+    }
+
+    async function saveProfileInfo() {
+        const email = normalizeOptionalInput(document.getElementById('profile-info-email')?.value);
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMessage('邮箱格式看起来不太对，请检查后再保存。', false);
+            return;
+        }
+
+        const payload = {
+            nickname: normalizeOptionalInput(document.getElementById('profile-info-nickname')?.value),
+            email,
+            phone: normalizeOptionalInput(document.getElementById('profile-info-phone')?.value),
+        };
+
+        setProfileBusy(true);
+        try {
+            const profile = await fetchJson('/api/users/me/profile', {}, {
+                method: 'PATCH',
+                body: JSON.stringify(payload),
+            });
+            renderProfile(profile);
+            showMessage('个人信息已保存。', true);
+        } catch (error) {
+            console.error('保存个人信息失败:', error);
+            showMessage(error.message || '保存个人信息失败，请稍后重试。', false);
+        } finally {
+            setProfileBusy(false);
+        }
+    }
+
     function buildTagHtml(tags) {
         if (!Array.isArray(tags) || tags.length === 0) {
             return '';
@@ -1467,8 +2243,7 @@
     }
 
     async function loadProfile() {
-        const userId = getCurrentUserId();
-        const profile = await fetchJson(`/api/users/${userId}/profile`);
+        const profile = await fetchJson('/api/users/me/profile');
         renderProfile(profile);
     }
 
@@ -1556,19 +2331,25 @@
     }
 
     function renderProfile(profile) {
+        currentProfile = profile;
         const displayName = profile.nickname || profile.username;
         const accountStatus = getAccountStatusMeta(profile.status);
-        const avatar = (displayName || '我').trim().slice(0, 1).toUpperCase();
 
-        document.getElementById('profile-avatar').innerText = avatar || '我';
+        setAvatarElement(document.getElementById('profile-avatar'), profile);
+        setAvatarElement(document.getElementById('nav-avatar'), profile);
         document.getElementById('profile-title').innerText = `${displayName} 的用户中心`;
         document.getElementById('profile-subtitle').innerText =
-            `用户名：${profile.username} · 角色：${profile.role} · 注册时间：${formatDate(profile.register_time)} · 最近登录：${formatDate(profile.last_login_time)}`;
+            `用户名：${profile.username} · 角色：${getRoleLabel(profile.role)} · 注册时间：${formatDate(profile.register_time)} · 最近登录：${formatDate(profile.last_login_time)}`;
         document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+        if (profile.role === 'ADMIN') {
+            document.getElementById('admin-entry').style.display = 'flex';
+        }
 
+        setTabCount('profile-info', getProfileCompletionLabel(profile));
         setTabCount('questions', profile.question_count);
         setTabCount('answers', profile.answer_count);
         setTabCount('favorites', profile.favorite_count);
+        renderProfileInfo(profile);
 
         document.getElementById('stat-grid').innerHTML = `
             <div class="stat-card"><span class="label">我提出的问题</span><div class="value">${profile.question_count}</div></div>
@@ -1671,13 +2452,17 @@
             <div class="item-list">
                 ${data.items.map(item => {
                     const status = getQuestionStatusMeta(item.question.status);
+                    const authorName = item.question.username || `社区用户 ${item.question.user_id}`;
                     return `
                         <div class="item-card">
                             <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                                 <h3>${escapeHtml(item.question.title)}</h3>
                                 <span class="pill" style="${status.style}">${status.label}</span>
                             </div>
-                            <p>收藏于 ${formatDate(item.favorite_time)} · 作者 ${escapeHtml(item.question.username || `社区用户 ${item.question.user_id}`)}</p>
+                            <p style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <span>收藏于 ${formatDate(item.favorite_time)}</span>
+                                ${renderAuthorMeta(authorName, item.question.author_avatar_url)}
+                            </p>
                             ${buildTagHtml(item.question.tags)}
                             <div class="meta-row">
                                 <span>💬 ${item.question.answer_count || 0} 个回答</span>
@@ -1768,6 +2553,7 @@
                         : 0;
                     const reasons = getRecommendationReasons(item);
                     const status = getQuestionStatusMeta(item.question.status);
+                    const authorName = item.question.username || `社区用户 ${item.question.user_id}`;
                     return `
                         <div class="item-card">
                             <div class="recommendation-card-header">
@@ -1806,6 +2592,7 @@
                                 </div>
                             </div>
                             <div class="meta-row">
+                                ${renderAuthorMeta(authorName, item.question.author_avatar_url)}
                                 <span>💬 ${item.question.answer_count || 0} 个回答</span>
                                 <span>⭐ ${item.question.favorite_count || 0} 次收藏</span>
                                 <span>👀 ${item.question.view_count || 0} 次浏览</span>
@@ -2019,11 +2806,18 @@
             ? `欢迎回来, ${username}`
             : '欢迎回来';
         if (role === 'ADMIN') {
-            document.getElementById('admin-entry').style.display = 'inline-flex';
+            document.getElementById('admin-entry').style.display = 'flex';
         }
 
         await loadUserCenter();
     };
+
+    document.addEventListener('click', closeUserMenu);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            closeUserMenu();
+        }
+    });
 </script>
 </body>
 </html>

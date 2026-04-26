@@ -29,8 +29,9 @@ def _serialize_comment_row(row: tuple[Any, ...]) -> dict[str, Any]:
         "update_time": row[11],
         "author_username": row[12],
         "author_nickname": row[13],
-        "reply_to_username": row[14],
-        "reply_to_nickname": row[15],
+        "author_avatar_url": row[14],
+        "reply_to_username": row[15],
+        "reply_to_nickname": row[16],
     }
 
 
@@ -233,11 +234,15 @@ class CommentRepository:
                 ac.update_time,
                 author.username,
                 author.nickname,
+                author_avatar.public_url,
                 reply_user.username,
                 reply_user.nickname
             FROM answer_comments ac
             JOIN users author
               ON author.user_id = ac.user_id
+            LEFT JOIN media_assets author_avatar
+              ON author_avatar.media_id = author.avatar_media_id
+             AND author_avatar.status = 'ACTIVE'
             LEFT JOIN users reply_user
               ON reply_user.user_id = ac.reply_to_user_id
             WHERE ac.comment_id = :comment_id
@@ -273,11 +278,15 @@ class CommentRepository:
                 ac.update_time,
                 author.username,
                 author.nickname,
+                author_avatar.public_url,
                 reply_user.username,
                 reply_user.nickname
             FROM answer_comments ac
             JOIN users author
               ON author.user_id = ac.user_id
+            LEFT JOIN media_assets author_avatar
+              ON author_avatar.media_id = author.avatar_media_id
+             AND author_avatar.status = 'ACTIVE'
             LEFT JOIN users reply_user
               ON reply_user.user_id = ac.reply_to_user_id
             WHERE ac.answer_id = :answer_id

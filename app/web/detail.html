@@ -45,8 +45,148 @@
             backdrop-filter: blur(12px);
         }
         .navbar-brand { font-size: 21px; font-weight: 800; color: var(--primary); cursor: pointer; text-decoration: none; white-space: nowrap; }
-        .navbar-user { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        .navbar-sections {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            margin-left: 28px;
+            flex: 0 0 auto;
+        }
+        .section-link {
+            color: #374151;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 22px 0 19px;
+            text-decoration: none;
+            position: relative;
+            white-space: nowrap;
+        }
+        .section-link:hover {
+            color: #1d4ed8;
+        }
+        .nav-search-shell {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 520px;
+            margin: 0 32px 0 46px;
+        }
+        .nav-search-input {
+            flex: 1;
+            min-width: 0;
+            height: 42px;
+            padding: 0 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+        .nav-search-input:focus {
+            border-color: #93c5fd;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+        .nav-search-button {
+            height: 42px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .navbar-user { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .user-menu { position: relative; }
+        .user-avatar-button {
+            width: 46px;
+            height: 46px;
+            border: 1px solid #dbeafe;
+            border-radius: 999px;
+            padding: 3px;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .user-avatar-button:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.14);
+        }
+        .nav-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .nav-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .user-menu-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 58px;
+            width: 190px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+            z-index: 1200;
+        }
+        .user-menu-panel.open { display: grid; gap: 6px; }
+        .user-menu-panel::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            right: 18px;
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-left: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+            transform: rotate(45deg);
+        }
+        .user-menu-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #475569;
+            padding: 11px 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+        .user-menu-item:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+        .user-menu-item.danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
         .btn-outline {
             padding: 8px 16px;
             border: 1px solid var(--border-color);
@@ -100,6 +240,39 @@
         .q-title { font-size: 28px; font-weight: 800; margin: 0 0 16px 0; line-height: 1.35; letter-spacing: -0.01em; }
         .q-meta { font-size: 14px; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color); }
         .q-content { font-size: 16px; line-height: 1.8; white-space: pre-wrap; color: #334155; min-height: 100px; }
+        .author-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-weight: 650;
+        }
+        .mini-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid #bfdbfe;
+            flex: 0 0 auto;
+        }
+        .mini-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .mini-avatar.ai {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-color: #c7d2fe;
+        }
 
         /* 加载状态的样式 */
         #loading { text-align: center; padding: 40px; color: var(--text-muted); }
@@ -558,6 +731,268 @@
             flex-wrap: wrap;
         }
 
+        .ai-followup-shell {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #dbeafe;
+        }
+
+        .ai-followup-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 14px 16px;
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+        }
+
+        .ai-followup-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+
+        .ai-followup-title span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #dbeafe;
+        }
+
+        .ai-followup-hint {
+            margin: 4px 0 0 38px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .ai-followup-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ai-followup-panel {
+            display: none;
+            margin-top: 14px;
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .ai-followup-panel.active {
+            display: block;
+        }
+
+        .ai-followup-layout {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            min-height: 360px;
+        }
+
+        .ai-session-list {
+            border-right: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .ai-session-header strong {
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .ai-session-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 10px;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease;
+            text-align: left;
+        }
+
+        .ai-session-item:hover,
+        .ai-session-item.active {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        .ai-session-item-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: #1e3a8a;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .ai-session-item-meta {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .ai-chat-area {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: #ffffff;
+        }
+
+        .ai-chat-head {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ai-chat-head h4 {
+            margin: 0;
+            font-size: 15px;
+            color: #111827;
+        }
+
+        .ai-chat-head p {
+            margin: 4px 0 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .ai-message-list {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 460px;
+            overflow-y: auto;
+            background: #fcfdff;
+        }
+
+        .ai-message {
+            max-width: 86%;
+            border-radius: 16px;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .ai-message.ai {
+            align-self: flex-start;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e293b;
+        }
+
+        .ai-message.system {
+            align-self: center;
+            max-width: 100%;
+            background: #f8fafc;
+            color: #64748b;
+            border-style: dashed;
+            text-align: center;
+        }
+
+        .ai-message-meta {
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            opacity: 0.82;
+        }
+
+        .ai-message-content {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .ai-message-content.markdown-content {
+            white-space: normal;
+        }
+
+        .ai-message-content.markdown-content p:first-child {
+            margin-top: 0;
+        }
+
+        .ai-message-content.markdown-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-chat-composer {
+            padding: 16px 18px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .ai-chat-textarea {
+            width: 100%;
+            min-height: 88px;
+            resize: vertical;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.65;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .ai-chat-textarea:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .ai-chat-actions {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .ai-empty {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 16px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
         .answer-composer-card {
             padding: 24px;
         }
@@ -638,12 +1073,31 @@
                 gap: 8px;
             }
 
+            .nav-search-shell {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+                margin: 0;
+            }
+
+            .navbar-sections {
+                order: 2;
+                margin-left: auto;
+                gap: 20px;
+            }
+
+            .section-link {
+                font-size: 16px;
+                padding: 8px 0 10px;
+            }
+
             .user-greeting {
                 flex-basis: 100%;
             }
 
-            .btn-outline {
-                padding: 8px 12px;
+            .user-menu-panel {
+                right: auto;
+                left: 0;
             }
 
             .detail-card {
@@ -653,6 +1107,19 @@
             .q-title {
                 font-size: 23px;
             }
+
+            .ai-followup-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-session-list {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .ai-message {
+                max-width: 100%;
+            }
         }
 
     </style>
@@ -661,11 +1128,26 @@
 
     <nav class="navbar">
         <a href="/home" class="navbar-brand">💡 AI QA 社区</a>
+        <div class="navbar-sections">
+            <a class="section-link" href="/home?section=recommend">推荐</a>
+            <a class="section-link" href="/home?section=hot">热榜</a>
+        </div>
+        <div class="nav-search-shell">
+            <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." onkeypress="if(event.key === 'Enter') submitNavSearch()">
+            <button class="nav-search-button" type="button" onclick="submitNavSearch()">搜索</button>
+        </div>
         <div class="navbar-user">
             <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
-            <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
-            <button class="btn-outline" onclick="goToProfile()">我的中心</button>
-            <button class="btn-outline" onclick="logout()">退出登录</button>
+            <div class="user-menu">
+                <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
+                    <span class="nav-avatar" id="nav-avatar">我</span>
+                </button>
+                <div class="user-menu-panel" id="user-menu-panel">
+                    <button class="user-menu-item" type="button" onclick="goToProfile()">👤 我的中心</button>
+                    <button id="admin-entry" class="user-menu-item" type="button" onclick="goToAdmin()" style="display:none;">🛡️ 管理后台</button>
+                    <button class="user-menu-item danger" type="button" onclick="logout()">⏻ 退出登录</button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -710,6 +1192,7 @@
         let selectedAnswerImages = [];
         let currentQuestionDetail = null;
         const commentStateByAnswerId = {};
+        const followUpStateByAnswerId = {};
         const DEFAULT_VISIBLE_REPLIES = 2;
 
         function buildApiUrl(path, params = {}) {
@@ -747,6 +1230,83 @@
 
         function goToAdmin() {
             window.location.href = '/admin';
+        }
+
+        function submitNavSearch() {
+            const keyword = document.getElementById('nav-search-input')?.value.trim();
+            const url = new URL('/home', window.location.origin);
+            if (keyword) {
+                url.searchParams.set('q', keyword);
+            } else {
+                url.searchParams.set('section', 'hot');
+            }
+            window.location.href = url.toString();
+        }
+
+        function setNavAvatar(displayName, avatarUrl) {
+            const avatar = document.getElementById('nav-avatar');
+            if (!avatar) {
+                return;
+            }
+            const resolvedUrl = resolvePublicUrl(avatarUrl);
+            avatar.innerHTML = '';
+            if (resolvedUrl) {
+                const img = document.createElement('img');
+                img.src = resolvedUrl;
+                img.alt = `${displayName} 的头像`;
+                avatar.appendChild(img);
+                return;
+            }
+            avatar.textContent = getInitial(displayName);
+        }
+
+        function closeUserMenu() {
+            const panel = document.getElementById('user-menu-panel');
+            const trigger = document.getElementById('user-menu-trigger');
+            if (panel) {
+                panel.classList.remove('open');
+            }
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const panel = document.getElementById('user-menu-panel');
+            const trigger = document.getElementById('user-menu-trigger');
+            if (!panel || !trigger) {
+                return;
+            }
+            const willOpen = !panel.classList.contains('open');
+            panel.classList.toggle('open', willOpen);
+            trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        async function loadCurrentUserProfileForNav() {
+            const token = sessionStorage.getItem('access_token');
+            if (!token) {
+                return;
+            }
+            try {
+                const response = await fetch(buildApiUrl('/api/users/me/profile'), {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    return;
+                }
+                const profile = await response.json();
+                const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
+                document.getElementById('detail-user-greeting').innerText = `欢迎回来, ${displayName}`;
+                setNavAvatar(displayName, profile.avatar_url);
+                sessionStorage.setItem('username', profile.username || '');
+                if (profile.role === 'ADMIN') {
+                    document.getElementById('admin-entry').style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('加载导航用户信息失败:', error);
+            }
         }
 
         function getCurrentQuestionId() {
@@ -880,6 +1440,38 @@
 
         function escapeAttr(value) {
             return escapeHtml(value);
+        }
+
+        function resolvePublicUrl(url) {
+            if (!url) {
+                return '';
+            }
+            if (/^(https?:|data:|blob:)/i.test(url)) {
+                return url;
+            }
+            return new URL(url, window.location.origin).toString();
+        }
+
+        function getInitial(name) {
+            return String(name || '我').trim().slice(0, 1).toUpperCase() || '我';
+        }
+
+        function renderMiniAvatar(name, avatarUrl, fallbackText = '') {
+            const resolvedUrl = resolvePublicUrl(avatarUrl);
+            const isAi = fallbackText === 'AI';
+            if (resolvedUrl) {
+                return `<span class="mini-avatar"><img src="${escapeAttr(resolvedUrl)}" alt="${escapeAttr(name)} 的头像"></span>`;
+            }
+            return `<span class="mini-avatar${isAi ? ' ai' : ''}">${escapeHtml(fallbackText || getInitial(name))}</span>`;
+        }
+
+        function renderAuthorMeta(name, avatarUrl, fallbackText = '') {
+            return `
+                <span class="author-meta">
+                    ${renderMiniAvatar(name, avatarUrl, fallbackText)}
+                    <span>${escapeHtml(name)}</span>
+                </span>
+            `;
         }
 
         function resolveMediaUrl(item) {
@@ -1231,6 +1823,7 @@
                 comment.author_nickname,
                 comment.user_id
             );
+            const authorAvatarHtml = renderMiniAvatar(authorDisplay, comment.author_avatar_url);
             const replyTargetName = getDisplayName(
                 comment.reply_to_username,
                 comment.reply_to_nickname,
@@ -1266,6 +1859,7 @@
                 <div class="comment-item ${isReply ? 'reply' : ''}${highlightClass}${deletedOrHiddenClass}" style="margin-left:${indent}px;">
                     <div class="comment-header">
                         <div class="comment-author-line">
+                            ${authorAvatarHtml}
                             <span class="comment-author">${escapeHtml(authorDisplay)}</span>
                             <span class="comment-time">${formatDateTime(comment.create_time)}</span>
                             <span class="comment-status-badge ${statusClass === 'active' ? 'active' : statusClass}">${statusLabel}</span>
@@ -1579,6 +2173,465 @@
             }
         }
 
+        function getFollowUpState(answerId) {
+            if (!followUpStateByAnswerId[answerId]) {
+                followUpStateByAnswerId[answerId] = {
+                    visible: false,
+                    loadingSessions: false,
+                    sessionsLoaded: false,
+                    sessions: [],
+                    loadingDetail: false,
+                    errorMessage: '',
+                    activeSessionId: null,
+                    activeSession: null,
+                    messages: [],
+                    draft: '',
+                    submitting: false,
+                    newSessionMode: false,
+                };
+            }
+
+            return followUpStateByAnswerId[answerId];
+        }
+
+        function canCurrentUserContinueSession(session) {
+            return Boolean(session)
+                && session.status === 'OPEN'
+                && session.user_id === getCurrentUserId();
+        }
+
+        function getFollowUpSessionOwnerName(session) {
+            if (!session) {
+                return '追问用户';
+            }
+            return session.nickname || session.username || `用户 ${session.user_id}`;
+        }
+
+        function getFollowUpUserMessageLabel(state) {
+            const session = state.activeSession;
+            if (!session) {
+                return '我';
+            }
+            const ownerName = getFollowUpSessionOwnerName(session);
+            return session.user_id === getCurrentUserId()
+                ? `${ownerName}（我）`
+                : ownerName;
+        }
+
+        function updateFollowUpToolbar(answerId) {
+            const state = getFollowUpState(answerId);
+            const count = document.getElementById(`ai-followup-count-${answerId}`);
+            const hint = document.getElementById(`ai-followup-hint-${answerId}`);
+            const toggleBtn = document.getElementById(`toggle-ai-followup-btn-${answerId}`);
+
+            if (count) {
+                count.innerText = state.sessionsLoaded
+                    ? `${state.sessions.length} 个会话`
+                    : 'AI 追问';
+            }
+
+            if (hint) {
+                if (state.loadingSessions) {
+                    hint.innerText = '正在读取围绕这条 AI 回答的追问记录...';
+                } else if (state.sessionsLoaded && state.sessions.length > 0) {
+                    hint.innerText = '可以查看历史追问，也可以开启一轮新的 AI 追问。';
+                } else {
+                    hint.innerText = '围绕这条 AI 回答继续追问，AI 会结合原问题和历史上下文答复。';
+                }
+            }
+
+            if (toggleBtn) {
+                toggleBtn.innerText = state.visible ? '收起追问' : '追问 AI';
+            }
+        }
+
+        function renderFollowUpSessions(answerId, questionId) {
+            const state = getFollowUpState(answerId);
+
+            if (state.loadingSessions) {
+                return '<div class="ai-empty">正在加载追问会话...</div>';
+            }
+
+            if (state.errorMessage) {
+                return `<div class="ai-empty">${escapeHtml(state.errorMessage)}</div>`;
+            }
+
+            const newSessionButton = `
+                <button type="button" class="comment-btn primary" onclick="startNewFollowUpSession(${questionId}, ${answerId})">
+                    新追问
+                </button>
+            `;
+
+            if (!state.sessionsLoaded || state.sessions.length === 0) {
+                return `
+                    <div class="ai-session-header">
+                        <strong>追问记录</strong>
+                        ${newSessionButton}
+                    </div>
+                    <div class="ai-empty">还没有追问会话。可以直接开始第一轮追问。</div>
+                `;
+            }
+
+            return `
+                <div class="ai-session-header">
+                    <strong>追问记录</strong>
+                    ${newSessionButton}
+                </div>
+                ${state.sessions.map(session => {
+                    const activeClass = state.activeSessionId === session.session_id ? ' active' : '';
+                    const ownerName = getFollowUpSessionOwnerName(session);
+                    const ownerLabel = session.user_id === getCurrentUserId()
+                        ? `${ownerName}（我）`
+                        : ownerName;
+                    const statusLabel = session.status === 'OPEN' ? '进行中' : '已结束';
+                    return `
+                        <button type="button" class="ai-session-item${activeClass}" onclick="selectFollowUpSession(${questionId}, ${answerId}, ${session.session_id})">
+                            <div class="ai-session-item-title">
+                                <span>${escapeHtml(ownerLabel)}的会话</span>
+                                <span>${statusLabel}</span>
+                            </div>
+                            <div class="ai-session-item-meta">
+                                ${session.message_count || 0} 条消息 · ${formatDateTime(session.last_message_time || session.start_time)}
+                            </div>
+                        </button>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        function renderFollowUpMessages(answerId) {
+            const state = getFollowUpState(answerId);
+
+            if (state.loadingDetail) {
+                return '<div class="ai-empty">正在加载会话详情...</div>';
+            }
+
+            if (state.errorMessage && state.messages.length === 0) {
+                return `
+                    <div class="ai-message system">
+                        <div class="ai-message-content">${escapeHtml(state.errorMessage)}</div>
+                    </div>
+                `;
+            }
+
+            if (state.messages.length === 0) {
+                return `
+                    <div class="ai-message system">
+                        <div class="ai-message-content">输入你的追问，AI 会结合原问题、首答和本会话历史继续回答。</div>
+                    </div>
+                `;
+            }
+
+            return state.messages.map(message => {
+                const sender = String(message.sender_type || '').toLowerCase();
+                const senderClass = sender === 'user' ? 'user' : (sender === 'ai' ? 'ai' : 'system');
+                const senderLabel = sender === 'user' ? getFollowUpUserMessageLabel(state) : (sender === 'ai' ? 'AI 助手' : '系统');
+                const modelLabel = message.model_name ? ` · ${escapeHtml(message.model_name)}` : '';
+                const contentHtml = sender === 'ai'
+                    ? marked.parse(String(message.content || ''))
+                    : escapeHtml(message.content);
+                const contentClass = sender === 'ai'
+                    ? 'ai-message-content markdown-content'
+                    : 'ai-message-content';
+                return `
+                    <div class="ai-message ${senderClass}">
+                        <div class="ai-message-meta">${senderLabel} · ${formatDateTime(message.send_time)}${modelLabel}</div>
+                        <div class="${contentClass}">${contentHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFollowUpPanel(questionId, answerId) {
+            const panel = document.getElementById(`ai-followup-panel-${answerId}`);
+            if (!panel) {
+                return;
+            }
+
+            const state = getFollowUpState(answerId);
+            updateFollowUpToolbar(answerId);
+
+            if (!state.visible) {
+                panel.className = 'ai-followup-panel';
+                panel.innerHTML = '';
+                return;
+            }
+
+            panel.className = 'ai-followup-panel active';
+            const activeSession = state.activeSession;
+            const canSubmit = !activeSession || canCurrentUserContinueSession(activeSession);
+            const composerHint = activeSession
+                ? (canSubmit ? '这会续写当前会话。' : '这条会话可以查看，但只有创建者能继续追问。')
+                : '这会创建一条新的 AI 追问会话。';
+
+            panel.innerHTML = `
+                <div class="ai-followup-layout">
+                    <aside class="ai-session-list">
+                        ${renderFollowUpSessions(answerId, questionId)}
+                    </aside>
+                    <section class="ai-chat-area">
+                        <div class="ai-chat-head">
+                            <div>
+                                <h4>${activeSession ? `会话 #${activeSession.session_id}` : '新的 AI 追问'}</h4>
+                                <p>${composerHint}</p>
+                            </div>
+                            ${activeSession ? `<span class="comment-counter">${activeSession.message_count || state.messages.length} 条消息</span>` : ''}
+                        </div>
+                        <div class="ai-message-list" id="ai-message-list-${answerId}">
+                            ${renderFollowUpMessages(answerId)}
+                        </div>
+                        <div class="ai-chat-composer">
+                            <textarea
+                                id="ai-followup-draft-${answerId}"
+                                class="ai-chat-textarea"
+                                placeholder="${canSubmit ? '继续追问 AI，例如：这里能不能举个更具体的例子？' : '你只能查看这条会话，不能继续追问。'}"
+                                oninput="updateFollowUpDraft(${answerId}, this.value)"
+                                ${canSubmit ? '' : 'disabled'}
+                            >${escapeHtml(state.draft)}</textarea>
+                            <div class="ai-chat-actions">
+                                <span class="comment-composer-hint">${composerHint}</span>
+                                <button
+                                    type="button"
+                                    class="comment-btn primary"
+                                    onclick="submitFollowUp(${questionId}, ${answerId})"
+                                    ${canSubmit && !state.submitting ? '' : 'disabled'}
+                                >${state.submitting ? 'AI 思考中...' : (activeSession ? '发送追问' : '开始追问')}</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            `;
+
+            requestAnimationFrame(() => {
+                const messageList = document.getElementById(`ai-message-list-${answerId}`);
+                if (messageList) {
+                    messageList.scrollTop = messageList.scrollHeight;
+                }
+            });
+        }
+
+        function updateFollowUpDraft(answerId, value) {
+            const state = getFollowUpState(answerId);
+            state.draft = value;
+        }
+
+        async function preloadFollowUpSessions(questionId, answerId) {
+            const state = getFollowUpState(answerId);
+            if (state.sessionsLoaded || state.loadingSessions) {
+                updateFollowUpToolbar(answerId);
+                return;
+            }
+            await loadFollowUpSessions(questionId, answerId, { silent: true });
+        }
+
+        async function loadFollowUpSessions(questionId, answerId, options = {}) {
+            const token = sessionStorage.getItem('access_token');
+            const state = getFollowUpState(answerId);
+            if (!token) {
+                redirectToLogin('请先登录后再查看 AI 追问。');
+                return;
+            }
+            if (state.loadingSessions) {
+                return;
+            }
+
+            state.loadingSessions = true;
+            state.errorMessage = '';
+            if (!options.silent) {
+                renderFollowUpPanel(questionId, answerId);
+            } else {
+                updateFollowUpToolbar(answerId);
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}/answers/${answerId}/follow-up-sessions`), {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.sessions = Array.isArray(data.items) ? data.items : [];
+                    state.sessionsLoaded = true;
+                    if (!state.activeSessionId && state.sessions.length > 0 && !state.newSessionMode) {
+                        state.activeSessionId = state.sessions[0].session_id;
+                    }
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    state.errorMessage = response.status >= 500
+                        ? 'AI 追问后端暂时不可用，请确认多轮追问数据库迁移已经执行。'
+                        : (err.detail || `拉取 AI 追问会话失败：${response.status}`);
+                    if (!options.silent) {
+                        renderFollowUpPanel(questionId, answerId);
+                    }
+                }
+            } catch (error) {
+                console.error('拉取 AI 追问会话失败:', error);
+                state.errorMessage = '网络错误，AI 追问会话暂时无法加载。';
+            } finally {
+                state.loadingSessions = false;
+                updateFollowUpToolbar(answerId);
+                if (!options.silent) {
+                    renderFollowUpPanel(questionId, answerId);
+                }
+            }
+        }
+
+        async function toggleFollowUpPanel(questionId, answerId) {
+            const state = getFollowUpState(answerId);
+            state.visible = !state.visible;
+            renderFollowUpPanel(questionId, answerId);
+
+            if (state.visible && !state.sessionsLoaded) {
+                await loadFollowUpSessions(questionId, answerId);
+            }
+
+            if (state.visible && state.activeSessionId && state.messages.length === 0 && !state.newSessionMode) {
+                await selectFollowUpSession(questionId, answerId, state.activeSessionId);
+            }
+
+            if (state.visible && !state.activeSessionId) {
+                focusElementSoon(`ai-followup-draft-${answerId}`);
+            }
+        }
+
+        async function selectFollowUpSession(questionId, answerId, sessionId) {
+            const token = sessionStorage.getItem('access_token');
+            const state = getFollowUpState(answerId);
+            if (!token) {
+                redirectToLogin('请先登录后再查看 AI 会话。');
+                return;
+            }
+
+            state.activeSessionId = sessionId;
+            state.newSessionMode = false;
+            state.loadingDetail = true;
+            state.errorMessage = '';
+            state.messages = [];
+            renderFollowUpPanel(questionId, answerId);
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/chat/sessions/${sessionId}`), {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.activeSession = data.session || null;
+                    state.messages = Array.isArray(data.messages) ? data.messages : [];
+                    const matchedIndex = state.sessions.findIndex(item => item.session_id === sessionId);
+                    if (matchedIndex >= 0 && data.session) {
+                        state.sessions[matchedIndex] = data.session;
+                    }
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    state.errorMessage = response.status >= 500
+                        ? 'AI 会话详情暂时不可用，请确认多轮追问数据库迁移已经执行。'
+                        : (err.detail || `拉取 AI 会话详情失败：${response.status}`);
+                }
+            } catch (error) {
+                console.error('拉取 AI 会话详情失败:', error);
+                state.errorMessage = '网络错误，AI 会话暂时无法加载。';
+            } finally {
+                state.loadingDetail = false;
+                renderFollowUpPanel(questionId, answerId);
+            }
+        }
+
+        async function startNewFollowUpSession(questionId, answerId) {
+            const state = getFollowUpState(answerId);
+            state.visible = true;
+            state.activeSessionId = null;
+            state.activeSession = null;
+            state.messages = [];
+            state.draft = '';
+            state.errorMessage = '';
+            state.newSessionMode = true;
+            renderFollowUpPanel(questionId, answerId);
+            if (!state.sessionsLoaded) {
+                await loadFollowUpSessions(questionId, answerId, { silent: true });
+                renderFollowUpPanel(questionId, answerId);
+            }
+            focusElementSoon(`ai-followup-draft-${answerId}`);
+        }
+
+        async function submitFollowUp(questionId, answerId) {
+            const token = sessionStorage.getItem('access_token');
+            const state = getFollowUpState(answerId);
+            const content = state.draft.trim();
+
+            if (!token) {
+                redirectToLogin('请先登录后再追问 AI。');
+                return;
+            }
+
+            if (!content) {
+                alert('追问内容不能为空。');
+                return;
+            }
+
+            if (state.activeSession && !canCurrentUserContinueSession(state.activeSession)) {
+                alert('这条会话只能查看，不能继续追问。');
+                return;
+            }
+
+            state.submitting = true;
+            state.errorMessage = '';
+            renderFollowUpPanel(questionId, answerId);
+
+            try {
+                const payload = { content };
+                if (state.activeSessionId) {
+                    payload.session_id = state.activeSessionId;
+                }
+
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}/answers/${answerId}/follow-up`), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.activeSession = data.session || null;
+                    state.activeSessionId = data.session?.session_id || state.activeSessionId;
+                    state.messages = Array.isArray(data.messages) ? data.messages : [];
+                    state.draft = '';
+                    state.newSessionMode = false;
+                    state.sessionsLoaded = false;
+                    await loadFollowUpSessions(questionId, answerId, { silent: true });
+                    renderFollowUpPanel(questionId, answerId);
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    state.errorMessage = response.status >= 500
+                        ? 'AI 追问后端暂时不可用，请确认多轮追问数据库迁移已经执行。'
+                        : (err.detail || `AI 追问失败：${response.status}`);
+                }
+            } catch (error) {
+                console.error('AI 追问失败:', error);
+                state.errorMessage = '网络错误，AI 追问暂时无法完成。';
+            } finally {
+                state.submitting = false;
+                renderFollowUpPanel(questionId, answerId);
+            }
+        }
+
         async function loadQuestionDetail(resetBrowseSession = false) {
             const token = sessionStorage.getItem('access_token');
             const questionId = getCurrentQuestionId();
@@ -1626,16 +2679,26 @@
             document.getElementById('detail-user-greeting').innerText = username
                 ? `欢迎回来, ${username}`
                 : '已登录用户';
+            setNavAvatar(username || '我', '');
             if (role === 'ADMIN') {
-                document.getElementById('admin-entry').style.display = 'inline-flex';
+                document.getElementById('admin-entry').style.display = 'flex';
             }
+            await loadCurrentUserProfileForNav();
             await loadQuestionDetail(true);
         };
+
+        document.addEventListener('click', closeUserMenu);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeUserMenu();
+            }
+        });
 
         function renderDetail(q) {
             const container = document.getElementById('detail-container');
             const date = new Date(q.ask_time).toLocaleString();
             const author = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+            const questionAuthorHtml = renderAuthorMeta(author, q.author_avatar_url);
             const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
             const statusBadge = buildQuestionStatusBadge(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
@@ -1681,22 +2744,46 @@
                     const answerCardStyle = ans.is_accepted
                         ? 'background:#f0fdf4; border:1px solid #86efac; box-shadow: 0 1px 2px rgba(0,0,0,0.02);'
                         : 'background:#f8fafc; border:1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);';
+                    const isAiAnswer = ans.answer_type === 'AI';
 
                     // 🌟 智能判断：是人类还是 AI？
                     let authorName = '';
                     let authorIcon = '';
                     let tagColor = '';
+                    let authorAvatarHtml = '';
 
                     // 匹配底层数据库里的 'MANUAL' 类型
                     if (ans.answer_type === 'MANUAL' || !ans.provider_name) {
                         authorName = ans.author_username ? ans.author_username : `社区用户 ${ans.user_id}`;
                         authorIcon = '👤';
                         tagColor = 'background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;'; // 真人：高级灰
+                        authorAvatarHtml = renderMiniAvatar(authorName, ans.author_avatar_url);
                     } else {
                         authorName = ans.provider_name;
                         authorIcon = '🤖';
                         tagColor = 'background: #dbeafe; color: #1e40af;'; // AI：科技蓝
+                        authorAvatarHtml = renderMiniAvatar(authorName, '', 'AI');
                     }
+
+                    const followUpHtml = isAiAnswer ? `
+                            <div class="ai-followup-shell">
+                                <div class="ai-followup-toolbar">
+                                    <div>
+                                        <div class="ai-followup-title">
+                                            <span>AI</span>
+                                            <strong>继续追问这条 AI 回答</strong>
+                                            <small id="ai-followup-count-${ansId}" class="comment-counter">AI 追问</small>
+                                        </div>
+                                        <p id="ai-followup-hint-${ansId}" class="ai-followup-hint">围绕这条 AI 回答继续追问，AI 会结合原问题和历史上下文答复。</p>
+                                    </div>
+                                    <div class="ai-followup-actions">
+                                        <button id="toggle-ai-followup-btn-${ansId}" type="button" class="comment-btn subtle" onclick="toggleFollowUpPanel(${q.question_id}, ${ansId})">追问 AI</button>
+                                        <button type="button" class="comment-btn primary" onclick="startNewFollowUpSession(${q.question_id}, ${ansId})">新追问</button>
+                                    </div>
+                                </div>
+                                <div id="ai-followup-panel-${ansId}" class="ai-followup-panel"></div>
+                            </div>
+                    ` : '';
 
                     // 组装带高级样式的 HTML
                     // 组装带高级样式的 HTML
@@ -1706,7 +2793,7 @@
 
                             <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="${tagColor} padding: 4px 8px; border-radius: 6px; font-size: 12px;">${authorIcon} ${authorName}</span>
+                                    <span style="${tagColor} padding: 4px 10px 4px 6px; border-radius: 999px; font-size: 12px; display:inline-flex; align-items:center; gap:7px;">${authorAvatarHtml}<span>${authorIcon} ${escapeHtml(authorName)}</span></span>
                                     <span style="font-weight: normal; font-size: 13px; color: #94a3b8;">回答于 ${ansDate}</span>
                                 </div>
                                 ${acceptedBadge}
@@ -1731,6 +2818,8 @@
                                 </button>
                                 ${acceptButtonHtml}
                             </div>
+
+                            ${followUpHtml}
 
                             <div class="comment-shell">
                                 <div class="comment-toolbar">
@@ -1757,14 +2846,14 @@
 
             container.innerHTML = `
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
-                    <h1 class="q-title" style="margin-bottom: 0;">${q.title}</h1>
+                    <h1 class="q-title" style="margin-bottom: 0;">${escapeHtml(q.title)}</h1>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                         <button onclick="toggleFavorite(${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">${favoriteMeta.label}</button>
                         ${statusBadge}
                     </div>
                 </div>
                 <div class="q-meta">
-                    <span>👤 ${author}</span>
+                    ${questionAuthorHtml}
                     <span>⏱ ${date}</span>
                     <span>⭐ ${q.favorite_count || 0} 次收藏</span>
                     <span>💬 ${q.answer_count || 0} 条回答</span>
@@ -1802,6 +2891,14 @@
                     const state = getCommentState(ans.answer_id);
                     updateCommentToolbar(ans.answer_id);
                     preloadComments(ans.answer_id);
+                    if (ans.answer_type === 'AI') {
+                        const followUpState = getFollowUpState(ans.answer_id);
+                        updateFollowUpToolbar(ans.answer_id);
+                        preloadFollowUpSessions(q.question_id, ans.answer_id);
+                        if (followUpState.visible) {
+                            renderFollowUpPanel(q.question_id, ans.answer_id);
+                        }
+                    }
                     if (state.visible) {
                         renderComments(ans.answer_id);
                         if (!state.loaded) {

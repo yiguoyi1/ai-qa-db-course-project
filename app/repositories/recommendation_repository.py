@@ -135,10 +135,17 @@ class RecommendationRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count
+                q.answer_count,
+                u.username,
+                m.public_url
             FROM recommendations r
             JOIN questions q
               ON q.question_id = r.question_id
+            LEFT JOIN users u
+              ON u.user_id = q.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE r.user_id = :user_id
               AND r.status = :status
             ORDER BY r.rec_score DESC, r.rec_id DESC
@@ -209,6 +216,8 @@ class RecommendationRepository:
                         "view_count": int(row[13]),
                         "favorite_count": int(row[14]),
                         "answer_count": int(row[15]),
+                        "username": row[16],
+                        "author_avatar_url": row[17],
                         "tags": tags_by_question_id.get(question_id, []),
                     },
                 }

@@ -22,6 +22,8 @@ class ChatMessageItem(APIModel):
 class ChatSessionItem(APIModel):
     session_id: int
     user_id: int
+    username: str | None = None
+    nickname: str | None = None
     question_id: int
     seed_answer_id: int
     status: str
