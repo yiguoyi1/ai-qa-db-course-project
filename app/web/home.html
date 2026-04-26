@@ -9,59 +9,260 @@
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
+            --primary-soft: #eff6ff;
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --text-main: #111827;
             --text-muted: #6b7280;
             --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 12px 30px rgba(15, 23, 42, 0.08);
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background:
+                linear-gradient(180deg, #eef4ff 0%, #f8fafc 260px, var(--bg-color) 520px);
             margin: 0;
             color: var(--text-main);
+            line-height: 1.5;
         }
 
         /* 顶部导航栏 */
         .navbar {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
-            padding: 0 40px;
-            height: 64px;
+            padding: 0 clamp(18px, 4vw, 40px);
+            min-height: 68px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(12px);
         }
 
-        .navbar-brand { font-size: 20px; font-weight: 700; color: var(--primary); }
+        .navbar-brand {
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--primary);
+            white-space: nowrap;
+            text-decoration: none;
+        }
 
-        .navbar-user { display: flex; align-items: center; gap: 16px; }
+        .navbar-sections {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            margin-left: 28px;
+            flex: 0 0 auto;
+        }
+
+        .section-link {
+            border: none;
+            background: transparent;
+            color: #374151;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 22px 0 19px;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .section-link:hover {
+            color: #1d4ed8;
+        }
+
+        .section-link.active {
+            color: #111827;
+        }
+
+        .section-link.active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 10px;
+            height: 4px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .navbar-user { display: flex; align-items: center; gap: 14px; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .user-menu { position: relative; }
+        .user-avatar-button {
+            width: 46px;
+            height: 46px;
+            border: 1px solid #dbeafe;
+            border-radius: 999px;
+            padding: 3px;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .user-avatar-button:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.14);
+        }
+        .nav-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .nav-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .user-menu-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 58px;
+            width: 190px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+            z-index: 1200;
+        }
+        .user-menu-panel.open { display: grid; gap: 6px; }
+        .user-menu-panel::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            right: 18px;
+            width: 14px;
+            height: 14px;
+            background: #ffffff;
+            border-left: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
+            transform: rotate(45deg);
+        }
+        .user-menu-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #475569;
+            padding: 11px 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+        .user-menu-item:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+        .user-menu-item.danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
 
         .btn-outline {
             padding: 8px 16px;
             border: 1px solid var(--border-color);
-            background: transparent;
-            border-radius: 6px;
+            background: #ffffff;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s;
+            color: #334155;
+            font-weight: 600;
         }
         .btn-outline:hover { background: #f9fafb; border-color: #d1d5db; }
 
+        .search-shell {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 520px;
+            margin: 0 32px 0 46px;
+            position: relative;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 0;
+            height: 42px;
+            padding: 0 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .search-input:focus {
+            border-color: #93c5fd;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        .search-button {
+            height: 42px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.12s;
+        }
+
+        .search-button:hover { background: var(--primary-hover); }
+        .search-button:active { transform: translateY(1px); }
+
+        .search-history-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 88px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            padding: 8px 0;
+            overflow: hidden;
+        }
+
         /* 核心布局：左侧信息流，右侧边栏 */
         .container {
-            max-width: 1000px;
-            margin: 32px auto;
-            padding: 0 20px;
+            max-width: 1160px;
+            margin: 40px auto 56px;
+            padding: 0 clamp(18px, 4vw, 28px);
             display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 24px;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 28px;
         }
 
         /* 帖子卡片 */
@@ -69,44 +270,83 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
-        .feed-header h2 { margin: 0; font-size: 20px; }
+        .feed-title-group h2 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
+        .feed-title-group p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
 
         .btn-primary {
             padding: 10px 20px;
             background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+            box-shadow: 0 10px 18px rgba(37, 99, 235, 0.16);
         }
         .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-primary:active { transform: translateY(1px); }
 
         .post-card {
             background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
+            padding: 26px 28px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
-            margin-bottom: 16px;
-            transition: box-shadow 0.2s;
+            margin-bottom: 18px;
+            transition: box-shadow 0.2s, transform 0.18s, border-color 0.2s;
+            box-shadow: var(--shadow-sm);
         }
-        .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .post-card:hover {
+            border-color: #dbeafe;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
 
-        .post-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-main); }
+        .post-title { font-size: 19px; font-weight: 750; margin: 0 0 8px 0; color: var(--text-main); line-height: 1.45; }
         .post-preview { font-size: 15px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5; }
-        .post-meta { font-size: 13px; color: #9ca3af; display: flex; gap: 16px; }
+        .post-meta { font-size: 13px; color: #8b95a5; display: flex; gap: 16px; flex-wrap: wrap; }
+        .author-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #64748b;
+            font-weight: 650;
+        }
+        .mini-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid #bfdbfe;
+            flex: 0 0 auto;
+        }
+        .mini-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         /* 右侧边栏 */
+        .sidebar { position: sticky; top: 92px; align-self: start; }
         .sidebar-card {
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 22px;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
         }
-        .sidebar-card h3 { margin: 0 0 16px 0; font-size: 16px; }
+        .sidebar-card h3 { margin: 0 0 16px 0; font-size: 17px; }
 
         /* 🌟 苹果风开关按钮的专属样式 */
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
@@ -195,44 +435,241 @@
             padding: 0;
         }
 
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.42);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 560px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .modal-title {
+            margin: 0 0 24px;
+            color: #111827;
+            font-size: 24px;
+            letter-spacing: -0.01em;
+        }
+
+        .form-field {
+            margin-bottom: 18px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .required { color: #dc2626; }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            background: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        textarea.form-control { resize: vertical; line-height: 1.65; }
+
+        .ai-option-card {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .ai-option-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-option-icon { font-size: 20px; }
+        .ai-option-title { font-size: 14px; color: #1e293b; font-weight: 700; }
+        .ai-option-desc { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        @media (max-width: 980px) {
+            .navbar {
+                align-items: stretch;
+                flex-wrap: wrap;
+                gap: 12px;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .search-shell {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+                margin: 0;
+            }
+
+            .navbar-sections {
+                order: 2;
+                margin-left: auto;
+                gap: 20px;
+            }
+
+            .navbar-user {
+                gap: 8px;
+                margin-left: auto;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                margin-top: 28px;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .navbar-brand {
+                font-size: 19px;
+            }
+
+            .section-link {
+                font-size: 16px;
+                white-space: nowrap;
+                padding: 8px 0 10px;
+            }
+
+            .section-link.active::after {
+                bottom: 2px;
+            }
+
+            .user-greeting {
+                display: none;
+            }
+
+            .user-menu-panel {
+                right: auto;
+                left: 0;
+            }
+
+            .feed-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .btn-primary {
+                width: 100%;
+            }
+
+            .post-card {
+                padding: 22px;
+            }
+
+            .search-history-dropdown {
+                right: 0;
+            }
+
+            .modal-card {
+                padding: 24px;
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+            .modal-actions button {
+                width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="navbar-brand">💡 AI QA 社区</div>
+    <a class="navbar-brand" href="/home?section=hot">💡 AI QA 社区</a>
 
-    <div style="display: flex; gap: 8px; flex: 1; max-width: 400px; margin: 0 24px; position: relative;">
+    <div class="navbar-sections">
+        <button class="section-link" id="section-recommend" type="button" onclick="setHomeSection('recommend')">推荐</button>
+        <button class="section-link active" id="section-hot" type="button" onclick="setHomeSection('hot')">热榜</button>
+    </div>
+
+    <div class="search-shell">
         <input type="text" id="search-input" placeholder="🔍 搜索感兴趣的问题..."
                autocomplete="off"
-               style="flex: 1; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; background: #f9fafb;"
+               class="search-input"
                onfocus="showSearchHistory()"
                onblur="hideSearchHistory()"
                onkeypress="if(event.key === 'Enter') { hideSearchHistory(); doSearch(); }">
 
-        <button onclick="doSearch()"
-                style="background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
-                onmouseover="this.style.background='var(--primary-hover)'"
-                onmouseout="this.style.background='var(--primary)'">
+        <button onclick="doSearch()" class="search-button">
             搜索
         </button>
 
-        <div id="search-history-dropdown" style="display: none; position: absolute; top: 40px; left: 0; right: 70px; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; padding: 8px 0; overflow: hidden;">
+        <div id="search-history-dropdown" class="search-history-dropdown">
             </div>
     </div>
 
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
-        <button id="admin-entry" class="btn-outline" onclick="goToAdmin()" style="display:none;">管理后台</button>
-        <button class="btn-outline" onclick="goToProfile()">我的中心</button>
-        <button class="btn-outline" onclick="logout()">退出登录</button>
+        <div class="user-menu">
+            <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
+                <span class="nav-avatar" id="nav-avatar">我</span>
+            </button>
+            <div class="user-menu-panel" id="user-menu-panel">
+                <button class="user-menu-item" type="button" onclick="goToProfile()">👤 我的中心</button>
+                <button id="admin-entry" class="user-menu-item" type="button" onclick="goToAdmin()" style="display:none;">🛡️ 管理后台</button>
+                <button class="user-menu-item danger" type="button" onclick="logout()">⏻ 退出登录</button>
+            </div>
+        </div>
     </div>
 </nav>
 
 <div class="container">
     <div class="main-feed">
         <div class="feed-header">
-            <h2>最新问答</h2>
+            <div class="feed-title-group">
+                <h2 id="feed-title">热榜问答</h2>
+                <p id="feed-subtitle">优先查看讨论度和收藏度更高的问题，也可以发起新的求助。</p>
+            </div>
             <button class="btn-primary" onclick="openPostModal()">+ 提问</button>
         </div>
 
@@ -249,18 +686,18 @@
     </div>
 </div>
 
-<div id="post-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-    <div style="background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-        <h2 style="margin-top: 0; margin-bottom: 24px; color: #111827;">发布新问题</h2>
+<div id="post-modal" class="modal-backdrop">
+    <div class="modal-card">
+        <h2 class="modal-title">发布新问题</h2>
 
-        <div style="margin-bottom: 16px;">
-            <label style="display:block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">问题标题 <span style="color:red">*</span></label>
-            <input type="text" id="post-title" placeholder="一句话描述你的问题" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; font-size: 15px;">
+        <div class="form-field">
+            <label>问题标题 <span class="required">*</span></label>
+            <input type="text" id="post-title" placeholder="一句话描述你的问题" class="form-control">
         </div>
 
-        <div style="margin-bottom: 24px;">
-            <label style="display:block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">详细描述 <span style="color:red">*</span></label>
-            <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; resize: vertical; font-size: 15px; font-family: inherit;"></textarea>
+        <div class="form-field">
+            <label>详细描述 <span class="required">*</span></label>
+            <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control"></textarea>
         </div>
 
         <div class="media-uploader">
@@ -273,12 +710,12 @@
             <div id="post-image-preview" class="media-preview-grid"></div>
         </div>
 
-        <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 14px 16px; border-radius: 10px; border: 1px solid #e2e8f0; transition: all 0.2s;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="font-size: 20px;">🤖</div>
+        <div class="ai-option-card">
+            <div class="ai-option-main">
+                <div class="ai-option-icon">🤖</div>
                 <div>
-                    <div style="font-size: 14px; color: #1e293b; font-weight: 600;">召唤 AI 助手立刻解答</div>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">开启后，大模型将自动为你生成一份详尽回答</div>
+                    <div class="ai-option-title">召唤 AI 助手立刻解答</div>
+                    <div class="ai-option-desc">开启后，大模型将自动为你生成一份详尽回答</div>
                 </div>
             </div>
             <label class="switch">
@@ -287,9 +724,9 @@
             </label>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-            <button onclick="closePostModal()" style="padding: 10px 20px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; font-weight: 600; cursor: pointer;">取消</button>
-            <button onclick="submitQuestion()" style="padding: 10px 20px; border: none; background: #2563eb; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">发 布</button>
+        <div class="modal-actions">
+            <button onclick="closePostModal()" class="btn-outline">取消</button>
+            <button onclick="submitQuestion()" class="btn-primary">发布</button>
         </div>
     </div>
 </div>
@@ -300,6 +737,7 @@
         const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
         const MAX_QUESTION_IMAGES = 9;
         const MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024;
+        const HOME_SECTIONS = new Set(['recommend', 'hot']);
         let selectedPostImages = [];
 
     function buildApiUrl(path, params = {}) {
@@ -330,6 +768,7 @@
     // 🌟 1. 全局变量，记录当前的搜索词
     let currentSearchQuery = '';
     let currentQuestionPage = 1;
+    let currentHomeSection = 'hot';
 
     function getCurrentUserId() {
         const raw = sessionStorage.getItem('user_id');
@@ -337,10 +776,173 @@
         return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function resolvePublicUrl(url) {
+        if (!url) {
+            return '';
+        }
+        if (/^(https?:|data:|blob:)/i.test(url)) {
+            return url;
+        }
+        return new URL(url, window.location.origin).toString();
+    }
+
+    function getInitial(name) {
+        return String(name || '我').trim().slice(0, 1).toUpperCase() || '我';
+    }
+
+    function renderMiniAvatar(name, avatarUrl) {
+        const resolvedUrl = resolvePublicUrl(avatarUrl);
+        if (resolvedUrl) {
+            return `<span class="mini-avatar"><img src="${escapeHtml(resolvedUrl)}" alt="${escapeHtml(name)} 的头像"></span>`;
+        }
+        return `<span class="mini-avatar">${escapeHtml(getInitial(name))}</span>`;
+    }
+
+    function getQuestionHotScore(question) {
+        return (Number(question.answer_count || 0) * 4)
+            + (Number(question.favorite_count || 0) * 3)
+            + Number(question.view_count || 0);
+    }
+
+    function getHomeSectionFromUrl() {
+        const url = new URL(window.location.href);
+        const section = url.searchParams.get('section');
+        return HOME_SECTIONS.has(section) ? section : 'hot';
+    }
+
+    function updateHomeSectionUi() {
+        document.querySelectorAll('.section-link').forEach(button => {
+            const key = button.id.replace('section-', '');
+            button.classList.toggle('active', key === currentHomeSection && !currentSearchQuery);
+        });
+
+        const title = document.getElementById('feed-title');
+        const subtitle = document.getElementById('feed-subtitle');
+        if (!title || !subtitle) {
+            return;
+        }
+        if (currentSearchQuery) {
+            title.textContent = '搜索结果';
+            subtitle.textContent = `正在查找“${currentSearchQuery}”相关的问题。`;
+            return;
+        }
+        if (currentHomeSection === 'recommend') {
+            title.textContent = '推荐问答';
+            subtitle.textContent = '根据你的兴趣画像和历史行为展示更可能感兴趣的问题。';
+            return;
+        }
+        title.textContent = '热榜问答';
+        subtitle.textContent = '优先查看讨论度、收藏度和浏览量更高的问题。';
+    }
+
+    function syncHomeUrl() {
+        const url = new URL(window.location.href);
+        if (currentSearchQuery) {
+            url.searchParams.set('q', currentSearchQuery);
+            url.searchParams.delete('section');
+        } else {
+            url.searchParams.delete('q');
+            url.searchParams.set('section', currentHomeSection);
+        }
+        window.history.replaceState({}, '', url.toString());
+    }
+
+    function setHomeSection(section) {
+        if (!HOME_SECTIONS.has(section)) {
+            return;
+        }
+        currentHomeSection = section;
+        currentSearchQuery = '';
+        const input = document.getElementById('search-input');
+        if (input) {
+            input.value = '';
+        }
+        syncHomeUrl();
+        updateHomeSectionUi();
+        loadQuestions(1);
+    }
+
+    function setNavAvatar(displayName, avatarUrl) {
+        const avatar = document.getElementById('nav-avatar');
+        if (!avatar) {
+            return;
+        }
+        const resolvedUrl = resolvePublicUrl(avatarUrl);
+        avatar.innerHTML = '';
+        if (resolvedUrl) {
+            const img = document.createElement('img');
+            img.src = resolvedUrl;
+            img.alt = `${displayName} 的头像`;
+            avatar.appendChild(img);
+            return;
+        }
+        avatar.textContent = getInitial(displayName);
+    }
+
+    function closeUserMenu() {
+        const panel = document.getElementById('user-menu-panel');
+        const trigger = document.getElementById('user-menu-trigger');
+        if (panel) {
+            panel.classList.remove('open');
+        }
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        const panel = document.getElementById('user-menu-panel');
+        const trigger = document.getElementById('user-menu-trigger');
+        if (!panel || !trigger) {
+            return;
+        }
+        const willOpen = !panel.classList.contains('open');
+        panel.classList.toggle('open', willOpen);
+        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }
+
+    async function loadCurrentUserProfileForNav() {
+        const token = sessionStorage.getItem('access_token');
+        if (!token) {
+            return;
+        }
+        try {
+            const response = await fetch(buildApiUrl('/api/users/me/profile'), {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                return;
+            }
+            const profile = await response.json();
+            const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
+            document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+            setNavAvatar(displayName, profile.avatar_url);
+            sessionStorage.setItem('username', profile.username || '');
+            if (profile.role === 'ADMIN') {
+                document.getElementById('admin-entry').style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('加载导航用户信息失败:', error);
+        }
+    }
+
     // 🌟 2. 搜索按钮触发的动作
     function doSearch() {
         const inputVal = document.getElementById('search-input').value.trim();
         currentSearchQuery = inputVal;
+        syncHomeUrl();
+        updateHomeSectionUi();
         loadQuestions(1); // 重新从第一页拉取数据
     }
 
@@ -349,12 +951,15 @@
         const token = sessionStorage.getItem('access_token');
         currentQuestionPage = page;
 
-        const requestPath = currentSearchQuery ? '/api/search/questions' : '/api/questions';
-        const url = buildApiUrl(requestPath, {
-            page,
-            page_size: 10,
-            q: currentSearchQuery || undefined,
-        });
+        const userId = getCurrentUserId();
+        const requestPath = currentSearchQuery
+            ? '/api/search/questions'
+            : (currentHomeSection === 'recommend' ? `/api/users/${userId}/recommendations` : '/api/questions');
+        const url = buildApiUrl(requestPath, currentSearchQuery
+            ? { page, page_size: 10, q: currentSearchQuery }
+            : (currentHomeSection === 'recommend'
+                ? { status: 'ACTIVE' }
+                : { page, page_size: 50 }));
 
         try {
             const response = await fetch(url, {
@@ -367,6 +972,22 @@
 
             if (response.ok) {
                 const data = await response.json();
+                if (!currentSearchQuery && currentHomeSection === 'recommend') {
+                    const items = Array.isArray(data.items)
+                        ? data.items.map(item => item.question).filter(Boolean)
+                        : [];
+                    renderQuestions({ items });
+                    return;
+                }
+                if (!currentSearchQuery && currentHomeSection === 'hot') {
+                    const items = Array.isArray(data.items) ? [...data.items] : [];
+                    items.sort((a, b) => {
+                        const scoreDiff = getQuestionHotScore(b) - getQuestionHotScore(a);
+                        return scoreDiff || (new Date(b.ask_time) - new Date(a.ask_time));
+                    });
+                    renderQuestions({ items: items.slice(0, 10) });
+                    return;
+                }
                 renderQuestions(data);
             } else if ([401, 403, 423].includes(response.status)) {
                 const err = await response.json().catch(() => ({}));
@@ -390,15 +1011,28 @@
             window.location.href = LOGIN_PAGE_URL;
             return;
         }
-        document.getElementById('user-greeting').innerText = `欢迎回来, ${username}`;
+        const url = new URL(window.location.href);
+        currentSearchQuery = url.searchParams.get('q')?.trim() || '';
+        currentHomeSection = currentSearchQuery ? 'hot' : getHomeSectionFromUrl();
+        document.getElementById('search-input').value = currentSearchQuery;
+        updateHomeSectionUi();
+        document.getElementById('user-greeting').innerText = `欢迎回来, ${username || '同学'}`;
+        setNavAvatar(username || '我', '');
         if (role === 'ADMIN') {
-            document.getElementById('admin-entry').style.display = 'inline-flex';
+            document.getElementById('admin-entry').style.display = 'flex';
         }
+        await loadCurrentUserProfileForNav();
 
-        // 页面刚打开，没搜索词，直接拉取默认第一页
         loadPopularTags();
         loadQuestions(1);
     };
+
+    document.addEventListener('click', closeUserMenu);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            closeUserMenu();
+        }
+    });
 
     // 🌟 增强版：将真实数据渲染变成漂亮的卡片
     function renderQuestions(responseData) {
@@ -435,11 +1069,17 @@
             const displayAuthor = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
             const statusMeta = getStatusMeta(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
+            const authorHtml = `
+                <span class="author-meta">
+                    ${renderMiniAvatar(displayAuthor, q.author_avatar_url)}
+                    <span>${escapeHtml(displayAuthor)}</span>
+                </span>
+            `;
 
             const cardHtml = `
                 <div class="post-card" style="cursor: pointer;" onclick="goToDetail(${q.question_id})">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                        <h3 class="post-title" style="margin-bottom: 0;">${q.title}</h3>
+                        <h3 class="post-title" style="margin-bottom: 0;">${escapeHtml(q.title)}</h3>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
                             <button onclick="toggleFavorite(event, ${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.2s;">${favoriteMeta.label}</button>
                             <span style="${statusMeta.style} padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;">${statusMeta.label}</span>
@@ -447,7 +1087,7 @@
                     </div>
                     <p class="post-preview">${displayContent}</p>
                     <div class="post-meta">
-                        <span>👤 ${displayAuthor}</span>
+                        ${authorHtml}
                         <span>💬 ${q.answer_count || 0} 个回答</span>
                         <span>⭐ ${q.favorite_count || 0} 次收藏</span>
                         <span>⏱ ${date}</span>

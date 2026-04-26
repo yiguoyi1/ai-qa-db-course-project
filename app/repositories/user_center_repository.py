@@ -249,10 +249,14 @@ class UserCenterRepository:
                 q.view_count,
                 q.favorite_count,
                 q.answer_count,
-                u.username
+                u.username,
+                m.public_url
             FROM questions q
             LEFT JOIN users u
               ON u.user_id = q.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE q.user_id = :user_id
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -276,6 +280,7 @@ class UserCenterRepository:
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
                 "username": row[9],
+                "author_avatar_url": row[10],
                 "tags": [],
             }
             for row in rows
@@ -426,12 +431,16 @@ class UserCenterRepository:
                 q.view_count,
                 q.favorite_count,
                 q.answer_count,
-                u.username
+                u.username,
+                m.public_url
             FROM favorites f
             JOIN questions q
               ON q.question_id = f.question_id
             LEFT JOIN users u
               ON u.user_id = q.user_id
+            LEFT JOIN media_assets m
+              ON m.media_id = u.avatar_media_id
+             AND m.status = 'ACTIVE'
             WHERE f.user_id = :user_id
             ORDER BY f.favorite_time DESC, f.favorite_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
@@ -458,6 +467,7 @@ class UserCenterRepository:
                     "favorite_count": int(row[9]),
                     "answer_count": int(row[10]),
                     "username": row[11],
+                    "author_avatar_url": row[12],
                     "tags": [],
                 },
             }

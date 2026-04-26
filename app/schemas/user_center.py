@@ -80,6 +80,7 @@ class UserFavoriteQuestionItem(APIModel):
     favorite_count: int
     answer_count: int
     username: str | None = None
+    author_avatar_url: str | None = None
     tags: list[TagItem] = Field(default_factory=list)
 
 

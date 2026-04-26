@@ -35,6 +35,7 @@ class CommentItem(APIModel):
     update_time: datetime
     author_username: str | None = None
     author_nickname: str | None = None
+    author_avatar_url: str | None = None
     reply_to_username: str | None = None
     reply_to_nickname: str | None = None
     children: list["CommentItem"] = Field(default_factory=list)

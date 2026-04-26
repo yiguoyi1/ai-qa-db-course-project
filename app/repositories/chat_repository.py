@@ -95,6 +95,8 @@ class ChatRepository:
             SELECT
                 cs.session_id,
                 cs.user_id,
+                u.username,
+                u.nickname,
                 cs.question_id,
                 cs.seed_answer_id,
                 cs.status,
@@ -103,12 +105,16 @@ class ChatRepository:
                 COUNT(cm.message_id) AS message_count,
                 MAX(cm.send_time) AS last_message_time
             FROM chat_session cs
+            JOIN users u
+              ON u.user_id = cs.user_id
             LEFT JOIN chat_message cm
               ON cm.session_id = cs.session_id
             WHERE cs.session_id = :session_id
             GROUP BY
                 cs.session_id,
                 cs.user_id,
+                u.username,
+                u.nickname,
                 cs.question_id,
                 cs.seed_answer_id,
                 cs.status,
@@ -123,13 +129,15 @@ class ChatRepository:
         return {
             "session_id": int(row[0]),
             "user_id": int(row[1]),
-            "question_id": int(row[2]),
-            "seed_answer_id": int(row[3]),
-            "status": row[4],
-            "start_time": row[5],
-            "end_time": row[6],
-            "message_count": int(row[7] or 0),
-            "last_message_time": row[8],
+            "username": row[2],
+            "nickname": row[3],
+            "question_id": int(row[4]),
+            "seed_answer_id": int(row[5]),
+            "status": row[6],
+            "start_time": row[7],
+            "end_time": row[8],
+            "message_count": int(row[9] or 0),
+            "last_message_time": row[10],
         }
 
     def list_sessions_by_anchor(
@@ -145,6 +153,8 @@ class ChatRepository:
             SELECT
                 cs.session_id,
                 cs.user_id,
+                u.username,
+                u.nickname,
                 cs.question_id,
                 cs.seed_answer_id,
                 cs.status,
@@ -153,6 +163,8 @@ class ChatRepository:
                 COUNT(cm.message_id) AS message_count,
                 MAX(cm.send_time) AS last_message_time
             FROM chat_session cs
+            JOIN users u
+              ON u.user_id = cs.user_id
             LEFT JOIN chat_message cm
               ON cm.session_id = cs.session_id
             WHERE cs.question_id = :question_id
@@ -160,6 +172,8 @@ class ChatRepository:
             GROUP BY
                 cs.session_id,
                 cs.user_id,
+                u.username,
+                u.nickname,
                 cs.question_id,
                 cs.seed_answer_id,
                 cs.status,
@@ -176,13 +190,15 @@ class ChatRepository:
             {
                 "session_id": int(row[0]),
                 "user_id": int(row[1]),
-                "question_id": int(row[2]),
-                "seed_answer_id": int(row[3]),
-                "status": row[4],
-                "start_time": row[5],
-                "end_time": row[6],
-                "message_count": int(row[7] or 0),
-                "last_message_time": row[8],
+                "username": row[2],
+                "nickname": row[3],
+                "question_id": int(row[4]),
+                "seed_answer_id": int(row[5]),
+                "status": row[6],
+                "start_time": row[7],
+                "end_time": row[8],
+                "message_count": int(row[9] or 0),
+                "last_message_time": row[10],
             }
             for row in cursor.fetchall()
         ]
