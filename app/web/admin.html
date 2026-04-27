@@ -606,6 +606,7 @@
             <button class="nav-button active" data-section="overview" onclick="switchSection('overview')">总览 <span>→</span></button>
             <button class="nav-button" data-section="users" onclick="switchSection('users')">用户治理 <span>→</span></button>
             <button class="nav-button" data-section="categories" onclick="switchSection('categories')">分类管理 <span>→</span></button>
+            <button class="nav-button" data-section="tags" onclick="switchSection('tags')">标签治理 <span>→</span></button>
             <button class="nav-button" data-section="content" onclick="switchSection('content')">内容治理 <span>→</span></button>
             <button class="nav-button" data-section="logs" onclick="switchSection('logs')">审计日志 <span>→</span></button>
         </aside>
@@ -786,6 +787,48 @@
                 </div>
             </section>
 
+            <section class="section" id="tags-section">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>标签治理</h3>
+                            <p>查看系统、用户和 AI 创建的标签，维护标签描述与启用状态，停用后普通用户发帖时不再展示。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="filters">
+                            <div class="field">
+                                <label for="tag-keyword-filter">关键词</label>
+                                <input id="tag-keyword-filter" placeholder="按标签名搜索">
+                            </div>
+                            <div class="field small">
+                                <label for="tag-source-filter">来源</label>
+                                <select id="tag-source-filter">
+                                    <option value="">全部</option>
+                                    <option value="SYSTEM">系统内置</option>
+                                    <option value="USER">用户创建</option>
+                                    <option value="AI">AI 创建</option>
+                                    <option value="ADMIN">管理员维护</option>
+                                </select>
+                            </div>
+                            <div class="field small">
+                                <label for="tag-status-filter">状态</label>
+                                <select id="tag-status-filter">
+                                    <option value="">全部</option>
+                                    <option value="ACTIVE">启用</option>
+                                    <option value="PENDING">待审核</option>
+                                    <option value="DISABLED">停用</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyTagFilters()">筛选</button>
+                            <button class="btn btn-outline" onclick="resetTagFilters()">重置</button>
+                        </div>
+                        <div id="tags-table" style="margin-top:18px;"><div class="loading">正在加载标签...</div></div>
+                        <div class="pagination" id="tags-pagination"></div>
+                    </div>
+                </div>
+            </section>
+
             <section class="section" id="content-section">
                 <div class="panel" style="margin-bottom: 18px;">
                     <div class="panel-header">
@@ -948,6 +991,7 @@
             overview: ['总览', '查看管理员后台的关键数量，并快速确认系统治理状态。'],
             users: ['用户治理', '筛选用户并调整用户角色、锁定、停用和恢复状态。'],
             categories: ['分类管理', '创建和维护社区问题分类，支持启用与停用。'],
+            tags: ['标签治理', '维护用户画像和推荐系统依赖的标签元数据。'],
             content: ['内容治理', '通过问题 ID 或评论 ID 快速调整内容状态。'],
             logs: ['审计日志', '查看登录日志和管理员操作日志，支撑可追溯治理。'],
         };
@@ -956,6 +1000,7 @@
             currentSection: 'overview',
             users: { page: 1, pageSize: 10, role: '', status: '' },
             categories: { page: 1, pageSize: 8, status: '' },
+            tags: { page: 1, pageSize: 10, source: '', status: '', keyword: '' },
             contentQuestions: { page: 1, pageSize: 6, status: '' },
             loginLogs: { page: 1, pageSize: 10, userId: '', result: '' },
             operationLogs: { page: 1, pageSize: 10, userId: '', opType: '' },
@@ -974,10 +1019,14 @@
             ARCHIVED: '已归档',
             HIDDEN: '已隐藏',
             DELETED: '已删除',
+            PENDING: '待审核',
+            SYSTEM: '系统内置',
+            AI: 'AI 创建',
             SUCCESS: '成功',
             FAILURE: '失败',
             ADMIN_CREATE_CATEGORY: '创建分类',
             ADMIN_UPDATE_CATEGORY: '修改分类',
+            ADMIN_UPDATE_TAG: '修改标签',
             ADMIN_UPDATE_USER_STATUS: '修改用户状态',
             ADMIN_UPDATE_USER_ROLE: '修改用户角色',
             ADMIN_UPDATE_QUESTION_STATUS: '修改问题状态',
@@ -1090,8 +1139,8 @@
             const normalized = String(value || '').toUpperCase();
             let kind = 'gray';
             if (['ACTIVE', 'SUCCESS', 'OPEN'].includes(normalized)) kind = 'success';
-            if (['ADMIN', 'RESOLVED'].includes(normalized)) kind = 'blue';
-            if (['INACTIVE', 'LOCKED', 'HIDDEN', 'ARCHIVED'].includes(normalized)) kind = 'warn';
+            if (['ADMIN', 'SYSTEM', 'AI', 'RESOLVED'].includes(normalized)) kind = 'blue';
+            if (['INACTIVE', 'LOCKED', 'HIDDEN', 'ARCHIVED', 'PENDING'].includes(normalized)) kind = 'warn';
             if (['DISABLED', 'FAILURE', 'CLOSED', 'DELETED'].includes(normalized)) kind = 'danger';
             const label = overrides[normalized] || friendlyLabel(normalized);
             return `<span class="badge ${kind}">${escapeHtml(label)}</span>`;
@@ -1171,6 +1220,7 @@
                 if (section === 'overview') await loadOverview();
                 if (section === 'users') await loadUsers();
                 if (section === 'categories') await loadCategories();
+                if (section === 'tags') await loadTags();
                 if (section === 'content') await loadContentQuestions();
                 if (section === 'logs') {
                     await Promise.all([loadLoginLogs(), loadOperationLogs()]);
@@ -1441,6 +1491,118 @@
                 });
                 showToast('分类已更新。');
                 await Promise.all([loadCategories(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+
+        async function loadTags() {
+            setLoading('tags-table', '正在加载标签...');
+            const data = await adminFetch('/api/admin/tags', {
+                params: {
+                    page: state.tags.page,
+                    page_size: state.tags.pageSize,
+                    source: state.tags.source,
+                    status: state.tags.status,
+                    keyword: state.tags.keyword,
+                },
+            });
+            renderTags(data);
+            renderPagination('tags-pagination', state.tags, data.total, 'changeTagsPage');
+        }
+
+        function renderTags(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('tags-table').innerHTML = '<div class="empty">暂无标签数据</div>';
+                return;
+            }
+            document.getElementById('tags-table').innerHTML = `
+                <div class="table-wrap">
+                    <table style="min-width: 980px;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标签名</th>
+                                <th>来源</th>
+                                <th>状态</th>
+                                <th>描述</th>
+                                <th>创建者</th>
+                                <th>问题数</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(tag => `
+                                <tr>
+                                    <td>${tag.tag_id}</td>
+                                    <td><input class="inline-input" id="tag-name-${tag.tag_id}" value="${escapeHtml(tag.tag_name)}"></td>
+                                    <td>${badge(tag.source || 'SYSTEM', { USER: '用户创建', ADMIN: '管理员维护' })}</td>
+                                    <td>
+                                        ${badge(tag.status, { ACTIVE: '启用', PENDING: '待审核', DISABLED: '停用' })}
+                                        <select class="inline-select" id="tag-status-${tag.tag_id}">
+                                            <option value="ACTIVE" ${tag.status === 'ACTIVE' ? 'selected' : ''}>启用</option>
+                                            <option value="PENDING" ${tag.status === 'PENDING' ? 'selected' : ''}>待审核</option>
+                                            <option value="DISABLED" ${tag.status === 'DISABLED' ? 'selected' : ''}>停用</option>
+                                        </select>
+                                    </td>
+                                    <td><input class="inline-input" style="min-width:220px;" id="tag-desc-${tag.tag_id}" value="${escapeHtml(tag.description || '')}" placeholder="补充标签说明"></td>
+                                    <td>
+                                        <strong>${escapeHtml(tag.create_username || '-')}</strong>
+                                        ${tag.create_user_id ? `<div class="muted">ID：${tag.create_user_id}</div>` : ''}
+                                    </td>
+                                    <td>${tag.question_count ?? 0}</td>
+                                    <td>${formatDate(tag.create_time)}</td>
+                                    <td><button class="btn btn-primary" onclick="updateTag(${tag.tag_id})">保存</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyTagFilters() {
+            state.tags.page = 1;
+            state.tags.keyword = document.getElementById('tag-keyword-filter').value.trim();
+            state.tags.source = document.getElementById('tag-source-filter').value;
+            state.tags.status = document.getElementById('tag-status-filter').value;
+            loadTags();
+        }
+
+        function resetTagFilters() {
+            document.getElementById('tag-keyword-filter').value = '';
+            document.getElementById('tag-source-filter').value = '';
+            document.getElementById('tag-status-filter').value = '';
+            applyTagFilters();
+        }
+
+        function changeTagsPage(page) {
+            state.tags.page = Math.max(1, page);
+            loadTags();
+        }
+
+        async function updateTag(tagId) {
+            const name = document.getElementById(`tag-name-${tagId}`).value.trim();
+            const description = document.getElementById(`tag-desc-${tagId}`).value.trim();
+            const statusValue = document.getElementById(`tag-status-${tagId}`).value;
+            if (!name) {
+                showToast('标签名称不能为空。', true);
+                return;
+            }
+            try {
+                await adminFetch(`/api/admin/tags/${tagId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tag_name: name,
+                        description: description || null,
+                        status: statusValue,
+                    }),
+                });
+                showToast('标签已更新，普通用户发帖可见范围会同步变化。');
+                await loadTags();
             } catch (error) {
                 showToast(error.message, true);
             }
@@ -1795,6 +1957,13 @@
                 }
             }
         }
+
+        document.getElementById('tag-keyword-filter')?.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyTagFilters();
+            }
+        });
 
         window.addEventListener('load', initializeAdminPage);
     </script>

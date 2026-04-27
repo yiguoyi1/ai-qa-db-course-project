@@ -1828,6 +1828,23 @@
         }
     }
 
+    function getRecommendationSourceLabel(value) {
+        switch (value) {
+            case 'PROFILE':
+                return '兴趣画像';
+            case 'POPULAR':
+                return '社区热度';
+            case 'FRESH':
+                return '新鲜内容';
+            case 'HYBRID':
+                return '画像 + 热度 + 新鲜度';
+            case 'MANUAL':
+                return '人工推荐';
+            default:
+                return value || '综合信号';
+        }
+    }
+
     function updateRecommendationControls() {
         const limitSelect = document.getElementById('recommendation-limit');
         const activeCount = document.getElementById('recommendation-active-count');
@@ -1939,7 +1956,7 @@
             reasons.push(getRecommendationTypeLabel(item.rec_type));
         }
         if (item.rec_source) {
-            reasons.push(`来源 ${item.rec_source}`);
+            reasons.push(`来源：${getRecommendationSourceLabel(item.rec_source)}`);
         }
         const tags = Array.isArray(item.question?.tags) ? item.question.tags.slice(0, 2) : [];
         tags.forEach(tag => reasons.push(`#${tag.tag_name}`));
@@ -2648,9 +2665,9 @@
                         <div class="subvalue">当前筛选为“${escapeHtml(getRecommendationStatusLabel(recommendationUiState.status))}”。</div>
                     </div>
                     <div class="insight-card">
-                        <span class="label">最高推荐分值</span>
+                        <span class="label">最高混合分值</span>
                         <div class="value">${topScore.toFixed(2)}</div>
-                        <div class="subvalue">这通常意味着标签匹配和热度信号都比较强。</div>
+                        <div class="subvalue">后端会综合画像匹配、讨论热度和内容新鲜度。</div>
                     </div>
                     <div class="insight-card">
                         <span class="label">平均推荐分值</span>
@@ -2709,7 +2726,7 @@
                                 <span>💬 ${item.question.answer_count || 0} 个回答</span>
                                 <span>⭐ ${item.question.favorite_count || 0} 次收藏</span>
                                 <span>👀 ${item.question.view_count || 0} 次浏览</span>
-                                ${item.rec_source ? `<span>📦 ${escapeHtml(item.rec_source)}</span>` : ''}
+                                ${item.rec_source ? `<span>📦 ${escapeHtml(getRecommendationSourceLabel(item.rec_source))}</span>` : ''}
                             </div>
                             <div class="item-actions">
                                 <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">查看推荐问题</button>
@@ -2785,17 +2802,24 @@
 
         container.innerHTML = `
             <div class="item-list">
-                ${items.map(item => `
+                ${items.map(item => {
+                    const weight = Math.max(0, Math.min(1, Number(item.weight || 0)));
+                    return `
                     <div class="item-card">
                         <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
                             <h3 style="margin:0;">${escapeHtml(item.tag_name)}</h3>
                             <span class="pill" style="background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;">权重 ${Number(item.weight || 0).toFixed(2)}</span>
                         </div>
+                        <div class="recommendation-score-bar" style="margin-top:14px;">
+                            <div class="recommendation-score-fill" style="width:${weight > 0 ? Math.max(8, weight * 100) : 0}%;"></div>
+                        </div>
                         <div class="meta-row">
+                            <span>画像信号：回答、评论、搜索、浏览等行为综合生成</span>
                             <span>最近更新时间：${formatDate(item.update_time)}</span>
                         </div>
                     </div>
-                `).join('')}
+                `;
+                }).join('')}
             </div>
         `;
     }

@@ -30,6 +30,10 @@
             line-height: 1.5;
         }
 
+        body.modal-open {
+            overflow: hidden;
+        }
+
         /* 顶部导航栏 */
         .navbar {
             background-color: var(--card-bg);
@@ -445,6 +449,7 @@
             align-items: center;
             padding: 20px;
             backdrop-filter: blur(8px);
+            overscroll-behavior: contain;
         }
 
         .modal-card {
@@ -453,6 +458,8 @@
             max-width: 560px;
             max-height: calc(100vh - 40px);
             overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             padding: 30px;
             border-radius: 18px;
             box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
@@ -499,6 +506,113 @@
         }
 
         textarea.form-control { resize: vertical; line-height: 1.65; }
+
+        .tag-picker {
+            margin-bottom: 22px;
+            padding: 16px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        }
+
+        .tag-picker-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .tag-picker-title {
+            margin: 0 0 4px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .tag-picker-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .tag-option-list,
+        .selected-tag-list,
+        .tag-suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-option,
+        .selected-tag,
+        .tag-suggestion {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .tag-option:hover,
+        .tag-suggestion:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+        }
+
+        .tag-option.active,
+        .selected-tag {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .selected-tag.custom {
+            background: #eef2ff;
+            color: #4338ca;
+            border-color: #c7d2fe;
+        }
+
+        .selected-tag button {
+            margin-left: 6px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .tag-input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .tag-suggestion-list {
+            margin-top: 10px;
+        }
+
+        .auto-tag-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .tag-picker-empty {
+            color: #94a3b8;
+            font-size: 13px;
+        }
 
         .ai-option-card {
             margin-bottom: 24px;
@@ -618,6 +732,13 @@
             .modal-actions button {
                 width: 100%;
             }
+
+            .tag-input-row,
+            .auto-tag-row {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
 
     </style>
@@ -700,6 +821,35 @@
             <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control"></textarea>
         </div>
 
+        <div class="tag-picker">
+            <div class="tag-picker-head">
+                <div>
+                    <p class="tag-picker-title">问题标签</p>
+                    <p class="tag-picker-hint">选择已有标签或输入自定义标签，系统会用它们生成兴趣画像和推荐理由。</p>
+                </div>
+                <span class="tag-picker-empty" id="post-tag-count">0 / 10</span>
+            </div>
+            <div id="post-selected-tags" class="selected-tag-list" style="margin-bottom: 12px;"></div>
+            <div id="post-tag-options" class="tag-option-list">
+                <span class="tag-picker-empty">正在加载可选标签...</span>
+            </div>
+            <div class="tag-input-row">
+                <input id="post-custom-tag-input" class="form-control" type="text" maxlength="30" placeholder="输入自定义标签，回车添加">
+                <button class="btn-outline" type="button" onclick="addCustomTagFromInput()">添加标签</button>
+            </div>
+            <div id="post-tag-suggestions" class="tag-suggestion-list"></div>
+            <div class="auto-tag-row">
+                <div>
+                    <div class="ai-option-title">没有合适标签时自动识别</div>
+                    <div class="ai-option-desc">未选择或填写标签时，由 AI 根据标题和正文补全标签。</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="post-auto-tag" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
         <div class="media-uploader">
             <div class="media-uploader-title">
                 <span>问题配图</span>
@@ -737,8 +887,13 @@
         const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
         const MAX_QUESTION_IMAGES = 9;
         const MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024;
+        const MAX_POST_TAGS = 10;
         const HOME_SECTIONS = new Set(['recommend', 'hot']);
         let selectedPostImages = [];
+        let availablePostTags = [];
+        let selectedPostTagIds = new Set();
+        let selectedCustomTags = [];
+        let tagSuggestionTimer = null;
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -809,9 +964,16 @@
     }
 
     function getQuestionHotScore(question) {
-        return (Number(question.answer_count || 0) * 4)
+        const interactionScore = (Number(question.answer_count || 0) * 4)
             + (Number(question.favorite_count || 0) * 3)
             + Number(question.view_count || 0);
+        const askTime = new Date(question.ask_time).getTime();
+        if (!Number.isFinite(askTime)) {
+            return interactionScore;
+        }
+        const ageHours = Math.max(0, (Date.now() - askTime) / 36e5);
+        const freshnessScore = Math.max(0, 80 - ageHours * 3);
+        return interactionScore + freshnessScore;
     }
 
     function getHomeSectionFromUrl() {
@@ -842,7 +1004,7 @@
             return;
         }
         title.textContent = '热榜问答';
-        subtitle.textContent = '优先查看讨论度、收藏度和浏览量更高的问题。';
+        subtitle.textContent = '优先查看讨论度、收藏度、浏览量和新鲜度更高的问题。';
     }
 
     function syncHomeUrl() {
@@ -1215,14 +1377,211 @@
     // 🌟 弹窗的开启与关闭逻辑
     function openPostModal() {
         document.getElementById('post-modal').style.display = 'flex';
+        document.body.classList.add('modal-open');
+        loadPostTagOptions();
+        setTimeout(() => document.getElementById('post-title')?.focus(), 0);
     }
 
     function closePostModal() {
         document.getElementById('post-modal').style.display = 'none';
+        document.body.classList.remove('modal-open');
         // 关闭时清空输入框
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
+        resetPostTagSelection();
         resetPostImageSelection();
+    }
+
+    function getPostTagTotal() {
+        return selectedPostTagIds.size + selectedCustomTags.length;
+    }
+
+    function canAddPostTag() {
+        if (getPostTagTotal() >= MAX_POST_TAGS) {
+            alert(`最多只能添加 ${MAX_POST_TAGS} 个标签。`);
+            return false;
+        }
+        return true;
+    }
+
+    async function loadPostTagOptions() {
+        const container = document.getElementById('post-tag-options');
+        if (!container || availablePostTags.length > 0) {
+            renderPostTagOptions();
+            return;
+        }
+
+        try {
+            const response = await fetch(buildApiUrl('/api/tags'));
+            if (!response.ok) {
+                throw new Error('标签加载失败');
+            }
+            const data = await response.json();
+            availablePostTags = Array.isArray(data.items) ? data.items : [];
+            renderPostTagOptions();
+        } catch (error) {
+            console.error('加载发帖标签失败:', error);
+            container.innerHTML = '<span class="tag-picker-empty">暂时无法加载已有标签，也可以直接输入自定义标签。</span>';
+        }
+    }
+
+    function renderPostTagOptions() {
+        const container = document.getElementById('post-tag-options');
+        if (!container) {
+            return;
+        }
+
+        const visibleTags = availablePostTags.slice(0, 16);
+        if (visibleTags.length === 0) {
+            container.innerHTML = '<span class="tag-picker-empty">暂无可选标签，可以先输入自定义标签。</span>';
+        } else {
+            container.innerHTML = visibleTags.map(tag => {
+                const id = Number(tag.tag_id);
+                const active = selectedPostTagIds.has(id);
+                return `
+                    <button class="tag-option ${active ? 'active' : ''}" type="button" onclick="toggleExistingPostTag(${id})">
+                        ${escapeHtml(tag.tag_name)}
+                    </button>
+                `;
+            }).join('');
+        }
+        renderSelectedPostTags();
+    }
+
+    function renderSelectedPostTags() {
+        const container = document.getElementById('post-selected-tags');
+        const count = document.getElementById('post-tag-count');
+        if (count) {
+            count.textContent = `${getPostTagTotal()} / ${MAX_POST_TAGS}`;
+        }
+        if (!container) {
+            return;
+        }
+
+        const selectedExisting = availablePostTags.filter(tag => selectedPostTagIds.has(Number(tag.tag_id)));
+        const existingHtml = selectedExisting.map(tag => `
+            <span class="selected-tag">
+                ${escapeHtml(tag.tag_name)}
+                <button type="button" onclick="removeExistingPostTag(${Number(tag.tag_id)})">×</button>
+            </span>
+        `).join('');
+        const customHtml = selectedCustomTags.map((tag, index) => `
+            <span class="selected-tag custom">
+                ${escapeHtml(tag)}
+                <button type="button" onclick="removeCustomPostTag(${index})">×</button>
+            </span>
+        `).join('');
+
+        container.innerHTML = existingHtml || customHtml
+            ? `${existingHtml}${customHtml}`
+            : '<span class="tag-picker-empty">还没有选择标签，可以直接发布并让 AI 自动识别。</span>';
+    }
+
+    function toggleExistingPostTag(tagId) {
+        if (selectedPostTagIds.has(tagId)) {
+            selectedPostTagIds.delete(tagId);
+        } else {
+            if (!canAddPostTag()) {
+                return;
+            }
+            selectedPostTagIds.add(tagId);
+        }
+        renderPostTagOptions();
+    }
+
+    function removeExistingPostTag(tagId) {
+        selectedPostTagIds.delete(tagId);
+        renderPostTagOptions();
+    }
+
+    function addExistingPostTag(tagId) {
+        if (selectedPostTagIds.has(tagId)) {
+            return;
+        }
+        if (!canAddPostTag()) {
+            return;
+        }
+        selectedPostTagIds.add(tagId);
+        renderPostTagOptions();
+    }
+
+    function normalizeCustomTag(value) {
+        return String(value || '').trim().replace(/^#/, '').replace(/\s+/g, ' ');
+    }
+
+    function addCustomTagFromInput() {
+        const input = document.getElementById('post-custom-tag-input');
+        const tagName = normalizeCustomTag(input?.value);
+        if (!tagName) {
+            alert('请输入要添加的标签名称。');
+            return;
+        }
+        if (!canAddPostTag()) {
+            return;
+        }
+        const duplicatedExisting = availablePostTags.find(tag => tag.tag_name === tagName);
+        if (duplicatedExisting) {
+            addExistingPostTag(Number(duplicatedExisting.tag_id));
+        } else if (!selectedCustomTags.includes(tagName)) {
+            selectedCustomTags.push(tagName);
+        }
+        if (input) {
+            input.value = '';
+        }
+        document.getElementById('post-tag-suggestions').innerHTML = '';
+        renderPostTagOptions();
+    }
+
+    function removeCustomPostTag(index) {
+        selectedCustomTags.splice(index, 1);
+        renderSelectedPostTags();
+    }
+
+    async function loadTagSuggestions(keyword) {
+        const container = document.getElementById('post-tag-suggestions');
+        if (!container) {
+            return;
+        }
+        if (!keyword) {
+            container.innerHTML = '';
+            return;
+        }
+        try {
+            const response = await fetch(buildApiUrl('/api/tags/suggestions', { keyword, limit: 8 }));
+            if (!response.ok) {
+                container.innerHTML = '';
+                return;
+            }
+            const data = await response.json();
+            const suggestions = Array.isArray(data.items) ? data.items : [];
+            container.innerHTML = suggestions.map(tag => `
+                <button class="tag-suggestion" type="button" onclick="addExistingPostTag(${Number(tag.tag_id)})">
+                    ${escapeHtml(tag.tag_name)}${tag.question_count ? ` · ${tag.question_count}题` : ''}
+                </button>
+            `).join('');
+        } catch (error) {
+            console.error('获取标签建议失败:', error);
+        }
+    }
+
+    function resetPostTagSelection() {
+        selectedPostTagIds = new Set();
+        selectedCustomTags = [];
+        const input = document.getElementById('post-custom-tag-input');
+        const autoTag = document.getElementById('post-auto-tag');
+        if (input) input.value = '';
+        if (autoTag) autoTag.checked = true;
+        const suggestions = document.getElementById('post-tag-suggestions');
+        if (suggestions) suggestions.innerHTML = '';
+        renderPostTagOptions();
+    }
+
+    function getPostTagPayload() {
+        return {
+            tag_ids: Array.from(selectedPostTagIds),
+            custom_tags: selectedCustomTags,
+            auto_tag: Boolean(document.getElementById('post-auto-tag')?.checked),
+        };
     }
 
     function formatFileSize(bytes) {
@@ -1362,13 +1721,14 @@
         const token = sessionStorage.getItem('access_token');
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
         const imagesToUpload = [...selectedPostImages];
+        const tagPayload = getPostTagPayload();
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
         const originalBtnText = submitBtn.innerText;
 
         try {
             // 🌟 核心分流逻辑 🌟
             let apiUrl = buildApiUrl('/api/questions');
-            let requestBody = { title: titleInput, content: contentInput };
+            let requestBody = { title: titleInput, content: contentInput, ...tagPayload };
 
             if (useAi) {
                 // 如果开启了 AI，走原作者带 AI 生成的专属通道
@@ -1378,7 +1738,7 @@
                     category_id: 1,
                     title: titleInput,
                     content: contentInput,
-                    tag_ids: []
+                    ...tagPayload
                 };
             }
 
@@ -1520,6 +1880,19 @@
             container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
         }
     }
+
+    document.getElementById('post-custom-tag-input')?.addEventListener('input', event => {
+        window.clearTimeout(tagSuggestionTimer);
+        const keyword = normalizeCustomTag(event.target.value);
+        tagSuggestionTimer = window.setTimeout(() => loadTagSuggestions(keyword), 260);
+    });
+
+    document.getElementById('post-custom-tag-input')?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addCustomTagFromInput();
+        }
+    });
 
 </script>
 </body>
