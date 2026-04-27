@@ -279,6 +279,80 @@
         .feed-title-group h2 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
         .feed-title-group p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
 
+        .feed-filters {
+            margin: -6px 0 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 12px;
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-select {
+            min-width: 138px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #334155;
+            font-weight: 700;
+            outline: none;
+        }
+
+        .filter-select:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        .active-filter-summary {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .question-tag-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: -4px 0 14px;
+        }
+
+        .question-tag {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .sidebar-tag-button {
+            border: 1px solid #c7d2fe;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .sidebar-tag-button:hover,
+        .sidebar-tag-button.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+        }
+
         .btn-primary {
             padding: 10px 20px;
             background-color: var(--primary);
@@ -739,6 +813,260 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .feed-filters {
+                align-items: stretch;
+            }
+
+            .filter-select,
+            .feed-filters button {
+                width: 100%;
+            }
+        }
+
+        /* Enterprise UI refinement layer: only visual overrides, no business logic changes. */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-weak: #eef5ff;
+            --surface-glass: rgba(255, 255, 255, 0.86);
+            --border-color: #dbe3ef;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 18px 42px rgba(15, 23, 42, 0.09);
+            --shadow-hover: 0 24px 54px rgba(37, 99, 235, 0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 14% 8%, rgba(59, 130, 246, 0.18), transparent 28%),
+                radial-gradient(circle at 82% 0%, rgba(14, 165, 233, 0.12), transparent 26%),
+                linear-gradient(180deg, #f3f7ff 0%, #f8fbff 360px, #f4f7fb 100%);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 52%);
+        }
+
+        .navbar {
+            min-height: 74px;
+            background: rgba(255, 255, 255, 0.88);
+            border-bottom: 1px solid rgba(219, 227, 239, 0.9);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        .navbar-brand {
+            letter-spacing: -0.03em;
+        }
+
+        .section-link {
+            color: #475569;
+            transition: color 0.18s ease;
+        }
+
+        .section-link.active {
+            color: #0f172a;
+        }
+
+        .section-link.active::after {
+            height: 3px;
+            bottom: 12px;
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+        }
+
+        .search-shell {
+            max-width: 560px;
+        }
+
+        .search-input,
+        .filter-select,
+        .form-control {
+            border-color: #dbe3ef;
+            background: rgba(248, 250, 252, 0.92);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .search-input:focus,
+        .filter-select:focus,
+        .form-control:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+        }
+
+        .search-button,
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 62%, #38bdf8 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22);
+        }
+
+        .search-button:hover,
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 62%, #0ea5e9 100%);
+            box-shadow: 0 18px 34px rgba(37, 99, 235, 0.28);
+        }
+
+        .btn-outline {
+            border-color: #d4deeb;
+            background: rgba(255, 255, 255, 0.82);
+            color: #334155;
+        }
+
+        .btn-outline:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .container {
+            max-width: 1240px;
+            gap: 32px;
+        }
+
+        .feed-header {
+            align-items: flex-end;
+            margin-bottom: 18px;
+        }
+
+        .feed-title-group h2 {
+            font-size: clamp(25px, 2.1vw, 31px);
+            letter-spacing: -0.04em;
+        }
+
+        .feed-title-group p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .feed-filters,
+        .sidebar-card,
+        .post-card,
+        .modal-card,
+        .user-menu-panel {
+            background: var(--surface-glass);
+            border: 1px solid rgba(219, 227, 239, 0.92);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(14px);
+        }
+
+        .feed-filters {
+            padding: 14px;
+            border-radius: var(--radius-lg);
+        }
+
+        .post-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-xl);
+            padding: 28px 30px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.82)),
+                radial-gradient(circle at 94% 8%, rgba(37, 99, 235, 0.08), transparent 32%);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .post-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: linear-gradient(180deg, #2563eb, #38bdf8);
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .post-card:hover {
+            border-color: #bfdbfe;
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+        }
+
+        .post-card:hover::before {
+            opacity: 1;
+        }
+
+        .post-title {
+            color: #0f172a;
+            letter-spacing: -0.025em;
+        }
+
+        .post-preview,
+        .post-meta {
+            color: #748198;
+        }
+
+        .question-tag,
+        .sidebar-tag-button,
+        .tag-option,
+        .tag-suggestion,
+        .selected-tag {
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-card {
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .sidebar-card h3 {
+            letter-spacing: -0.02em;
+        }
+
+        .modal-backdrop {
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(12px);
+        }
+
+        .modal-card {
+            border-radius: 26px;
+            box-shadow: 0 34px 80px rgba(15, 23, 42, 0.24);
+        }
+
+        .tag-picker,
+        .media-uploader,
+        .ai-option-card {
+            border-color: #dbeafe;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            border-radius: 18px;
+        }
+
+        .empty-state,
+        .loading-state {
+            border-radius: var(--radius-lg);
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                max-width: 760px;
+                gap: 22px;
+            }
+
+            .feed-header {
+                align-items: flex-start;
+            }
+
+            .post-card {
+                padding: 22px;
+            }
         }
 
     </style>
@@ -794,6 +1122,21 @@
             <button class="btn-primary" onclick="openPostModal()">+ 提问</button>
         </div>
 
+        <div class="feed-filters">
+            <select id="category-filter" class="filter-select" onchange="applyQuestionFilters()">
+                <option value="">全部分类</option>
+            </select>
+            <select id="status-filter" class="filter-select" onchange="applyQuestionFilters()">
+                <option value="">全部状态</option>
+                <option value="OPEN">开放中</option>
+                <option value="RESOLVED">已解决</option>
+                <option value="CLOSED">已关闭</option>
+                <option value="ARCHIVED">已归档</option>
+            </select>
+            <button class="btn-outline" type="button" onclick="clearQuestionFilters()">清除筛选</button>
+            <span id="active-filter-summary" class="active-filter-summary">当前查看全部问题</span>
+        </div>
+
         <div id="post-list"></div>
     </div>
 
@@ -819,6 +1162,13 @@
         <div class="form-field">
             <label>详细描述 <span class="required">*</span></label>
             <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control"></textarea>
+        </div>
+
+        <div class="form-field">
+            <label>问题分类 <span class="required">*</span></label>
+            <select id="post-category" class="form-control">
+                <option value="">正在加载分类...</option>
+            </select>
         </div>
 
         <div class="tag-picker">
@@ -890,10 +1240,14 @@
         const MAX_POST_TAGS = 10;
         const HOME_SECTIONS = new Set(['recommend', 'hot']);
         let selectedPostImages = [];
+        let availableCategories = [];
         let availablePostTags = [];
         let selectedPostTagIds = new Set();
         let selectedCustomTags = [];
         let tagSuggestionTimer = null;
+        let currentCategoryFilter = '';
+        let currentTagFilter = '';
+        let currentStatusFilter = '';
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -982,11 +1336,172 @@
         return HOME_SECTIONS.has(section) ? section : 'hot';
     }
 
+    function getStatusLabel(status) {
+        switch (String(status || '').toUpperCase()) {
+            case 'OPEN':
+                return '开放中';
+            case 'RESOLVED':
+                return '已解决';
+            case 'CLOSED':
+                return '已关闭';
+            case 'ARCHIVED':
+                return '已归档';
+            default:
+                return '';
+        }
+    }
+
+    function normalizePositiveId(value) {
+        const id = Number(value);
+        return Number.isInteger(id) && id > 0 ? String(id) : '';
+    }
+
+    function getCategoryName(categoryId) {
+        const id = Number(categoryId);
+        const category = availableCategories.find(item => Number(item.category_id) === id);
+        return category?.category_name || '';
+    }
+
+    function getTagName(tagId) {
+        const id = Number(tagId);
+        const tag = availablePostTags.find(item => Number(item.tag_id) === id);
+        return tag?.tag_name || '';
+    }
+
+    function getQuestionFilterParams() {
+        return {
+            category_id: currentCategoryFilter || undefined,
+            tag_id: currentTagFilter || undefined,
+            status: currentStatusFilter || undefined
+        };
+    }
+
+    function questionMatchesFilters(question) {
+        if (currentCategoryFilter && Number(question.category_id) !== Number(currentCategoryFilter)) {
+            return false;
+        }
+        if (currentStatusFilter && String(question.status || '').toUpperCase() !== currentStatusFilter) {
+            return false;
+        }
+        if (currentTagFilter) {
+            const tags = Array.isArray(question.tags) ? question.tags : [];
+            return tags.some(tag => Number(tag.tag_id) === Number(currentTagFilter));
+        }
+        return true;
+    }
+
+    function renderQuestionTags(tags) {
+        if (!Array.isArray(tags) || tags.length === 0) {
+            return '';
+        }
+        return `
+            <div class="question-tag-list">
+                ${tags.slice(0, 5).map(tag => `<span class="question-tag"># ${escapeHtml(tag.tag_name)}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    function updateFilterSummary() {
+        const summary = document.getElementById('active-filter-summary');
+        if (!summary) {
+            return;
+        }
+
+        const parts = [];
+        const categoryName = getCategoryName(currentCategoryFilter);
+        const tagName = getTagName(currentTagFilter);
+        const statusName = getStatusLabel(currentStatusFilter);
+        if (categoryName) parts.push(`分类：${categoryName}`);
+        if (tagName) parts.push(`标签：${tagName}`);
+        if (statusName) parts.push(`状态：${statusName}`);
+        summary.textContent = parts.length > 0 ? `已筛选 ${parts.join(' / ')}` : '当前查看全部问题';
+    }
+
+    function renderCategoryControls() {
+        const filterSelect = document.getElementById('category-filter');
+        const postSelect = document.getElementById('post-category');
+        const categoryOptions = availableCategories
+            .map(category => `
+                <option value="${Number(category.category_id)}">${escapeHtml(category.category_name)}</option>
+            `)
+            .join('');
+
+        if (filterSelect) {
+            filterSelect.innerHTML = `<option value="">全部分类</option>${categoryOptions}`;
+            filterSelect.value = currentCategoryFilter || '';
+        }
+        if (postSelect) {
+            postSelect.innerHTML = availableCategories.length > 0
+                ? `<option value="">请选择分类</option>${categoryOptions}`
+                : '<option value="">暂无可用分类</option>';
+            if (!postSelect.value && availableCategories.length > 0) {
+                postSelect.value = String(availableCategories[0].category_id);
+            }
+        }
+        updateFilterSummary();
+    }
+
+    async function loadCategories() {
+        try {
+            const response = await fetch(buildApiUrl('/api/categories'));
+            if (!response.ok) {
+                throw new Error('分类加载失败');
+            }
+            const data = await response.json();
+            availableCategories = Array.isArray(data.items)
+                ? data.items.filter(category => String(category.status || 'ACTIVE').toUpperCase() === 'ACTIVE')
+                : [];
+            if (
+                currentCategoryFilter
+                && !availableCategories.some(category => Number(category.category_id) === Number(currentCategoryFilter))
+            ) {
+                currentCategoryFilter = '';
+                syncHomeUrl();
+            }
+        } catch (error) {
+            console.error('加载分类失败:', error);
+            availableCategories = [];
+        }
+        renderCategoryControls();
+    }
+
+    function applyQuestionFilters() {
+        currentCategoryFilter = normalizePositiveId(document.getElementById('category-filter')?.value);
+        currentStatusFilter = document.getElementById('status-filter')?.value || '';
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
+    function clearQuestionFilters() {
+        currentCategoryFilter = '';
+        currentTagFilter = '';
+        currentStatusFilter = '';
+        const categorySelect = document.getElementById('category-filter');
+        const statusSelect = document.getElementById('status-filter');
+        if (categorySelect) categorySelect.value = '';
+        if (statusSelect) statusSelect.value = '';
+        renderPopularTags();
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
+    function applyTagFilter(tagId) {
+        const nextValue = normalizePositiveId(tagId);
+        currentTagFilter = currentTagFilter === nextValue ? '' : nextValue;
+        renderPopularTags();
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
     function updateHomeSectionUi() {
         document.querySelectorAll('.section-link').forEach(button => {
             const key = button.id.replace('section-', '');
             button.classList.toggle('active', key === currentHomeSection && !currentSearchQuery);
         });
+        updateFilterSummary();
 
         const title = document.getElementById('feed-title');
         const subtitle = document.getElementById('feed-subtitle');
@@ -1015,6 +1530,21 @@
         } else {
             url.searchParams.delete('q');
             url.searchParams.set('section', currentHomeSection);
+        }
+        if (currentCategoryFilter) {
+            url.searchParams.set('category_id', currentCategoryFilter);
+        } else {
+            url.searchParams.delete('category_id');
+        }
+        if (currentTagFilter) {
+            url.searchParams.set('tag_id', currentTagFilter);
+        } else {
+            url.searchParams.delete('tag_id');
+        }
+        if (currentStatusFilter) {
+            url.searchParams.set('status', currentStatusFilter);
+        } else {
+            url.searchParams.delete('status');
         }
         window.history.replaceState({}, '', url.toString());
     }
@@ -1124,14 +1654,15 @@
         currentQuestionPage = page;
 
         const userId = getCurrentUserId();
+        const questionFilters = getQuestionFilterParams();
         const requestPath = currentSearchQuery
             ? '/api/search/questions'
             : (currentHomeSection === 'recommend' ? `/api/users/${userId}/recommendations` : '/api/questions');
         const url = buildApiUrl(requestPath, currentSearchQuery
-            ? { page, page_size: 10, q: currentSearchQuery }
+            ? { page, page_size: 10, q: currentSearchQuery, ...questionFilters }
             : (currentHomeSection === 'recommend'
                 ? { status: 'ACTIVE' }
-                : { page, page_size: 50 }));
+                : { page, page_size: 50, ...questionFilters }));
 
         try {
             const response = await fetch(url, {
@@ -1146,7 +1677,7 @@
                 const data = await response.json();
                 if (!currentSearchQuery && currentHomeSection === 'recommend') {
                     const items = Array.isArray(data.items)
-                        ? data.items.map(item => item.question).filter(Boolean)
+                        ? data.items.map(item => item.question).filter(Boolean).filter(questionMatchesFilters)
                         : [];
                     renderQuestions({ items });
                     return;
@@ -1188,7 +1719,17 @@
         const url = new URL(window.location.href);
         currentSearchQuery = url.searchParams.get('q')?.trim() || '';
         currentHomeSection = currentSearchQuery ? 'hot' : getHomeSectionFromUrl();
+        currentCategoryFilter = normalizePositiveId(url.searchParams.get('category_id'));
+        currentTagFilter = normalizePositiveId(url.searchParams.get('tag_id'));
+        currentStatusFilter = (url.searchParams.get('status') || '').toUpperCase();
+        if (currentStatusFilter && !['OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED'].includes(currentStatusFilter)) {
+            currentStatusFilter = '';
+        }
         document.getElementById('search-input').value = currentSearchQuery;
+        const statusSelect = document.getElementById('status-filter');
+        if (statusSelect) {
+            statusSelect.value = currentStatusFilter;
+        }
         updateHomeSectionUi();
         document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
         setNavAvatar(displayName || '我', '');
@@ -1197,7 +1738,7 @@
         }
         await loadCurrentUserProfileForNav();
 
-        loadPopularTags();
+        await Promise.all([loadCategories(), loadPopularTags()]);
         loadQuestions(1);
     };
 
@@ -1260,6 +1801,7 @@
                         </div>
                     </div>
                     <p class="post-preview">${displayContent}</p>
+                    ${renderQuestionTags(q.tags)}
                     <div class="post-meta">
                         ${authorHtml}
                         <span>💬 ${q.answer_count || 0} 个回答</span>
@@ -1375,9 +1917,14 @@
         window.location.href = `${DETAIL_PAGE_BASE}/${questionId}?_=${Date.now()}`;
     }
     // 🌟 弹窗的开启与关闭逻辑
-    function openPostModal() {
+    async function openPostModal() {
         document.getElementById('post-modal').style.display = 'flex';
         document.body.classList.add('modal-open');
+        if (availableCategories.length === 0) {
+            await loadCategories();
+        } else {
+            renderCategoryControls();
+        }
         loadPostTagOptions();
         setTimeout(() => document.getElementById('post-title')?.focus(), 0);
     }
@@ -1720,6 +2267,11 @@
 
         const token = sessionStorage.getItem('access_token');
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
+        const categoryId = Number(document.getElementById('post-category')?.value || 0);
+        if (!categoryId) {
+            alert("❌ 请选择问题分类。");
+            return;
+        }
         const imagesToUpload = [...selectedPostImages];
         const tagPayload = getPostTagPayload();
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
@@ -1728,14 +2280,14 @@
         try {
             // 🌟 核心分流逻辑 🌟
             let apiUrl = buildApiUrl('/api/questions');
-            let requestBody = { title: titleInput, content: contentInput, ...tagPayload };
+            let requestBody = { category_id: categoryId, title: titleInput, content: contentInput, ...tagPayload };
 
             if (useAi) {
                 // 如果开启了 AI，走原作者带 AI 生成的专属通道
                 apiUrl = buildApiUrl('/api/questions/ask');
                 // 这个通道的标准比较严格，需要补齐参数
                 requestBody = {
-                    category_id: 1,
+                    category_id: categoryId,
                     title: titleInput,
                     content: contentInput,
                     ...tagPayload
@@ -1857,24 +2409,40 @@
         const container = document.getElementById('popular-tags');
 
         try {
-            const response = await fetch(buildApiUrl('/api/tags'));
-            if (!response.ok) {
-                container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
-                return;
+            if (availablePostTags.length === 0) {
+                const response = await fetch(buildApiUrl('/api/tags'));
+                if (!response.ok) {
+                    container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
+                    return;
+                }
+
+                const data = await response.json();
+                availablePostTags = Array.isArray(data.items) ? data.items : [];
+                if (
+                    currentTagFilter
+                    && !availablePostTags.some(tag => Number(tag.tag_id) === Number(currentTagFilter))
+                ) {
+                    currentTagFilter = '';
+                    syncHomeUrl();
+                }
             }
 
-            const data = await response.json();
-            const tags = Array.isArray(data.items) ? data.items.slice(0, 8) : [];
+            const tags = availablePostTags.slice(0, 8);
             if (tags.length === 0) {
                 container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂无标签数据</span>';
                 return;
             }
 
-            container.innerHTML = tags.map(tag => `
-                <span style="background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 13px;">
-                    ${tag.tag_name}
-                </span>
-            `).join('');
+            container.innerHTML = tags.map(tag => {
+                const tagId = Number(tag.tag_id);
+                const active = currentTagFilter && Number(currentTagFilter) === tagId;
+                return `
+                    <button class="sidebar-tag-button ${active ? 'active' : ''}" type="button" onclick="applyTagFilter(${tagId})">
+                        ${escapeHtml(tag.tag_name)}
+                    </button>
+                `;
+            }).join('');
+            updateFilterSummary();
         } catch (error) {
             console.error("获取标签失败", error);
             container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
