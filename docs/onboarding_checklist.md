@@ -16,8 +16,9 @@
 2. [handoff.md](handoff.md)
 3. [current_status.md](current_status.md)
 4. [docs/README.md](README.md)
-5. [community_platform_design.md](design_details/community_platform_design.md)
-6. [admin_governance_guide.md](admin_governance_guide.md)
+5. [desktop_client_setup.md](desktop_client_setup.md)
+6. [community_platform_design.md](design_details/community_platform_design.md)
+7. [admin_governance_guide.md](admin_governance_guide.md)
 
 读完后你应该能回答这几个问题：
 
@@ -165,7 +166,30 @@ python -m frontend_cli.main --access-token your_token comments add --answer-id 8
 python -m frontend_cli.main comments list --answer-id 82
 ```
 
-### 5.3 管理员链路验证
+### 5.3 桌面客户端验证
+
+如果你需要接手客户端开发或下载安装包，请先看：
+
+- [desktop_client_setup.md](desktop_client_setup.md)
+
+macOS 常用命令：
+
+```bash
+cd desktop
+npm install
+npm run dev:full
+```
+
+Windows PowerShell 常用命令：
+
+```powershell
+cd desktop
+npm install
+npm run dev:full:windows
+npm run build:windows
+```
+
+### 5.4 管理员链路验证
 
 如果你本次接手需要改后台治理相关能力，建议额外做一遍管理员验证：
 

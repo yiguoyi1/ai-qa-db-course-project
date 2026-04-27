@@ -17,6 +17,7 @@
 - 数据库：`Oracle AI Database 26ai Free`
 - AI 提供商：`DeepSeek`，通过 OpenAI 兼容 SDK 调用
 - 网页前端：`app/web/` 下的静态 HTML 页面
+- 桌面客户端：`desktop/` 下的 Tauri 轻量客户端壳
 - 测试前端：`frontend_cli/` 下的独立 CLI
 
 项目主线是：
@@ -32,6 +33,7 @@
 - 用户上传头像、问题配图和回答配图
 - 管理员治理用户、分类、标签、内容和审计日志
 - 系统根据行为生成推荐
+- 桌面端通过 Tauri 独立窗口访问现有 FastAPI Web 前端
 
 ## 2. 当前已完成功能
 
@@ -146,6 +148,40 @@
 
 - `frontend_cli/` 仍然保留，适合验证接口和回归测试
 - `scripts/start_business_test.py` 可以自动检查 `/health` 并拉起 CLI 菜单
+
+### 2.5 桌面客户端
+
+当前仓库已经新增 Tauri 桌面客户端，源码位于 `desktop/`：
+
+- [desktop/src/index.html](../desktop/src/index.html)
+  - 本地启动页
+  - 自动检测 `http://127.0.0.1:8000/health`
+  - 后端可用后进入现有 `/login` 页面
+  - 后端不可用时展示启动命令和重新检测入口
+- [desktop/src-tauri/](../desktop/src-tauri)
+  - Tauri 2 桌面壳配置
+  - macOS / Windows / Linux 图标资源
+  - Windows 专用打包配置 `tauri.windows.conf.json`
+  - Rust 入口代码
+- [desktop/scripts/dev-with-backend.sh](../desktop/scripts/dev-with-backend.sh)
+  - macOS 开发辅助脚本
+  - 可以检测并拉起本地 FastAPI 后端，再启动 Tauri 开发窗口
+- [desktop/scripts/dev-with-backend.ps1](../desktop/scripts/dev-with-backend.ps1)
+  - Windows PowerShell 开发辅助脚本
+- [desktop/scripts/build-windows.ps1](../desktop/scripts/build-windows.ps1)
+  - Windows 本机打包脚本
+- [.github/workflows/build-desktop-windows.yml](../.github/workflows/build-desktop-windows.yml)
+  - GitHub Actions Windows 出包工作流
+
+当前已经验证：
+
+1. 本机已安装 Node/npm、Rust/Cargo 和 Xcode Command Line Tools
+2. `npm install` 可安装桌面端依赖
+3. `npm run build` 可生成 macOS `.app` 和 `.dmg`
+4. 构建产物位于 `desktop/src-tauri/target/release/bundle/`
+5. Windows 构建入口已补齐，需在 Windows 或 GitHub Actions `windows-latest` 环境生成 `.msi` / `-setup.exe`
+
+桌面端当前只作为客户端入口，不内置 Oracle、DeepSeek 或 FastAPI 服务，以保持原有 B/S 架构清晰。
 
 ## 3. 当前最值得先改的地方
 
@@ -315,7 +351,26 @@
 6. 卡片、按钮、标签、表单、弹窗和空状态样式已经做过统一优化
 7. 发帖弹窗滚动已限制在弹窗内部，避免滚轮穿透到底层页面
 
-### 3.14 当前第一优先级：治理与高级能力
+### 3.14 已完成阶段：Tauri 桌面客户端 MVP
+
+这一阶段已经完成到“可打包桌面入口”的状态，主要包括：
+
+1. 新增 `desktop/` Tauri 2 工程
+2. 桌面端启动页可检测 FastAPI 后端健康状态
+3. 后端可用后进入现有 Web 登录页，完整复用原有社区功能
+4. 提供 `npm run dev`、`npm run dev:full` 和 `npm run build`
+5. 已生成桌面端图标资源
+6. macOS 构建已通过，产出 `.app` 与 `.dmg`
+7. Windows 本地构建脚本和 CI 工作流已补齐，可生成 NSIS `-setup.exe` 与 WiX `.msi`
+
+当前仍建议后续补的点有：
+
+- 应用签名与公证，方便 macOS 正式分发
+- 自动更新
+- 托盘菜单和系统通知
+- 可配置线上后端地址
+
+### 3.15 当前第一优先级：治理与高级能力
 
 当前最适合继续做的业务能力仍然是：
 

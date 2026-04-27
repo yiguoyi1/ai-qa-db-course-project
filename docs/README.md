@@ -15,12 +15,13 @@
 2. [handoff.md](handoff.md)
 3. [current_status.md](current_status.md)
 4. [testing_guide.md](testing_guide.md)
-5. [onboarding_checklist.md](onboarding_checklist.md)
-6. [admin_governance_guide.md](admin_governance_guide.md)
-7. [community_platform_design.md](design_details/community_platform_design.md)
-8. [business_code_architecture.md](design_details/business_code_architecture.md)
-9. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
-10. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
+5. [desktop_client_setup.md](desktop_client_setup.md)
+6. [onboarding_checklist.md](onboarding_checklist.md)
+7. [admin_governance_guide.md](admin_governance_guide.md)
+8. [community_platform_design.md](design_details/community_platform_design.md)
+9. [business_code_architecture.md](design_details/business_code_architecture.md)
+10. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+11. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
 
 ## 2. 项目当前定位
 
@@ -30,6 +31,7 @@
 - 数据库：`Oracle AI Database 26ai Free`
 - AI 提供商：`DeepSeek`
 - 网页前端：`app/web/` 下的静态页面
+- 桌面客户端：`desktop/` 下的 Tauri 客户端
 - 测试前端：`frontend_cli/` 下的独立 CLI
 
 业务定位上，它是“问答社区 + AI 首答 + 行为记录 + 推荐”。
@@ -74,6 +76,7 @@
 - 企业级蓝白视觉 UI/UX 优化
 - 由 FastAPI 提供入口的产品首页、网页登录页、首页、详情页、用户中心页、管理员后台页
 - 独立 CLI 业务测试入口
+- Tauri 桌面客户端入口和 macOS / Windows 打包配置
 
 ### 3.2 当前仍未完全收口
 
@@ -159,6 +162,11 @@
 - 验证业务逻辑能否跑通
 - 作为独立调用方测试接口
 - 避免直接在 Python 里绕过 API 调 service
+
+### 5.5 桌面客户端
+
+- `desktop/`：Tauri 桌面客户端工程
+- [desktop_client_setup.md](desktop_client_setup.md)：客户端环境配置、运行、打包和安装包下载指南
 
 ## 6. 当前 API 主链路
 

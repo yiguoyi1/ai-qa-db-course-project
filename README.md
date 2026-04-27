@@ -13,6 +13,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - Oracle 26ai 数据库脚本与校验脚本
 - FastAPI 后端
 - 网页前端源码与页面入口
+- Tauri 桌面客户端入口
 - 独立 CLI 测试前端
 
 如果你是新的协作者，建议先看：
@@ -119,6 +120,48 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - `frontend_cli/render.py`
 
 CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastAPI，适合做接口回归和业务演示。
+
+### 5. Tauri 桌面客户端
+
+仓库新增桌面客户端工程：
+
+- `desktop/`
+
+桌面端是轻量客户端壳，不重写现有社区页面。启动后会先检测 `http://127.0.0.1:8000/health`，后端可用后进入现有 `/login` 页面。
+
+常用命令：
+
+```bash
+cd desktop
+npm install
+npm run dev
+```
+
+如需让脚本尝试同时拉起 FastAPI 后端：
+
+```bash
+cd desktop
+npm run dev:full
+```
+
+打包：
+
+```bash
+cd desktop
+npm run build
+```
+
+macOS 构建产物位于 `desktop/src-tauri/target/release/bundle/`。
+
+Windows 本地打包请在 Windows PowerShell 下执行：
+
+```powershell
+cd desktop
+npm install
+npm run build:windows
+```
+
+Windows 版会生成 NSIS `-setup.exe` 和 WiX `.msi`。仓库也提供 `.github/workflows/build-desktop-windows.yml`，可在 GitHub Actions 的 `windows-latest` 环境自动出包。
 
 ## 当前最值得先改的地方
 

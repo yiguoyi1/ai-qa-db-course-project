@@ -15,6 +15,7 @@
 - 用户头像、问题配图、回答配图的上传、展示和删除。
 - 用户画像、推荐生成与推荐查询。
 - 管理员用户治理、分类管理、标签治理、内容治理和审计日志。
+- Tauri 桌面客户端启动、后端检测和进入现有 Web 前端。
 - 企业级 UI/UX 回归，包括响应式、弹窗滚动、卡片、按钮、标签和导航一致性。
 
 ## 2. 测试范围
@@ -23,6 +24,7 @@
 
 - 网页入口：`/`、`/login`、`/home`、`/questions/{question_id}`、`/me`、`/admin`。
 - 首页分区：`/home?section=recommend`、`/home?section=hot`。
+- 桌面客户端入口：`desktop/` Tauri 应用。
 - FastAPI 后端现有业务接口。
 - Oracle 数据库已落地的核心业务能力。
 - 原生 HTML、CSS、JavaScript 前端交互。
@@ -50,7 +52,9 @@
 2. `.env` 已配置数据库连接、JWT 密钥、DeepSeek API Key 等必填项。
 3. 后端服务已启动，推荐地址为 `http://127.0.0.1:8000`。
 4. 浏览器建议使用 Chrome、Edge 或 Safari 最新稳定版。
-5. 准备至少两个普通用户账号和一个管理员账号。
+5. 如需测试 macOS 桌面客户端，请确认已安装 Node/npm、Rust/Cargo 和 Xcode Command Line Tools。
+6. 如需测试 Windows 桌面客户端，请确认已安装 Microsoft C++ Build Tools、WebView2 Runtime、Node/npm 和 Rust/Cargo。
+7. 准备至少两个普通用户账号和一个管理员账号。
 
 如果是在旧数据库上继续测试，请确认已按缺失情况导入当前迁移脚本：
 
@@ -70,6 +74,30 @@ macOS 或 PowerShell 7 可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+桌面客户端常用命令：
+
+```bash
+cd desktop
+npm install
+npm run dev
+```
+
+如果希望脚本自动尝试启动后端：
+
+```bash
+cd desktop
+npm run dev:full
+```
+
+Windows 桌面客户端常用命令：
+
+```powershell
+cd desktop
+npm install
+npm run dev:full:windows
+npm run build:windows
 ```
 
 健康检查：
@@ -140,6 +168,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 | SMOKE-08 | 用户中心 | 个人资料、回答、提问、收藏、推荐等模块可切换 | ✅ |
 | SMOKE-09 | 管理后台 | 管理员可进入，普通用户不可用 | ✅ |
 | SMOKE-10 | 移动端 | 页面无横向溢出，导航和卡片自然堆叠 | 待测 |
+| SMOKE-11 | 桌面客户端 | Tauri 启动页能检测后端，后端可用后进入登录页 | 待测 |
 
 ## 7. 详细测试用例
 
@@ -171,6 +200,65 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 
 1. 页面跳转到 `/login`。
 2. 不应出现 404 或本地文件路径。
+
+### 7.1A 桌面客户端
+
+#### TC-DESKTOP-01 启动页检测后端 待测
+
+前置条件：已在 `desktop/` 执行 `npm install`。
+
+测试步骤：
+
+1. 保持后端未启动。
+2. 在 `desktop/` 执行 `npm run dev`。
+3. 查看 Tauri 窗口启动页。
+
+预期结果：
+
+1. 页面显示后端暂时无法连接。
+2. 页面提供默认后端地址 `http://127.0.0.1:8000`。
+3. 页面展示启动 FastAPI 的命令提示。
+
+#### TC-DESKTOP-02 后端可用后进入登录页 待测
+
+测试步骤：
+
+1. 启动 FastAPI：`uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`。
+2. 在桌面启动页点击“重新检测”，或重新执行 `npm run dev`。
+
+预期结果：
+
+1. 启动页检测 `/health` 成功。
+2. Tauri 窗口进入现有 `/login` 页面。
+3. 登录后首页、详情页、用户中心和管理员入口与浏览器端逻辑一致。
+
+#### TC-DESKTOP-03 打包产物 待测
+
+测试步骤：
+
+1. 在 `desktop/` 执行 `npm run build`。
+2. 查看 `desktop/src-tauri/target/release/bundle/`。
+
+预期结果：
+
+1. macOS 下生成 `.app`。
+2. 允许系统镜像打包时生成 `.dmg`。
+3. 打开 `.app` 后能看到桌面启动页。
+
+#### TC-DESKTOP-04 Windows 安装包 待测
+
+测试步骤：
+
+1. 在 Windows PowerShell 中进入 `desktop/`。
+2. 执行 `npm install`。
+3. 执行 `npm run build:windows`。
+4. 查看 `desktop/src-tauri/target/release/bundle/nsis/` 和 `desktop/src-tauri/target/release/bundle/msi/`。
+
+预期结果：
+
+1. 生成 NSIS `-setup.exe`。
+2. 生成 WiX `.msi`。
+3. 安装后打开客户端，能看到桌面启动页并进入现有登录页。
 
 ### 7.2 登录与登录态
 

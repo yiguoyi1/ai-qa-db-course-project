@@ -1,0 +1,24 @@
+{
+  "name": "ai-qa-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop client shell for the AI QA community.",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:full": "scripts/dev-with-backend.sh",
+    "dev:full:windows": "powershell -ExecutionPolicy Bypass -File scripts/dev-with-backend.ps1",
+    "build": "tauri build",
+    "build:windows": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
+    "build:windows:nsis": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1 -Bundle nsis",
+    "build:windows:msi": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1 -Bundle msi",
+    "icon": "node scripts/generate-icon.mjs && tauri icon src-tauri/icons/source.png",
+    "info": "tauri info"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.0"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1"
+  }
+}
