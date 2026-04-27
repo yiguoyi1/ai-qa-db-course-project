@@ -4,19 +4,19 @@
 
 ## 1. 当前推荐分支
 
-当前推荐基于干净整合分支继续协作：
+当前推荐基于 `main` 分支继续协作：
 
 ```text
-integrate-collab-updates-clean
+main
 ```
 
-当前干净整合提交：
+当前文档整理前的本地基线提交：
 
 ```text
-d8bfefb feat: integrate admin media and accepted answer updates
+55bec04
 ```
 
-这个分支基于 `origin/main`，用一个正式提交整合了协作者的采纳答案、收藏、用户中心能力，以及本地补充的管理员、媒体、头像、问题配图和回答配图能力。
+现在的 `main` 已经整合了采纳答案、收藏、用户中心、管理员、媒体、头像、问题配图、回答配图、标签增强、AI 多轮追问前端和推荐画像相关能力。
 
 保留但不建议直接合并的安全备份分支：
 
@@ -29,7 +29,7 @@ backup-local-before-collab-integration
 
 ## 2. 已验证状态
 
-最近一次本地验证结果：
+历史本地验证曾覆盖：
 
 - Docker Desktop 已启动
 - `oracle26ai` 容器状态为 `healthy`
@@ -66,11 +66,15 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 API 启动后检查：
 
+- `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/health`
 - `http://127.0.0.1:8000/docs`
 - `http://127.0.0.1:8000/login`
 - `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/home?section=recommend`
+- `http://127.0.0.1:8000/home?section=hot`
 - `http://127.0.0.1:8000/me`
+- `http://127.0.0.1:8000/admin`
 
 ## 4. 当前核心能力
 
@@ -78,28 +82,36 @@ API 启动后检查：
 
 - 用户注册和登录
 - JWT 鉴权
+- 产品介绍首页
 - 纯社区发帖
 - AI 首答提问
+- 发帖分类、已有标签、自定义标签、标签建议和 AI 自动标签
 - 人工回答
 - 采纳答案
 - 问题收藏
 - 回答点赞、点踩和评分
 - 回答评论和楼中楼回复
+- AI 首答多轮追问网页交互
 - 搜索和搜索历史
+- 推荐 / 热榜首页分区
 - 浏览历史
 - 用户中心
 - 用户画像和推荐
-- 管理员用户、分类、问题、评论和日志治理接口
+- 管理员用户、分类、标签、问题、评论和日志治理接口
 - 用户头像
 - 问题配图
 - 回答配图
 
 当前网页入口：
 
+- `/`
 - `/login`
 - `/home`
+- `/home?section=recommend`
+- `/home?section=hot`
 - `/questions/{question_id}`
 - `/me`
+- `/admin`
 
 当前 CLI 入口：
 
@@ -144,8 +156,12 @@ sql/seed_data.sql
 本次整合新增或重点调整：
 
 ```text
+sql/migrations/20260405_add_answers_user_id.sql
+sql/migrations/20260405_add_answer_comments.sql
 sql/migrations/20260422_add_media_assets.sql
 sql/migrations/20260422_add_question_acceptance.sql
+sql/migrations/20260425_extend_chat_session_for_follow_up.sql
+sql/migrations/20260427_extend_tag_metadata.sql
 ```
 
 采纳答案相关约束要点：
@@ -206,13 +222,14 @@ frontend_cli/
 1. 评论图片和图片审核后台。
 2. 推荐规则人工干预入口。
 3. 取消采纳或采纳历史。
-4. 多轮 AI 对话正式业务链。
+4. 标签合并、批量审核和标签质量治理。
 5. 写接口兼容字段的继续清理。
 
 已经补齐的前端交互：
 
 - 网页端问题配图和回答配图上传入口已接入，并在详情页正文下方展示。
-- 管理员网页后台已接入 `/admin`，覆盖总览、用户治理、分类管理、内容治理、登录日志和操作日志。
+- 网页端 AI 首答多轮追问入口已接入详情页，支持会话列表、消息展示和创建 / 续写追问。
+- 管理员网页后台已接入 `/admin`，覆盖总览、用户治理、分类管理、标签治理、内容治理、登录日志和操作日志。
 - 管理员后台已统一为社区蓝色视觉风格，角色、状态和日志类型显示为中文友好文案。
 - 内容治理页已经支持从最近问题定位问题 ID、展开回答查看评论 ID，并一键填入治理表单。
 

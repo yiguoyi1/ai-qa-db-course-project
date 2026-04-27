@@ -19,6 +19,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 
 - [docs/current_status.md](docs/current_status.md)
 - [docs/README.md](docs/README.md)
+- [docs/testing_guide.md](docs/testing_guide.md)
 - [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
 - [docs/chat_followup_api_guide.md](docs/chat_followup_api_guide.md)
 
@@ -43,15 +44,18 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 用户中心：`GET /api/users/me/profile`、`PATCH /api/users/me/profile`、`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
-- 分类、标签、搜索、搜索历史
+- 分类、标签、标签建议、搜索、搜索历史
 - 浏览、收藏、反馈、评论
 - 基于 AI 首答的多轮追问会话
 - 用户画像重建与推荐生成
+- 用户头像、问题配图、回答配图和 Oracle BLOB 媒体读取
+- 管理员用户、分类、标签、内容和审计日志治理
 
 ### 3. 网页前端
 
 当前仓库已经包含由 FastAPI 统一交付的网页前端，页面源码位于 `app/web/`：
 
+- [app/web/index.html](app/web/index.html)
 - [app/web/login.html](app/web/login.html)
 - [app/web/home.html](app/web/home.html)
 - [app/web/detail.html](app/web/detail.html)
@@ -60,38 +64,49 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 
 当前推荐访问入口：
 
+- `/`
 - `/login`
 - `/home`
+- `/home?section=recommend`
+- `/home?section=hot`
 - `/me`
 - `/admin`
 - `/questions/{question_id}`
 
 当前网页端已经实现：
 
+- 产品介绍首页和立即体验入口
 - 登录与注册
+- 区分用户名 / 密码错误和服务异常的登录提示
 - 登录审计写入 `LOGIN_LOG`
 - 用户状态校验：只有 `ACTIVE` 用户可以登录并继续访问受保护接口
-- 首页问题流
-- 搜索与搜索历史下拉
-- 发布问题
+- 首页推荐 / 热榜问题流
+- 分类、状态、标签筛选
+- 全站搜索与搜索历史下拉
+- 发布问题，支持分类、已有标签、自定义标签、标签建议、AI 自动标签和问题配图
 - 首页发帖正文统一必填
 - 切换“纯社区发帖”与“AI 首答发帖”
 - 首页热门标签动态加载
 - 问题详情查看
+- 问题配图和回答配图展示，当前用户可删除自己的图片
 - Markdown 回答渲染与代码高亮
-- 发布人工回答
+- 发布人工回答，支持回答配图
 - 采纳答案与已采纳答案高亮
-- 点赞 / 点踩与当前用户反馈状态回显
+- 点赞 / 点踩、取消反馈与当前用户反馈状态回显
 - 首页与详情页收藏 / 取消收藏
 - 收藏状态与收藏数量回显
+- 评论、楼中楼回复、默认折叠子回复和软删除占位
+- AI 首答多轮追问会话入口、会话列表和消息展示
 - 用户中心总览页
-- 我的问题 / 我的回答 / 我的收藏 / 我的推荐
+- 个人资料展示和修改、头像上传和删除
+- 我的问题 / 我的回答 / 我的收藏 / 我的推荐，列表支持继续加载
 - 最近浏览 / 最近搜索
 - 兴趣画像重建与推荐刷新入口
-- 管理员后台：总览、用户治理、分类管理、内容治理、登录日志、操作日志
+- 管理员后台：总览、用户治理、分类管理、标签治理、内容治理、登录日志、操作日志
 - 管理员后台中文化展示：角色、状态、日志类型在页面上显示为中文友好文案，提交给后端的枚举值保持不变
 - 管理员内容 ID 查询：在内容治理页查看最近问题、回答 ID、评论 ID，并一键填入治理表单
 - 管理员入口：管理员账号会在首页、详情页、用户中心看到“管理后台”入口
+- 顶部导航、头像下拉菜单、卡片、按钮、标签、表单和弹窗已做企业级 UI/UX 统一优化
 - 登录态展示与退出登录
 
 ### 4. CLI 测试前端
@@ -125,12 +140,9 @@ CLI 不直接依赖 `service` / `repository`，而是只通过 HTTP 调用 FastA
 
 接下来最值得继续推进的是：
 
-1. 补齐社区核心能力
-   网页端评论与楼中楼首版闭环已经完成，下一步更值得补评论图片、通知联动和更细的互动细节。
-2. 完善后台治理深度能力
-   管理员网页后台、审计查询和基础治理入口已经可用，后续更值得补媒体审核、推荐规则干预和更细的导出能力。
-3. 继续压缩写接口里的兼容字段
-   CLI 和少量写接口里仍有 `user_id` 过渡参数，可以继续逐步移除。
+1. 补齐评论图片、通知联动和更细的社区互动细节。
+2. 完善媒体审核、推荐规则干预、日志导出等后台治理深度能力。
+3. 继续压缩 CLI 和少量写接口里的 `user_id` 过渡参数。
 
 详细说明见：
 
@@ -217,17 +229,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
 .\scripts\load-oracle-schema.ps1
 ```
 
-如果你的数据库不是刚初始化的新库，而是基于之前版本继续开发，还需要补跑一次采纳答案迁移：
+如果你的数据库不是刚初始化的新库，而是基于之前版本继续开发，需要按缺失情况补跑对应迁移：
 
-```sql
-@sql/migrations/20260422_add_question_acceptance.sql
+```powershell
+.\scripts\load-oracle-schema.ps1 -SqlFiles `
+  sql/migrations/20260405_add_answers_user_id.sql `
+  sql/migrations/20260405_add_answer_comments.sql `
+  sql/migrations/20260422_add_media_assets.sql `
+  sql/migrations/20260422_add_question_acceptance.sql `
+  sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
+  sql/migrations/20260427_extend_tag_metadata.sql
 ```
 
-如果你需要使用 AI 多轮追问后端能力，还需要补跑：
-
-```sql
-@sql/migrations/20260425_extend_chat_session_for_follow_up.sql
-```
+如果你只缺某一次迁移，也可以只传对应的 `.sql` 文件。macOS / PowerShell 7 下使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。
 
 5. 导入固定演示数据：
 
@@ -252,9 +266,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 - 验证触发器、统计字段、推荐逻辑
 - 最后自动清理临时用户
 
-## AI 多轮追问后端
+## AI 多轮追问
 
-当前仓库已经完成“AI 首答后，用户继续追问”的后端闭环，但暂时还没有单独的网页入口页面。
+当前仓库已经完成“AI 首答后，用户继续追问”的前后端闭环，并在问题详情页提供会话入口。
 
 这条业务链的语义是：
 
@@ -275,6 +289,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 - 任何已登录用户都可以查看会话，但只有会话创建者可以续写
 - `session_id` 必须和当前问题、首答锚点一致
 - `CLOSED` 状态会话不能继续追问
+- 网页端会优先显示用户昵称，没有昵称时显示用户名，并正确区分本人和其他用户
 
 仓库也提供了这条链路的独立自检脚本：
 
@@ -324,8 +339,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 API 启动后，推荐直接访问：
 
+- `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/login`
 - `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/home?section=recommend`
+- `http://127.0.0.1:8000/home?section=hot`
 - `http://127.0.0.1:8000/me`
 - `http://127.0.0.1:8000/admin`
 - `http://127.0.0.1:8000/questions/62`
@@ -336,6 +354,7 @@ API 启动后，推荐直接访问：
 - 页面请求现在走同源 `/api/...`，不再写死本地地址
 - 登录成功后，JWT 和用户信息会写入 `sessionStorage`，按浏览器标签页隔离，避免多个账号互相覆盖
 - 首页右侧热门标签现在来自 `GET /api/tags`
+- 全站搜索框都支持搜索历史下拉
 - 管理员后台要求当前登录用户为 `ACTIVE ADMIN`；普通用户访问 `/admin` 会被后端鉴权拦截
 
 ## 使用 CLI
@@ -408,6 +427,7 @@ CLI 现在支持：
 
 - `GET /api/categories`
 - `GET /api/tags`
+- `GET /api/tags/suggestions`
 - `GET /api/search/questions`
 - `GET /api/search/history`
 - `POST /api/questions/{question_id}/browse`
@@ -421,16 +441,32 @@ CLI 现在支持：
 
 ### 推荐
 
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
 - `POST /api/users/{user_id}/profile/rebuild`
 - `POST /api/users/{user_id}/recommendations/generate`
 - `GET /api/users/{user_id}/recommendations`
+
+### 头像与内容图片
+
+- `POST /api/users/me/avatar`
+- `GET /api/users/me/avatar`
+- `DELETE /api/users/me/avatar`
+- `POST /api/questions/{question_id}/images`
+- `GET /api/questions/{question_id}/images`
+- `DELETE /api/questions/{question_id}/images/{media_id}`
+- `POST /api/answers/{answer_id}/images`
+- `GET /api/answers/{answer_id}/images`
+- `DELETE /api/answers/{answer_id}/images/{media_id}`
+- `GET /api/media/files/{file_name}`
 
 ## 当前仍未完全完成或未收口的能力
 
 - 评论图片
 - 媒体审核、隐藏与清理后台
 - 推荐规则人工干预入口
-- 多轮对话前端入口与页面交互
+- 采纳答案取消、采纳历史和更细的答案治理
+- 标签合并、批量审核和标签质量治理
 
 ## 多轮追问自检
 
@@ -448,6 +484,8 @@ python -B .\scripts\validate_chat_followup.py
   当前代码状态、已完成能力、优先改进项
 - [docs/README.md](docs/README.md)
   协作者快速入口
+- [docs/testing_guide.md](docs/testing_guide.md)
+  测试同学按当前功能回归的主文档
 - [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
   新协作者交接清单
 - [docs/design_details/business_code_architecture.md](docs/design_details/business_code_architecture.md)
@@ -517,6 +555,7 @@ http://127.0.0.1:8000/admin
 - 总览：用户、管理员、分类、操作日志数量概览
 - 用户治理：按角色或状态筛选用户，修改用户角色和状态
 - 分类管理：创建分类，修改分类名称、描述和启用状态
+- 标签治理：查看标签元数据，修改标签状态和描述
 - 内容治理：查询最近问题，查看回答 ID 和评论 ID，一键填入治理表单后修改状态
 - 审计日志：查询登录日志和管理员操作日志
 
@@ -527,6 +566,8 @@ http://127.0.0.1:8000/admin
 - `GET /api/admin/categories`
 - `POST /api/admin/categories`
 - `PATCH /api/admin/categories/{category_id}`
+- `GET /api/admin/tags`
+- `PATCH /api/admin/tags/{tag_id}`
 - `GET /api/admin/users`
 - `PATCH /api/admin/users/{user_id}/status`
 - `PATCH /api/admin/users/{user_id}/role`

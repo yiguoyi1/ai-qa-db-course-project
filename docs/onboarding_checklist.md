@@ -63,11 +63,19 @@ Copy-Item .env.example .env
 .\scripts\load-seed-data.ps1
 ```
 
-如果你接到的不是全新数据库，而是之前已经跑过的老库，还需要补跑一次采纳答案迁移：
+如果你接到的不是全新数据库，而是之前已经跑过的老库，需要按缺失情况补跑迁移脚本。当前仓库已有迁移包括：
 
-```sql
-@sql/migrations/20260422_add_question_acceptance.sql
+```powershell
+.\scripts\load-oracle-schema.ps1 -SqlFiles `
+  sql/migrations/20260405_add_answers_user_id.sql `
+  sql/migrations/20260405_add_answer_comments.sql `
+  sql/migrations/20260422_add_media_assets.sql `
+  sql/migrations/20260422_add_question_acceptance.sql `
+  sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
+  sql/migrations/20260427_extend_tag_metadata.sql
 ```
+
+macOS 或 PowerShell 7 下可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个 SQL 文件之间用空格分隔。
 
 如果是第一次接手，建议再执行一次结构验证：
 
@@ -261,8 +269,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 
 1. 评论图片与媒体审核、清理后台
 2. 推荐规则人工干预入口
-3. 多轮对话前端入口与页面交互
-4. 少量写接口兼容字段的继续清理
+3. 采纳答案取消、采纳历史和更细的答案治理
+4. 标签合并、批量审核和标签质量治理
+5. 少量写接口兼容字段的继续清理
 
 如果你只想先熟悉系统，不建议一上来就碰：
 
