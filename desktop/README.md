@@ -117,16 +117,6 @@ desktop/src-tauri/tauri.windows.conf.json
 
 其中 NSIS 安装器默认使用当前用户安装模式，不要求管理员权限；`.msi` 必须在 Windows 上构建。
 
-## GitHub Actions 出 Windows 包
-
-仓库包含 Windows 桌面端出包工作流：
-
-```text
-.github/workflows/build-desktop-windows.yml
-```
-
-推送 `desktop/` 或手动触发 `workflow_dispatch` 后，工作流会在 `windows-latest` 上生成 Windows 安装包，并上传名为 `ai-qa-community-windows` 的 artifact。
-
 ## 设计边界
 
 桌面端当前只负责客户端外壳与入口体验，不内置 Oracle、DeepSeek 或 FastAPI 服务。这样可以保持原有 B/S 架构清晰，后续也能平滑切到线上 API 地址。

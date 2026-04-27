@@ -161,7 +161,7 @@ npm install
 npm run build:windows
 ```
 
-Windows 版会生成 NSIS `-setup.exe` 和 WiX `.msi`。仓库也提供 `.github/workflows/build-desktop-windows.yml`，可在 GitHub Actions 的 `windows-latest` 环境自动出包。
+Windows 版会生成 NSIS `-setup.exe` 和 WiX `.msi`，产物位于 `desktop/src-tauri/target/release/bundle/`。
 
 ## 当前最值得先改的地方
 

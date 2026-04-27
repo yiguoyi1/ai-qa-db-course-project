@@ -170,8 +170,6 @@
   - Windows PowerShell 开发辅助脚本
 - [desktop/scripts/build-windows.ps1](../desktop/scripts/build-windows.ps1)
   - Windows 本机打包脚本
-- [.github/workflows/build-desktop-windows.yml](../.github/workflows/build-desktop-windows.yml)
-  - GitHub Actions Windows 出包工作流
 
 当前已经验证：
 
@@ -179,7 +177,7 @@
 2. `npm install` 可安装桌面端依赖
 3. `npm run build` 可生成 macOS `.app` 和 `.dmg`
 4. 构建产物位于 `desktop/src-tauri/target/release/bundle/`
-5. Windows 构建入口已补齐，需在 Windows 或 GitHub Actions `windows-latest` 环境生成 `.msi` / `-setup.exe`
+5. Windows 构建入口已补齐，需在 Windows 本机环境生成 `.msi` / `-setup.exe`
 
 桌面端当前只作为客户端入口，不内置 Oracle、DeepSeek 或 FastAPI 服务，以保持原有 B/S 架构清晰。
 
