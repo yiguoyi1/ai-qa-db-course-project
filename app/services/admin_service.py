@@ -9,6 +9,8 @@ from app.schemas.admin import (
     AdminLoginLogListResponse,
     AdminOperationLogListResponse,
     AdminQuestionStatusResponse,
+    AdminTagListResponse,
+    AdminTagMutationResponse,
     AdminUserListResponse,
     AdminUserMutationResponse,
 )
@@ -21,6 +23,8 @@ class AdminService:
     VALID_USER_STATUSES = {"ACTIVE", "INACTIVE", "LOCKED", "DISABLED"}
     VALID_QUESTION_STATUSES = {"OPEN", "RESOLVED", "CLOSED", "ARCHIVED"}
     VALID_COMMENT_STATUSES = {"ACTIVE", "HIDDEN"}
+    VALID_TAG_SOURCES = {"SYSTEM", "USER", "AI", "ADMIN"}
+    VALID_TAG_STATUSES = {"ACTIVE", "PENDING", "DISABLED"}
 
     def __init__(
         self,
@@ -237,6 +241,130 @@ class AdminService:
             description=refreshed_category["description"],
             status=refreshed_category["status"],
             message="Category updated successfully.",
+        )
+
+    def list_tags(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+        source: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> AdminTagListResponse:
+        if page <= 0:
+            raise ValidationError("page must be greater than 0.")
+        if page_size <= 0 or page_size > 100:
+            raise ValidationError("page_size must be between 1 and 100.")
+
+        normalized_source = self._normalize_enum(source)
+        normalized_status = self._normalize_enum(status)
+        normalized_keyword = self._normalize_keyword(keyword)
+
+        if normalized_source is not None and normalized_source not in self.VALID_TAG_SOURCES:
+            raise ValidationError("source must be SYSTEM, USER, AI, or ADMIN.")
+        if normalized_status is not None and normalized_status not in self.VALID_TAG_STATUSES:
+            raise ValidationError("status must be ACTIVE, PENDING, or DISABLED.")
+
+        with get_connection() as connection:
+            items = self._admin_repository.list_tags(
+                connection,
+                page=page,
+                page_size=page_size,
+                source=normalized_source,
+                status=normalized_status,
+                keyword=normalized_keyword,
+            )
+            total = self._admin_repository.count_tags(
+                connection,
+                source=normalized_source,
+                status=normalized_status,
+                keyword=normalized_keyword,
+            )
+
+        return AdminTagListResponse(
+            items=items,
+            page=page,
+            page_size=page_size,
+            total=total,
+        )
+
+    def update_tag(
+        self,
+        *,
+        admin_user_id: int,
+        tag_id: int,
+        tag_name: str | None,
+        description: str | None,
+        status: str | None,
+    ) -> AdminTagMutationResponse:
+        if tag_id <= 0:
+            raise ValidationError("tag_id must be greater than 0.")
+
+        with get_connection() as connection:
+            current_tag = self._admin_repository.get_tag_context(connection, tag_id)
+            if current_tag is None:
+                raise NotFoundError(f"Tag {tag_id} was not found.")
+
+            next_name = (
+                self._require_tag_name(tag_name)
+                if tag_name is not None
+                else current_tag["tag_name"]
+            )
+            next_description = (
+                self._normalize_description(description)
+                if description is not None
+                else current_tag["description"]
+            )
+            next_status = (
+                self._require_tag_status(status)
+                if status is not None
+                else current_tag["status"]
+            )
+
+            duplicate_tag = self._admin_repository.get_tag_by_name(connection, next_name)
+            if duplicate_tag is not None and duplicate_tag["tag_id"] != tag_id:
+                raise ValidationError("Tag name already exists.")
+
+            if (
+                current_tag["tag_name"] == next_name
+                and current_tag["description"] == next_description
+                and current_tag["status"] == next_status
+            ):
+                raise ValidationError("No tag fields changed.")
+
+            updated_count = self._admin_repository.update_tag(
+                connection,
+                tag_id=tag_id,
+                tag_name=next_name,
+                description=next_description,
+                status=next_status,
+            )
+            if updated_count == 0:
+                raise NotFoundError(f"Tag {tag_id} could not be updated.")
+
+            self._log_repository.create_operation_log(
+                connection,
+                user_id=admin_user_id,
+                op_type="ADMIN_UPDATE_TAG",
+                op_content=(
+                    f"tag_id={tag_id}, "
+                    f"name={current_tag['tag_name']}->{next_name}, "
+                    f"status={current_tag['status']}->{next_status}"
+                )[:200],
+            )
+            connection.commit()
+
+            refreshed_tag = self._admin_repository.get_tag_context(connection, tag_id)
+            assert refreshed_tag is not None
+
+        return AdminTagMutationResponse(
+            tag_id=refreshed_tag["tag_id"],
+            tag_name=refreshed_tag["tag_name"],
+            source=refreshed_tag["source"],
+            status=refreshed_tag["status"],
+            description=refreshed_tag["description"],
+            message="Tag updated successfully.",
         )
 
     def list_login_logs(
@@ -544,11 +672,35 @@ class AdminService:
             raise ValidationError("status must be ACTIVE or INACTIVE.")
         return normalized
 
+    def _require_tag_name(self, value: str | None) -> str:
+        if value is None:
+            raise ValidationError("tag_name is required.")
+        normalized = value.strip().lstrip("#")
+        normalized = " ".join(normalized.split())
+        if not normalized:
+            raise ValidationError("tag_name must not be blank.")
+        if len(normalized) > 50:
+            raise ValidationError("tag_name must be at most 50 characters.")
+        return normalized.lower().replace(" ", "-")
+
+    def _require_tag_status(self, value: str | None) -> str:
+        normalized = self._normalize_enum(value)
+        if normalized not in self.VALID_TAG_STATUSES:
+            raise ValidationError("status must be ACTIVE, PENDING, or DISABLED.")
+        return normalized
+
     @staticmethod
     def _normalize_description(value: str | None) -> str | None:
         if value is None:
             return None
         normalized = value.strip()
+        return normalized or None
+
+    @staticmethod
+    def _normalize_keyword(value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().lower()
         return normalized or None
 
     def _require_user_role(self, value: str) -> str:

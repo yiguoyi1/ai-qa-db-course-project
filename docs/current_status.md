@@ -58,6 +58,7 @@
 - 用户中心：`GET /api/users/me/profile`、`PATCH /api/users/me/profile`、`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
+- 管理员标签治理：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`
 - 头像与内容图片：`POST /api/users/me/avatar`、`GET /api/users/me/avatar`、`DELETE /api/users/me/avatar`
 - 问题配图：`POST /api/questions/{question_id}/images`、`GET /api/questions/{question_id}/images`、`DELETE /api/questions/{question_id}/images/{media_id}`
 - 回答配图：`POST /api/answers/{answer_id}/images`、`GET /api/answers/{answer_id}/images`、`DELETE /api/answers/{answer_id}/images/{media_id}`
@@ -272,7 +273,7 @@
 
 - 多轮对话前端入口与页面交互
 - 评论图片与图片审核后台
-- 标签管理后台与标签合并审核
+- 标签创建、标签合并和批量审核
 - 用户画像权重和混合推荐策略增强
 - 推荐规则人工干预入口
 
@@ -287,7 +288,7 @@
 
 如果后续继续开发，建议优先顺序为：
 
-1. 先补标签管理后台与标签合并审核，避免 AI 或用户自定义标签长期失控
+1. 先补标签创建、标签合并和批量审核，避免 AI 或用户自定义标签长期失控
 2. 再补用户画像权重和 `HYBRID` 推荐策略增强
 3. 补评论图片与媒体审核、清理后台
 4. 补多轮对话前端入口与页面交互

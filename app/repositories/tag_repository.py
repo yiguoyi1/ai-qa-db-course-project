@@ -56,6 +56,40 @@ class TagRepository:
             "status": row[3],
         }
 
+    def get_tags_by_ids(
+        self,
+        connection: oracledb.Connection,
+        tag_ids: list[int],
+    ) -> dict[int, dict[str, Any]]:
+        if not tag_ids:
+            return {}
+
+        deduplicated_tag_ids = list(dict.fromkeys(tag_ids))
+        binds = {
+            f"tag_id_{index}": tag_id
+            for index, tag_id in enumerate(deduplicated_tag_ids)
+        }
+        placeholders = ", ".join(f":tag_id_{index}" for index in range(len(deduplicated_tag_ids)))
+
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT tag_id, tag_name, source, status
+            FROM tags
+            WHERE tag_id IN ({placeholders})
+            """,
+            binds,
+        )
+        return {
+            int(row[0]): {
+                "tag_id": int(row[0]),
+                "tag_name": row[1],
+                "source": row[2],
+                "status": row[3],
+            }
+            for row in cursor.fetchall()
+        }
+
     def create_tag(
         self,
         connection: oracledb.Connection,

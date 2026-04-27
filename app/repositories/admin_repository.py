@@ -38,6 +38,30 @@ class AdminRepository:
         return clauses, binds
 
     @staticmethod
+    def _build_tag_filters(
+        *,
+        source: str | None,
+        status: str | None,
+        keyword: str | None,
+    ) -> tuple[list[str], dict[str, Any]]:
+        clauses = ["1 = 1"]
+        binds: dict[str, Any] = {}
+
+        if source is not None:
+            clauses.append("t.source = :source")
+            binds["source"] = source
+
+        if status is not None:
+            clauses.append("t.status = :status")
+            binds["status"] = status
+
+        if keyword is not None:
+            clauses.append("LOWER(t.tag_name) LIKE :keyword")
+            binds["keyword"] = f"%{keyword.lower()}%"
+
+        return clauses, binds
+
+    @staticmethod
     def _build_login_log_filters(
         *,
         user_id: int | None,
@@ -323,6 +347,188 @@ class AdminRepository:
             {
                 "category_id": category_id,
                 "category_name": category_name,
+                "description": description,
+                "status": status,
+            },
+        )
+        return int(cursor.rowcount or 0)
+
+    def count_tags(
+        self,
+        connection: oracledb.Connection,
+        *,
+        source: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> int:
+        where_clauses, binds = self._build_tag_filters(
+            source=source,
+            status=status,
+            keyword=keyword,
+        )
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT COUNT(*)
+            FROM tags t
+            WHERE {' AND '.join(where_clauses)}
+            """,
+            binds,
+        )
+        row = cursor.fetchone()
+        return int(row[0]) if row is not None else 0
+
+    def list_tags(
+        self,
+        connection: oracledb.Connection,
+        *,
+        page: int,
+        page_size: int,
+        source: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> list[dict[str, Any]]:
+        where_clauses, binds = self._build_tag_filters(
+            source=source,
+            status=status,
+            keyword=keyword,
+        )
+        binds.update(
+            {
+                "offset_rows": (page - 1) * page_size,
+                "fetch_rows": page_size,
+            }
+        )
+
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT
+                t.tag_id,
+                t.tag_name,
+                t.source,
+                t.status,
+                t.description,
+                t.create_user_id,
+                u.username,
+                t.create_time,
+                COUNT(qt.qt_id) AS question_count
+            FROM tags t
+            LEFT JOIN users u
+              ON u.user_id = t.create_user_id
+            LEFT JOIN question_tags qt
+              ON qt.tag_id = t.tag_id
+            WHERE {' AND '.join(where_clauses)}
+            GROUP BY
+                t.tag_id,
+                t.tag_name,
+                t.source,
+                t.status,
+                t.description,
+                t.create_user_id,
+                u.username,
+                t.create_time
+            ORDER BY t.create_time DESC, t.tag_id DESC
+            OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
+            """,
+            binds,
+        )
+
+        rows = cursor.fetchall()
+        return [
+            {
+                "tag_id": int(row[0]),
+                "tag_name": row[1],
+                "source": row[2],
+                "status": row[3],
+                "description": row[4],
+                "create_user_id": int(row[5]) if row[5] is not None else None,
+                "create_username": row[6],
+                "create_time": row[7],
+                "question_count": int(row[8]),
+            }
+            for row in rows
+        ]
+
+    def get_tag_context(
+        self,
+        connection: oracledb.Connection,
+        tag_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                tag_id,
+                tag_name,
+                source,
+                status,
+                description
+            FROM tags
+            WHERE tag_id = :tag_id
+            """,
+            {"tag_id": tag_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "tag_id": int(row[0]),
+            "tag_name": row[1],
+            "source": row[2],
+            "status": row[3],
+            "description": row[4],
+        }
+
+    def get_tag_by_name(
+        self,
+        connection: oracledb.Connection,
+        tag_name: str,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT tag_id, tag_name, source, status, description
+            FROM tags
+            WHERE LOWER(tag_name) = LOWER(:tag_name)
+            FETCH FIRST 1 ROWS ONLY
+            """,
+            {"tag_name": tag_name},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "tag_id": int(row[0]),
+            "tag_name": row[1],
+            "source": row[2],
+            "status": row[3],
+            "description": row[4],
+        }
+
+    def update_tag(
+        self,
+        connection: oracledb.Connection,
+        *,
+        tag_id: int,
+        tag_name: str,
+        description: str | None,
+        status: str,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE tags
+            SET tag_name = :tag_name,
+                description = :description,
+                status = :status
+            WHERE tag_id = :tag_id
+            """,
+            {
+                "tag_id": tag_id,
+                "tag_name": tag_name,
                 "description": description,
                 "status": status,
             },

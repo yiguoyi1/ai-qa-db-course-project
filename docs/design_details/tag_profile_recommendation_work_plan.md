@@ -381,10 +381,11 @@ user_id + tag_id + weight
 - 用户未提供任何标签且 `auto_tag=true` 时，调用 DeepSeek 分析问题标签。
 - AI 优先匹配已有标签，记录为 `AI_MATCHED`；无法匹配时创建新标签，记录为 `AI_CREATED`。
 - `GET /api/tags` 仅返回 `ACTIVE` 标签。
+- 新增管理员基础标签治理接口：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`。
 
 仍待后续阶段处理：
 
-- 标签管理接口，如创建、禁用、合并、审核。
+- 标签创建、标签合并和批量审核。
 - 标签推荐接口，如 `GET /api/tags/suggestions`。
 - 用户画像权重规则增强。
 - `HYBRID` 推荐策略增强。

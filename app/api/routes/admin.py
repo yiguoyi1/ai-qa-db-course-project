@@ -10,12 +10,15 @@ from app.schemas.admin import (
     AdminLoginLogListResponse,
     AdminOperationLogListResponse,
     AdminQuestionStatusResponse,
+    AdminTagListResponse,
+    AdminTagMutationResponse,
     AdminUserListResponse,
     AdminUserMutationResponse,
     CreateCategoryRequest,
     UpdateCommentStatusRequest,
     UpdateCategoryRequest,
     UpdateQuestionStatusRequest,
+    UpdateTagRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
 )
@@ -84,6 +87,55 @@ def update_category(
             admin_user_id=admin_user.user_id,
             category_id=category_id,
             category_name=payload.category_name,
+            description=payload.description,
+            status=payload.status,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.get(
+    "/tags",
+    response_model=AdminTagListResponse,
+    status_code=status.HTTP_200_OK,
+)
+def list_tags(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    source: str | None = Query(default=None),
+    status_filter: str | None = Query(default=None, alias="status"),
+    keyword: str | None = Query(default=None),
+    _: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminTagListResponse:
+    try:
+        return service.list_tags(
+            page=page,
+            page_size=page_size,
+            source=source,
+            status=status_filter,
+            keyword=keyword,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.patch(
+    "/tags/{tag_id}",
+    response_model=AdminTagMutationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def update_tag(
+    tag_id: int,
+    payload: UpdateTagRequest,
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminTagMutationResponse:
+    try:
+        return service.update_tag(
+            admin_user_id=admin_user.user_id,
+            tag_id=tag_id,
+            tag_name=payload.tag_name,
             description=payload.description,
             status=payload.status,
         )

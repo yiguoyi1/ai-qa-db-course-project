@@ -34,6 +34,8 @@
 - 查看分类列表
 - 创建分类
 - 修改分类名称、描述、状态
+- 查看标签列表，按来源、状态、关键词过滤
+- 修改标签名称、描述、状态
 - 查看用户列表
 - 修改用户角色
 - 修改用户状态
@@ -55,6 +57,7 @@
 
 这部分已经在设计中被提到，但当前代码还没有正式补齐：
 
+- 标签创建、标签合并和批量审核
 - 推荐规则人工干预
 - 媒体资源治理
 - 图片 / 头像审核
@@ -69,6 +72,7 @@
 - 管理员不能把自己改成不可用状态
 - 最后一个 `ACTIVE ADMIN` 不能被降级或停用
 - 评论治理优先采用 `HIDDEN / ACTIVE` 的显示治理方式，而不是直接强删
+- 标签治理优先采用 `ACTIVE / PENDING / DISABLED` 的状态治理方式，禁用标签不会继续进入公开标签列表和新问题绑定
 - 评论作者自己的删除链路和管理员治理链路是两条不同链路
 - 关键治理动作必须写入 `OPERATION_LOG`
 
@@ -164,13 +168,18 @@ http://127.0.0.1:8000/admin
 - `POST /api/admin/categories`
 - `PATCH /api/admin/categories/{category_id}`
 
-### 6.2 用户治理
+### 6.2 标签治理
+
+- `GET /api/admin/tags`
+- `PATCH /api/admin/tags/{tag_id}`
+
+### 6.3 用户治理
 
 - `GET /api/admin/users`
 - `PATCH /api/admin/users/{user_id}/status`
 - `PATCH /api/admin/users/{user_id}/role`
 
-### 6.3 内容治理
+### 6.4 内容治理
 
 - `PATCH /api/admin/questions/{question_id}/status`
 - `PATCH /api/admin/comments/{comment_id}/status`
@@ -181,7 +190,7 @@ http://127.0.0.1:8000/admin
 - `GET /api/questions/{question_id}`
 - `GET /api/answers/{answer_id}/comments`
 
-### 6.4 日志查询
+### 6.5 日志查询
 
 - `GET /api/admin/logs/login`
 - `GET /api/admin/logs/operations`
@@ -195,31 +204,44 @@ http://127.0.0.1:8000/admin
 - `ACTIVE`
 - `INACTIVE`
 
-### 7.2 用户角色
+### 7.2 标签来源
+
+- `SYSTEM`
+- `USER`
+- `AI`
+- `ADMIN`
+
+### 7.3 标签状态
+
+- `ACTIVE`
+- `PENDING`
+- `DISABLED`
+
+### 7.4 用户角色
 
 - `USER`
 - `ADMIN`
 
-### 7.3 用户状态
+### 7.5 用户状态
 
 - `ACTIVE`
 - `INACTIVE`
 - `LOCKED`
 - `DISABLED`
 
-### 7.4 问题状态
+### 7.6 问题状态
 
 - `OPEN`
 - `RESOLVED`
 - `CLOSED`
 - `ARCHIVED`
 
-### 7.5 评论治理状态
+### 7.7 评论治理状态
 
 - `ACTIVE`
 - `HIDDEN`
 
-### 7.6 登录日志结果
+### 7.8 登录日志结果
 
 - `SUCCESS`
 - `FAILURE`

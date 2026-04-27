@@ -224,6 +224,15 @@ class QuestionService:
         bound_tag_ids: set[int] = set()
 
         if selected_tag_ids:
+            selected_tags = self._tag_repository.get_tags_by_ids(connection, selected_tag_ids)
+            unavailable_tag_ids = [
+                tag_id
+                for tag_id in selected_tag_ids
+                if tag_id not in selected_tags or selected_tags[tag_id]["status"] != "ACTIVE"
+            ]
+            if unavailable_tag_ids:
+                raise ValidationError("tag_ids contain invalid or unavailable tags.")
+
             self._question_repository.add_tags(
                 connection=connection,
                 question_id=question_id,
