@@ -41,15 +41,35 @@ class FeedbackService:
                     )
                     operation = "CREATED"
                 else:
-                    self._feedback_repository.update_feedback(
-                        connection=connection,
-                        feedback_id=existing_feedback_id,
-                        is_like=payload.is_like,
-                        rating=payload.rating,
-                        comment_text=payload.comment_text,
+                    existing_feedback = self._feedback_repository.get_feedback_record(
+                        connection,
+                        existing_feedback_id,
                     )
-                    feedback_id = existing_feedback_id
-                    operation = "UPDATED"
+                    if existing_feedback is None:
+                        raise NotFoundError("Existing feedback could not be reloaded.")
+
+                    should_delete = (
+                        existing_feedback["is_like"] == payload.is_like
+                        and payload.rating is None
+                        and payload.comment_text is None
+                    )
+                    if should_delete:
+                        self._feedback_repository.delete_feedback(
+                            connection=connection,
+                            feedback_id=existing_feedback_id,
+                        )
+                        feedback_id = None
+                        operation = "DELETED"
+                    else:
+                        self._feedback_repository.update_feedback(
+                            connection=connection,
+                            feedback_id=existing_feedback_id,
+                            is_like=payload.is_like,
+                            rating=payload.rating,
+                            comment_text=payload.comment_text,
+                        )
+                        feedback_id = existing_feedback_id
+                        operation = "UPDATED"
 
                 connection.commit()
             except oracledb.DatabaseError as exc:
@@ -59,12 +79,14 @@ class FeedbackService:
                 connection.rollback()
                 raise
 
-            feedback_record = self._feedback_repository.get_feedback_record(
-                connection,
-                feedback_id,
-            )
-            if feedback_record is None:
-                raise NotFoundError("Feedback was saved but could not be reloaded.")
+            feedback_record = None
+            if feedback_id is not None:
+                feedback_record = self._feedback_repository.get_feedback_record(
+                    connection,
+                    feedback_id,
+                )
+                if feedback_record is None:
+                    raise NotFoundError("Feedback was saved but could not be reloaded.")
 
             answer_stats = self._feedback_repository.get_answer_feedback_stats(
                 connection,
@@ -74,6 +96,17 @@ class FeedbackService:
                 raise NotFoundError(
                     f"Answer {answer_id} was not found after saving feedback."
                 )
+
+        if feedback_record is None:
+            feedback_record = {
+                "feedback_id": None,
+                "answer_id": answer_id,
+                "user_id": payload.user_id,
+                "is_like": None,
+                "rating": None,
+                "comment_text": None,
+                "feedback_time": None,
+            }
 
         return AnswerFeedbackResponse(
             **feedback_record,

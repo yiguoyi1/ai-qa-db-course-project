@@ -247,7 +247,64 @@
       const resultDiv = document.getElementById('result-message');
       resultDiv.style.display = 'block';
       resultDiv.className = isSuccess ? 'success' : 'error';
-      resultDiv.innerHTML = msg;
+      resultDiv.textContent = msg;
+  }
+
+  async function readResponsePayload(response) {
+      const contentType = response.headers.get('content-type') || '';
+
+      try {
+          if (contentType.includes('application/json')) {
+              return await response.json();
+          }
+
+          const text = await response.text();
+          return { detail: text };
+      } catch (error) {
+          return {};
+      }
+  }
+
+  function extractErrorDetail(data) {
+      if (!data) return '';
+      if (typeof data.detail === 'string') return data.detail.trim();
+      if (typeof data.message === 'string') return data.message.trim();
+      if (Array.isArray(data.detail)) {
+          return data.detail
+              .map((item) => item?.msg || item?.message || '')
+              .filter(Boolean)
+              .join('；');
+      }
+      return '';
+  }
+
+  function getFriendlyLoginError(response, data) {
+      const detail = extractErrorDetail(data);
+
+      if (detail.includes('用户名或密码')) {
+          return '❌ 用户名或密码不正确，请检查后重试。';
+      }
+      if (detail.includes('锁定') || response.status === 423) {
+          return '❌ 账号已被锁定，请联系管理员处理。';
+      }
+      if (detail.includes('停用')) {
+          return '❌ 账号已停用，暂时无法登录。';
+      }
+      if (detail.includes('未激活') || detail.includes('暂不可用')) {
+          return '❌ 账号暂不可用，请联系管理员确认账号状态。';
+      }
+      if (response.status === 422) {
+          return '❌ 请检查用户名和密码格式后再试。';
+      }
+      if (response.status >= 500) {
+          return '❌ 服务暂时异常，请稍后重试或联系管理员。';
+      }
+
+      return detail ? `❌ ${detail}` : '❌ 登录没有成功，请检查用户名和密码后重试。';
+  }
+
+  function showNetworkError() {
+      showMessage('❌ 暂时无法连接到服务，请确认后端已经启动后再试。', false);
   }
 
   // 处理登录请求 (对接后端 API)
@@ -264,7 +321,7 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username: user, password: pass })
           });
-          const data = await response.json();
+          const data = await readResponsePayload(response);
 
           if (response.ok) {
                 showMessage(`✅ 登录成功！正在进入社区...`, true);
@@ -281,10 +338,11 @@
                 }, 500);
 
             } else {
-              showMessage(`❌ 登录失败: ${data.detail || '账号或密码错误'}`, false);
+              showMessage(getFriendlyLoginError(response, data), false);
+              document.getElementById('login-password').focus();
           }
       } catch (error) {
-          showMessage(`❌ 网络请求失败，请确认后端服务已经启动。`, false);
+          showNetworkError();
       }
   }
 
@@ -303,15 +361,16 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ username: user, password: pass, nickname: nick })
           });
-          const data = await response.json();
+          const data = await readResponsePayload(response);
 
           if (response.ok) {
               showMessage(`✅ 注册成功！请点击下方“返回登录”进行登录。`, true);
           } else {
-              showMessage(`❌ 注册失败: ${data.detail || '用户名可能已被占用'}`, false);
+              const detail = extractErrorDetail(data);
+              showMessage(`❌ ${detail || '注册没有成功，请检查用户名和密码后重试。'}`, false);
           }
       } catch (error) {
-          showMessage(`❌ 网络请求失败，请确认后端服务已经启动。`, false);
+          showNetworkError();
       }
   }
 </script>

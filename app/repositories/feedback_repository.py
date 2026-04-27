@@ -102,6 +102,21 @@ class FeedbackRepository:
             },
         )
 
+    def delete_feedback(
+        self,
+        connection: oracledb.Connection,
+        *,
+        feedback_id: int,
+    ) -> None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            DELETE FROM answer_feedback
+            WHERE feedback_id = :feedback_id
+            """,
+            {"feedback_id": feedback_id},
+        )
+
     def get_feedback_record(
         self,
         connection: oracledb.Connection,
