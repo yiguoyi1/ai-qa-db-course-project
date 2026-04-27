@@ -14,14 +14,14 @@ class SaveAnswerFeedbackRequest(APIModel):
 
 
 class AnswerFeedbackResponse(APIModel):
-    feedback_id: int
+    feedback_id: int | None = None
     answer_id: int
     user_id: int
-    is_like: str
+    is_like: str | None = None
     rating: float | None = None
     comment_text: str | None = None
-    feedback_time: datetime
+    feedback_time: datetime | None = None
     like_count: int = Field(ge=0)
     dislike_count: int = Field(ge=0)
     avg_rating: float | None = None
-    operation: Literal["CREATED", "UPDATED"]
+    operation: Literal["CREATED", "UPDATED", "DELETED"]

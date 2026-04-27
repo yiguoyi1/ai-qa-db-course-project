@@ -181,6 +181,7 @@ class SearchRepository:
                 q.favorite_count,
                 q.answer_count,
                 u.username,  -- 🌟 1. SELECT 里多查一列：用户表里的名字
+                u.nickname,
                 m.public_url
             FROM questions q
             LEFT JOIN users u ON q.user_id = u.user_id -- 🌟 2. 关键：把用户表连进来！
@@ -209,7 +210,8 @@ class SearchRepository:
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
                 "username": row[9],  # 🌟 3. 别忘了把第 10 列（索引是9）的名字装进字典里发给前端！
-                "author_avatar_url": row[10],
+                "author_nickname": row[10],
+                "author_avatar_url": row[11],
                 "is_favorited": False,
                 "tags": [],
             }

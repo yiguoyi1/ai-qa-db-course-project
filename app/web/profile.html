@@ -80,6 +80,7 @@
             flex: 1;
             max-width: 520px;
             margin: 0 32px 0 46px;
+            position: relative;
         }
 
         .nav-search-input {
@@ -111,6 +112,35 @@
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        .nav-search-history-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 88px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            padding: 8px 0;
+            overflow: hidden;
+        }
+
+        .nav-search-history-item {
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #4b5563;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-search-history-item:hover {
+            background: #f3f4f6;
         }
 
         .navbar-user {
@@ -1212,8 +1242,9 @@
         <a class="section-link" href="/home?section=hot">热榜</a>
     </div>
     <div class="nav-search-shell">
-        <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." onkeypress="if(event.key === 'Enter') submitNavSearch()">
+        <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." autocomplete="off" onfocus="showNavSearchHistory()" onblur="hideNavSearchHistory()" onkeypress="if(event.key === 'Enter') { hideNavSearchHistory(); submitNavSearch(); }">
         <button class="nav-search-button" type="button" onclick="submitNavSearch()">搜索</button>
+        <div id="nav-search-history-dropdown" class="nav-search-history-dropdown"></div>
     </div>
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
@@ -1544,6 +1575,7 @@
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('user_id');
         sessionStorage.removeItem('username');
+        sessionStorage.removeItem('nickname');
         sessionStorage.removeItem('user_role');
     }
 
@@ -1568,6 +1600,7 @@
     }
 
     function submitNavSearch() {
+        hideNavSearchHistory();
         const keyword = document.getElementById('nav-search-input')?.value.trim();
         const url = new URL('/home', window.location.origin);
         if (keyword) {
@@ -1576,6 +1609,76 @@
             url.searchParams.set('section', 'hot');
         }
         window.location.href = url.toString();
+    }
+
+    async function showNavSearchHistory() {
+        const input = document.getElementById('nav-search-input');
+        const dropdown = document.getElementById('nav-search-history-dropdown');
+        const token = sessionStorage.getItem('access_token');
+        if (!input || !dropdown || !token) {
+            return;
+        }
+
+        input.style.borderColor = 'var(--primary)';
+        input.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+        input.style.background = '#ffffff';
+
+        try {
+            const response = await fetchJson('/api/search/history');
+            renderNavSearchHistory(response);
+        } catch (error) {
+            console.error('获取搜索历史失败:', error);
+        }
+    }
+
+    function renderNavSearchHistory(historyList) {
+        const dropdown = document.getElementById('nav-search-history-dropdown');
+        if (!dropdown) {
+            return;
+        }
+        dropdown.innerHTML = '';
+        if (!Array.isArray(historyList) || historyList.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        historyList.forEach(keyword => {
+            const item = document.createElement('div');
+            item.className = 'nav-search-history-item';
+            item.innerHTML = '<span style="color:#9ca3af;">🕒</span>';
+            const text = document.createElement('span');
+            text.textContent = keyword;
+            item.appendChild(text);
+            item.addEventListener('mousedown', event => {
+                event.preventDefault();
+                applyNavSearchHistory(keyword);
+            });
+            dropdown.appendChild(item);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    function hideNavSearchHistory() {
+        const input = document.getElementById('nav-search-input');
+        if (input) {
+            input.style.borderColor = 'var(--border-color)';
+            input.style.boxShadow = 'none';
+            input.style.background = '#f8fafc';
+        }
+        setTimeout(() => {
+            const dropdown = document.getElementById('nav-search-history-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        }, 150);
+    }
+
+    function applyNavSearchHistory(keyword) {
+        const input = document.getElementById('nav-search-input');
+        if (input) {
+            input.value = keyword;
+        }
+        submitNavSearch();
     }
 
     function openProfileInfo() {
@@ -1973,6 +2076,14 @@
         `;
     }
 
+    function getUserDisplayName(user, fallback = '社区用户') {
+        return user?.author_nickname
+            || user?.nickname
+            || user?.author_username
+            || user?.username
+            || (user?.user_id ? `${fallback} ${user.user_id}` : fallback);
+    }
+
     function getProfileCompletionLabel(profile) {
         if (!profile) {
             return '-';
@@ -2341,6 +2452,8 @@
         document.getElementById('profile-subtitle').innerText =
             `用户名：${profile.username} · 角色：${getRoleLabel(profile.role)} · 注册时间：${formatDate(profile.register_time)} · 最近登录：${formatDate(profile.last_login_time)}`;
         document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+        sessionStorage.setItem('username', profile.username || '');
+        sessionStorage.setItem('nickname', profile.nickname || '');
         if (profile.role === 'ADMIN') {
             document.getElementById('admin-entry').style.display = 'flex';
         }
@@ -2452,7 +2565,7 @@
             <div class="item-list">
                 ${data.items.map(item => {
                     const status = getQuestionStatusMeta(item.question.status);
-                    const authorName = item.question.username || `社区用户 ${item.question.user_id}`;
+                    const authorName = getUserDisplayName(item.question, '社区用户');
                     return `
                         <div class="item-card">
                             <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
@@ -2553,7 +2666,7 @@
                         : 0;
                     const reasons = getRecommendationReasons(item);
                     const status = getQuestionStatusMeta(item.question.status);
-                    const authorName = item.question.username || `社区用户 ${item.question.user_id}`;
+                    const authorName = getUserDisplayName(item.question, '社区用户');
                     return `
                         <div class="item-card">
                             <div class="recommendation-card-header">
@@ -2793,6 +2906,7 @@
         const token = getAccessToken();
         const userId = getCurrentUserId();
         const username = sessionStorage.getItem('username');
+        const nickname = sessionStorage.getItem('nickname');
         const role = sessionStorage.getItem('user_role');
 
         if (!token || !userId) {
@@ -2802,8 +2916,9 @@
 
         initializeTabs();
         updateRecommendationControls();
-        document.getElementById('user-greeting').innerText = username
-            ? `欢迎回来, ${username}`
+        const displayName = nickname || username;
+        document.getElementById('user-greeting').innerText = displayName
+            ? `欢迎回来, ${displayName}`
             : '欢迎回来';
         if (role === 'ADMIN') {
             document.getElementById('admin-entry').style.display = 'flex';

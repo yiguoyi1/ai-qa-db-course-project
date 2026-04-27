@@ -52,6 +52,7 @@ class QuestionSummaryItem(APIModel):
     is_favorited: bool = False
     tags: list[TagItem] = Field(default_factory=list)
     username: str | None = None
+    author_nickname: str | None = None
     author_avatar_url: str | None = None
 
 
@@ -79,6 +80,7 @@ class QuestionDetailResponse(APIModel):
     images: list[MediaAssetItem] = Field(default_factory=list)
     answers: list[AnswerItem] = Field(default_factory=list)
     username: str | None = None
+    author_nickname: str | None = None
     author_avatar_url: str | None = None
 
 

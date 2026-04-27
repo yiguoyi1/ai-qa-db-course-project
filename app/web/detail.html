@@ -70,6 +70,7 @@
             flex: 1;
             max-width: 520px;
             margin: 0 32px 0 46px;
+            position: relative;
         }
         .nav-search-input {
             flex: 1;
@@ -98,6 +99,32 @@
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
+        }
+        .nav-search-history-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 88px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            padding: 8px 0;
+            overflow: hidden;
+        }
+        .nav-search-history-item {
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #4b5563;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-search-history-item:hover {
+            background: #f3f4f6;
         }
         .navbar-user { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
@@ -1133,8 +1160,9 @@
             <a class="section-link" href="/home?section=hot">热榜</a>
         </div>
         <div class="nav-search-shell">
-            <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." onkeypress="if(event.key === 'Enter') submitNavSearch()">
+            <input class="nav-search-input" id="nav-search-input" type="text" placeholder="🔍 搜索感兴趣的问题..." autocomplete="off" onfocus="showNavSearchHistory()" onblur="hideNavSearchHistory()" onkeypress="if(event.key === 'Enter') { hideNavSearchHistory(); submitNavSearch(); }">
             <button class="nav-search-button" type="button" onclick="submitNavSearch()">搜索</button>
+            <div id="nav-search-history-dropdown" class="nav-search-history-dropdown"></div>
         </div>
         <div class="navbar-user">
             <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
@@ -1209,6 +1237,7 @@
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('user_id');
             sessionStorage.removeItem('username');
+            sessionStorage.removeItem('nickname');
             sessionStorage.removeItem('user_role');
         }
 
@@ -1233,6 +1262,7 @@
         }
 
         function submitNavSearch() {
+            hideNavSearchHistory();
             const keyword = document.getElementById('nav-search-input')?.value.trim();
             const url = new URL('/home', window.location.origin);
             if (keyword) {
@@ -1241,6 +1271,82 @@
                 url.searchParams.set('section', 'hot');
             }
             window.location.href = url.toString();
+        }
+
+        async function showNavSearchHistory() {
+            const input = document.getElementById('nav-search-input');
+            const dropdown = document.getElementById('nav-search-history-dropdown');
+            const token = sessionStorage.getItem('access_token');
+            if (!input || !dropdown || !token) {
+                return;
+            }
+
+            input.style.borderColor = 'var(--primary)';
+            input.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+            input.style.background = '#ffffff';
+
+            try {
+                const response = await fetch(buildApiUrl('/api/search/history'), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    renderNavSearchHistory(await response.json());
+                } else if (response.status === 401) {
+                    redirectToLogin('登录状态已失效，请重新登录。');
+                }
+            } catch (error) {
+                console.error('获取搜索历史失败:', error);
+            }
+        }
+
+        function renderNavSearchHistory(historyList) {
+            const dropdown = document.getElementById('nav-search-history-dropdown');
+            if (!dropdown) {
+                return;
+            }
+            dropdown.innerHTML = '';
+            if (!Array.isArray(historyList) || historyList.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            historyList.forEach(keyword => {
+                const item = document.createElement('div');
+                item.className = 'nav-search-history-item';
+                item.innerHTML = '<span style="color:#9ca3af;">🕒</span>';
+                const text = document.createElement('span');
+                text.textContent = keyword;
+                item.appendChild(text);
+                item.addEventListener('mousedown', event => {
+                    event.preventDefault();
+                    applyNavSearchHistory(keyword);
+                });
+                dropdown.appendChild(item);
+            });
+            dropdown.style.display = 'block';
+        }
+
+        function hideNavSearchHistory() {
+            const input = document.getElementById('nav-search-input');
+            if (input) {
+                input.style.borderColor = 'var(--border-color)';
+                input.style.boxShadow = 'none';
+                input.style.background = '#f8fafc';
+            }
+            setTimeout(() => {
+                const dropdown = document.getElementById('nav-search-history-dropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+            }, 150);
+        }
+
+        function applyNavSearchHistory(keyword) {
+            const input = document.getElementById('nav-search-input');
+            if (input) {
+                input.value = keyword;
+            }
+            submitNavSearch();
         }
 
         function setNavAvatar(displayName, avatarUrl) {
@@ -1301,6 +1407,7 @@
                 document.getElementById('detail-user-greeting').innerText = `欢迎回来, ${displayName}`;
                 setNavAvatar(displayName, profile.avatar_url);
                 sessionStorage.setItem('username', profile.username || '');
+                sessionStorage.setItem('nickname', profile.nickname || '');
                 if (profile.role === 'ADMIN') {
                     document.getElementById('admin-entry').style.display = 'flex';
                 }
@@ -2676,10 +2783,11 @@
                 window.location.href = LOGIN_PAGE_URL;
                 return;
             }
-            document.getElementById('detail-user-greeting').innerText = username
-                ? `欢迎回来, ${username}`
+            const displayName = sessionStorage.getItem('nickname') || username;
+            document.getElementById('detail-user-greeting').innerText = displayName
+                ? `欢迎回来, ${displayName}`
                 : '已登录用户';
-            setNavAvatar(username || '我', '');
+            setNavAvatar(displayName || '我', '');
             if (role === 'ADMIN') {
                 document.getElementById('admin-entry').style.display = 'flex';
             }
@@ -2697,7 +2805,7 @@
         function renderDetail(q) {
             const container = document.getElementById('detail-container');
             const date = new Date(q.ask_time).toLocaleString();
-            const author = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+            const author = getDisplayName(q.username, q.author_nickname, q.user_id);
             const questionAuthorHtml = renderAuthorMeta(author, q.author_avatar_url);
             const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
             const statusBadge = buildQuestionStatusBadge(q.status);
@@ -2754,7 +2862,7 @@
 
                     // 匹配底层数据库里的 'MANUAL' 类型
                     if (ans.answer_type === 'MANUAL' || !ans.provider_name) {
-                        authorName = ans.author_username ? ans.author_username : `社区用户 ${ans.user_id}`;
+                        authorName = getDisplayName(ans.author_username, ans.author_nickname, ans.user_id);
                         authorIcon = '👤';
                         tagColor = 'background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;'; // 真人：高级灰
                         authorAvatarHtml = renderMiniAvatar(authorName, ans.author_avatar_url);

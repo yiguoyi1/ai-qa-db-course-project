@@ -1003,6 +1003,7 @@
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('user_id');
             sessionStorage.removeItem('username');
+            sessionStorage.removeItem('nickname');
             sessionStorage.removeItem('user_role');
         }
 
@@ -1031,7 +1032,15 @@
         }
 
         function getCurrentUsername() {
-            return sessionStorage.getItem('username') || '管理员';
+            return sessionStorage.getItem('nickname') || sessionStorage.getItem('username') || '管理员';
+        }
+
+        function getUserDisplayName(user, fallback = '用户') {
+            return user?.author_nickname
+                || user?.nickname
+                || user?.author_username
+                || user?.username
+                || (user?.user_id ? `${fallback} ${user.user_id}` : fallback);
         }
 
         function escapeHtml(value) {
@@ -1235,8 +1244,8 @@
                                 <tr>
                                     <td>${user.user_id}</td>
                                     <td>
-                                        <strong>${escapeHtml(user.username)}</strong>
-                                        <div class="muted">${escapeHtml(user.nickname || user.email || '无昵称/邮箱')}</div>
+                                        <strong>${escapeHtml(getUserDisplayName(user))}</strong>
+                                        <div class="muted">${escapeHtml(user.nickname ? `用户名：${user.username}` : (user.email || '无昵称/邮箱'))}</div>
                                     </td>
                                     <td>
                                         ${badge(user.role)}
@@ -1469,7 +1478,7 @@
                             <p class="lookup-title">#${question.question_id} ${escapeHtml(question.title)}</p>
                             <div class="lookup-meta">
                                 ${badge(question.status)}
-                                <span>作者：${escapeHtml(question.username || `用户 ${question.user_id}`)}</span>
+                                <span>作者：${escapeHtml(getUserDisplayName(question))}</span>
                                 <span>回答：${question.answer_count || 0}</span>
                                 <span>收藏：${question.favorite_count || 0}</span>
                                 <span>${formatDate(question.ask_time)}</span>
@@ -1519,7 +1528,7 @@
             const answers = question.answers || [];
             const answerListHtml = answers.length
                 ? answers.map(answer => {
-                    const author = answer.author_username || answer.author_nickname || answer.provider_name || `用户 ${answer.user_id || '-'}`;
+                    const author = answer.author_nickname || answer.author_username || answer.provider_name || `用户 ${answer.user_id || '-'}`;
                     const answerType = answer.answer_type === 'MANUAL' ? '社区回答' : 'AI 回答';
                     const accepted = answer.is_accepted ? '<span class="badge success">已采纳</span>' : '';
                     return `
@@ -1590,7 +1599,7 @@
                                     <div class="lookup-meta">
                                         <span class="id-chip">评论 ID：${comment.comment_id}</span>
                                         ${badge(comment.status, { ACTIVE: '正常展示', HIDDEN: '已隐藏', DELETED: '已删除' })}
-                                        <span>作者：${escapeHtml(comment.author_username || comment.author_nickname || `用户 ${comment.user_id}`)}</span>
+                                        <span>作者：${escapeHtml(comment.author_nickname || comment.author_username || `用户 ${comment.user_id}`)}</span>
                                         <span>${formatDate(comment.create_time)}</span>
                                     </div>
                                     <button class="btn btn-primary" onclick="fillCommentId(${comment.comment_id})">填入评论 ID</button>

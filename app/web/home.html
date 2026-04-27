@@ -754,6 +754,7 @@
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('user_id');
         sessionStorage.removeItem('username');
+        sessionStorage.removeItem('nickname');
         sessionStorage.removeItem('user_role');
     }
 
@@ -888,6 +889,14 @@
         avatar.textContent = getInitial(displayName);
     }
 
+    function getUserDisplayName(user, fallback = '社区用户') {
+        return user?.author_nickname
+            || user?.nickname
+            || user?.author_username
+            || user?.username
+            || (user?.user_id ? `${fallback} ${user.user_id}` : fallback);
+    }
+
     function closeUserMenu() {
         const panel = document.getElementById('user-menu-panel');
         const trigger = document.getElementById('user-menu-trigger');
@@ -929,6 +938,7 @@
             document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
             setNavAvatar(displayName, profile.avatar_url);
             sessionStorage.setItem('username', profile.username || '');
+            sessionStorage.setItem('nickname', profile.nickname || '');
             if (profile.role === 'ADMIN') {
                 document.getElementById('admin-entry').style.display = 'flex';
             }
@@ -1004,6 +1014,8 @@
     window.onload = async function() {
         const token = sessionStorage.getItem('access_token');
         const username = sessionStorage.getItem('username');
+        const nickname = sessionStorage.getItem('nickname');
+        const displayName = nickname || username || '同学';
         const role = sessionStorage.getItem('user_role');
 
         if (!token) {
@@ -1016,8 +1028,8 @@
         currentHomeSection = currentSearchQuery ? 'hot' : getHomeSectionFromUrl();
         document.getElementById('search-input').value = currentSearchQuery;
         updateHomeSectionUi();
-        document.getElementById('user-greeting').innerText = `欢迎回来, ${username || '同学'}`;
-        setNavAvatar(username || '我', '');
+        document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+        setNavAvatar(displayName || '我', '');
         if (role === 'ADMIN') {
             document.getElementById('admin-entry').style.display = 'flex';
         }
@@ -1066,7 +1078,7 @@
         questions.forEach(q => {
             const date = new Date(q.ask_time).toLocaleString();
             const displayContent = '<span style="color:#9ca3af; font-size:13px;">点击查看详情全文...</span>';
-            const displayAuthor = q.username ? q.username : `社区用户 ${q.user_id || '未知'}`;
+            const displayAuthor = getUserDisplayName(q, '社区用户');
             const statusMeta = getStatusMeta(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
             const authorHtml = `

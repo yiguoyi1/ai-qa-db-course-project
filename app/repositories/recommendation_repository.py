@@ -137,6 +137,7 @@ class RecommendationRepository:
                 q.favorite_count,
                 q.answer_count,
                 u.username,
+                u.nickname,
                 m.public_url
             FROM recommendations r
             JOIN questions q
@@ -217,7 +218,8 @@ class RecommendationRepository:
                         "favorite_count": int(row[14]),
                         "answer_count": int(row[15]),
                         "username": row[16],
-                        "author_avatar_url": row[17],
+                        "author_nickname": row[17],
+                        "author_avatar_url": row[18],
                         "tags": tags_by_question_id.get(question_id, []),
                     },
                 }

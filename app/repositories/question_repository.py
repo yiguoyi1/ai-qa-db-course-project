@@ -189,6 +189,7 @@ class QuestionRepository:
                 q.favorite_count,
                 q.answer_count,
                 u.username,
+                u.nickname,
                 m.public_url
             FROM questions q
             LEFT JOIN users u
@@ -217,7 +218,8 @@ class QuestionRepository:
             "favorite_count": int(row[9]),
             "answer_count": int(row[10]),
             "username": row[11],
-            "author_avatar_url": row[12],
+            "author_nickname": row[12],
+            "author_avatar_url": row[13],
             "is_favorited": False,
         }
 
@@ -367,6 +369,7 @@ class QuestionRepository:
                 q.favorite_count,
                 q.answer_count,
                 u.username,
+                u.nickname,
                 m.public_url
             FROM questions q
             LEFT JOIN users u
@@ -397,8 +400,9 @@ class QuestionRepository:
                 "favorite_count": int(row[7]),
                 "answer_count": int(row[8]),
                 "username": row[9],
+                "author_nickname": row[10],
                 "is_favorited": False,
-                "author_avatar_url": row[10],
+                "author_avatar_url": row[11],
                 "tags": [],
             }
             for row in rows

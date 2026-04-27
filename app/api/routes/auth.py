@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.errors import AppError
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.services.auth_service import AuthService
 
@@ -20,7 +22,10 @@ def _extract_client_ip(request: Request) -> str | None:
 @router.post("/register")
 def register(payload: RegisterRequest, auth_service: AuthService = Depends(get_auth_service)):
     # 直接把前台收到的表格（payload）交给安全主管去处理
-    return auth_service.register(payload)
+    try:
+        return auth_service.register(payload)
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 @router.post("/login", response_model=TokenResponse)
 def login(
@@ -29,4 +34,7 @@ def login(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     # 登录成功后，返回那张印好的 JWT 房卡
-    return auth_service.login(payload, ip_address=_extract_client_ip(request))
+    try:
+        return auth_service.login(payload, ip_address=_extract_client_ip(request))
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
