@@ -21,3 +21,13 @@ class TagOptionItem(APIModel):
 
 class TagListResponse(APIModel):
     items: list[TagOptionItem] = Field(default_factory=list)
+
+
+class TagSuggestionItem(APIModel):
+    tag_id: int
+    tag_name: str
+    question_count: int = 0
+
+
+class TagSuggestionResponse(APIModel):
+    items: list[TagSuggestionItem] = Field(default_factory=list)

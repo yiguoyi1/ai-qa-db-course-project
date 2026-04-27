@@ -49,7 +49,7 @@
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
-- 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/search/questions`
+- 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/tags/suggestions`、`GET /api/search/questions`
 - 搜索历史：`GET /api/search/history`
 - 浏览、收藏：`POST /api/questions/{question_id}/browse`、`POST /api/questions/{question_id}/favorite`、`DELETE /api/questions/{question_id}/favorite`
 - 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`

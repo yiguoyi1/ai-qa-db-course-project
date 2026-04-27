@@ -283,11 +283,11 @@ user_id + tag_id + weight
 当前已有：
 
 - `GET /api/tags`
+- `GET /api/tags/suggestions`
 
 建议新增：
 
 - `POST /api/tags`
-- `GET /api/tags/suggestions`
 - `POST /api/questions/{question_id}/tags/analyze`
 
 ### 8.2 发帖接口扩展
@@ -382,11 +382,11 @@ user_id + tag_id + weight
 - AI 优先匹配已有标签，记录为 `AI_MATCHED`；无法匹配时创建新标签，记录为 `AI_CREATED`。
 - `GET /api/tags` 仅返回 `ACTIVE` 标签。
 - 新增管理员基础标签治理接口：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`。
+- 新增公开标签建议接口：`GET /api/tags/suggestions`，用于发帖时按关键词提示已有 `ACTIVE` 标签。
 
 仍待后续阶段处理：
 
 - 标签创建、标签合并和批量审核。
-- 标签推荐接口，如 `GET /api/tags/suggestions`。
 - 用户画像权重规则增强。
 - `HYBRID` 推荐策略增强。
 - 基于文本相似度或聚类的推荐补充。
