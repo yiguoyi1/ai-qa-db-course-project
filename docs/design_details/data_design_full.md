@@ -479,7 +479,7 @@
 7. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
 8. 用户头像、问题配图和回答配图统一落入 `MEDIA_ASSETS`
 9. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈和评论，这些行为分别落入独立行为表
-10. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
+10. 系统根据提问、回答、收藏、浏览、反馈、评论和搜索等行为重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
 11. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
 
 整体关系链路可概括为：
@@ -543,11 +543,11 @@
 
 1. `sync_question_statistics`：重算问题浏览数、收藏数、回答数
 2. `refresh_answer_feedback_stats`：重算回答点赞数、点踩数、平均评分
-3. `rebuild_user_tag_profile`：根据提问、收藏、浏览、反馈行为重建用户标签画像
+3. `rebuild_user_tag_profile`：根据提问、回答、收藏、浏览、反馈、评论和搜索行为重建用户标签画像
 4. `get_recommendation_score`：计算单个问题对指定用户的推荐分数
 5. `generate_recommendations`：为指定用户生成推荐结果并更新推荐状态
 
-当前实际落地的推荐逻辑以 `TAG_BASED + USER_TAG_PROFILE` 为主。
+当前实际落地的推荐逻辑以 `HYBRID + USER_TAG_PROFILE + POPULARITY` 为主，推荐分数由画像分、热度分和新鲜度分组成。
 
 ---
 
@@ -620,7 +620,7 @@
 3. 行为数据写入对应业务表
 4. 触发器和过程自动更新问题与回答的统计字段
 5. 存储过程根据行为重建用户标签画像
-6. 推荐过程根据画像和问题热度生成推荐结果
+6. 推荐过程根据画像、问题热度和新鲜度生成 `HYBRID` 推荐结果
 
 因此，本系统的推荐不是孤立模块，而是依赖完整行为链路驱动的。
 

@@ -34,7 +34,7 @@
 | 表名 | 所属模块 | 业务作用 | 核心字段 | 说明 |
 | --- | --- | --- | --- | --- |
 | `USER_TAG_PROFILE` | 用户画像 | 沉淀用户在不同标签上的兴趣权重 | `USER_ID`, `TAG_ID`, `WEIGHT` | 由行为数据重建，不建议手工直接维护 |
-| `RECOMMENDATIONS` | 推荐结果 | 保存生成后的推荐列表 | `USER_ID`, `QUESTION_ID`, `REC_TYPE`, `REC_SCORE`, `STATUS` | 当前主要承载标签推荐结果 |
+| `RECOMMENDATIONS` | 推荐结果 | 保存生成后的推荐列表 | `USER_ID`, `QUESTION_ID`, `REC_TYPE`, `REC_SCORE`, `STATUS` | 当前主要承载 `HYBRID` 推荐结果 |
 
 ## 5. AI 扩展表
 

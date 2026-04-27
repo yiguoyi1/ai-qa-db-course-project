@@ -156,14 +156,17 @@
 ### 7.2 权重来源
 
 - 用户自己发布的问题标签
+- 用户回答的问题标签
 - 用户收藏的问题标签
 - 用户浏览的问题标签
 - 用户反馈过的回答所关联的问题标签
+- 用户评论过的回答所关联的问题标签
+- 用户搜索关键词命中的标签
 
 ### 7.3 数据流步骤
 
 1. 系统读取用户行为数据
-2. 存储过程 `rebuild_user_tag_profile` 汇总不同来源的标签权重
+2. 存储过程 `rebuild_user_tag_profile` 汇总提问、回答、收藏、浏览、反馈、评论和搜索等来源的标签权重
 3. 删除旧画像后重建 `USER_TAG_PROFILE`
 
 ### 7.4 涉及数据表
@@ -173,24 +176,27 @@
 - `FAVORITES`
 - `BROWSE_HISTORY`
 - `ANSWER_FEEDBACK`
+- `ANSWERS`
+- `ANSWER_COMMENTS`
+- `SEARCH_HISTORY`
 - `USER_TAG_PROFILE`
 
 ## 8. 推荐生成数据流
 
 ### 8.1 业务目标
 
-- 基于用户画像为用户推荐其可能感兴趣的问题
+- 基于用户画像、问题热度和问题新鲜度为用户推荐其可能感兴趣的问题
 
 ### 8.2 当前实现逻辑
 
-当前版本实际落地的是基于标签画像的推荐流程：
+当前版本实际落地的是可解释的 `HYBRID` 推荐流程：
 
-1. 先将当前用户已有的 `TAG_BASED` 活跃推荐置为 `EXPIRED`
+1. 先将当前用户已有的 `TAG_BASED` 和 `HYBRID` 活跃推荐置为 `EXPIRED`
 2. 从 `QUESTIONS` 中筛选候选问题
 3. 过滤用户自己提问的问题
 4. 过滤用户已经收藏的问题
 5. 过滤非 `OPEN` 状态的问题
-6. 计算推荐分数
+6. 计算标签画像分、热度分和新鲜度分
 7. 取前 N 条写入 `RECOMMENDATIONS`
 
 ### 8.3 涉及数据表
@@ -200,6 +206,8 @@
 - `USER_TAG_PROFILE`
 - `RECOMMENDATIONS`
 - `FAVORITES`
+- `ANSWERS`
+- `BROWSE_HISTORY`
 
 ## 9. 多轮对话数据流
 

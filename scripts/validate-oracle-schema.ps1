@@ -143,6 +143,7 @@ DECLARE
   l_active_recs       NUMBER;
   l_expired_recs      NUMBER;
   l_rec_score         NUMBER;
+  l_rec_type          recommendations.rec_type%TYPE;
   l_last_login_flag   VARCHAR2(20);
 
   PROCEDURE assert_number(
@@ -293,14 +294,15 @@ BEGIN
   assert_number('user_a.profile_rows', l_profile_rows, 1);
   assert_number('user_a.profile_weight', l_total_weight, 5);
 
-  SELECT COUNT(*), MAX(rec_score)
-    INTO l_active_recs, l_rec_score
+  SELECT COUNT(*), MAX(rec_score), MAX(rec_type)
+    INTO l_active_recs, l_rec_score, l_rec_type
     FROM recommendations
    WHERE user_id = l_user_a_id
      AND status = 'ACTIVE';
 
   assert_number('user_a.active_recommendations', l_active_recs, 1);
-  assert_number('user_a.max_recommendation_score', l_rec_score, 5);
+  assert_number('user_a.max_recommendation_score', l_rec_score, 7);
+  assert_text('user_a.recommendation_type', l_rec_type, 'HYBRID');
 
   SELECT CASE WHEN last_login_time IS NOT NULL THEN 'UPDATED' ELSE 'NULL' END
     INTO l_last_login_flag
@@ -558,7 +560,7 @@ BEGIN
   assert_number('user_a.expired_recommendations.after_rerun', l_expired_recs, 2);
 
   l_rec_score := qa_app_pkg.get_recommendation_score(l_user_a_id, l_question_b_id);
-  assert_number('get_recommendation_score', l_rec_score, 5.01);
+  assert_number('get_recommendation_score', l_rec_score, 7.02);
 
   DBMS_OUTPUT.PUT_LINE('=== ALL VALIDATION CHECKS PASSED ===');
 END;

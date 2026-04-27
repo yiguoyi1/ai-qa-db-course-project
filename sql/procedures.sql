@@ -121,6 +121,19 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                 UNION ALL
 
                 SELECT qt.tag_id,
+                       4 AS weight
+                  FROM answers a
+                  JOIN question_tags qt
+                    ON qt.question_id = a.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
+                 WHERE a.user_id = p_user_id
+                   AND a.answer_type = 'MANUAL'
+
+                UNION ALL
+
+                SELECT qt.tag_id,
                        3 AS weight
                   FROM favorites f
                   JOIN question_tags qt
@@ -167,6 +180,37 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                     ON t.tag_id = qt.tag_id
                    AND t.status = 'ACTIVE'
                  WHERE af.user_id = p_user_id
+
+                UNION ALL
+
+                SELECT qt.tag_id,
+                       1.5 AS weight
+                  FROM answer_comments ac
+                  JOIN answers a
+                    ON a.answer_id = ac.answer_id
+                  JOIN question_tags qt
+                    ON qt.question_id = a.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
+                 WHERE ac.user_id = p_user_id
+                   AND ac.status = 'ACTIVE'
+
+                UNION ALL
+
+                SELECT t.tag_id,
+                       1 AS weight
+                  FROM search_history sh
+                  JOIN tags t
+                    ON t.status = 'ACTIVE'
+                   AND (
+                           INSTR(LOWER(sh.keyword), LOWER(t.tag_name)) > 0
+                           OR INSTR(LOWER(t.tag_name), LOWER(TRIM(sh.keyword))) > 0
+                           OR INSTR(REPLACE(LOWER(sh.keyword), ' ', '-'), LOWER(t.tag_name)) > 0
+                           OR INSTR(LOWER(t.tag_name), REPLACE(LOWER(TRIM(sh.keyword)), ' ', '-')) > 0
+                       )
+                 WHERE sh.user_id = p_user_id
+                   AND LENGTH(TRIM(sh.keyword)) >= 2
                ) src
          GROUP BY src.tag_id
         HAVING SUM(src.weight) > 0;
@@ -180,9 +224,14 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
     BEGIN
         SELECT ROUND(
                    NVL(SUM(utp.weight), 0)
-                   + LEAST(q.favorite_count, 20) * 0.10
-                   + LEAST(q.answer_count, 10) * 0.20
-                   + LEAST(q.view_count, 100) * 0.01,
+                   + LEAST(q.favorite_count, 20) * 0.30
+                   + LEAST(q.answer_count, 10) * 0.40
+                   + LEAST(q.view_count, 100) * 0.02
+                   + CASE
+                         WHEN q.ask_time >= SYSDATE - 7 THEN 2
+                         WHEN q.ask_time >= SYSDATE - 30 THEN 1
+                         ELSE 0
+                     END,
                    2
                )
           INTO l_score
@@ -196,7 +245,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
             ON utp.user_id = p_user_id
            AND utp.tag_id = t.tag_id
          WHERE q.question_id = p_question_id
-         GROUP BY q.favorite_count, q.answer_count, q.view_count;
+         GROUP BY q.favorite_count, q.answer_count, q.view_count, q.ask_time;
 
         RETURN NVL(l_score, 0);
     EXCEPTION
@@ -216,17 +265,23 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
         UPDATE recommendations
            SET status = 'EXPIRED'
          WHERE user_id = p_user_id
-           AND rec_type = 'TAG_BASED'
+           AND rec_type IN ('TAG_BASED', 'HYBRID')
            AND status = 'ACTIVE';
 
         FOR rec IN (
             SELECT question_id,
                    score,
-                   matched_tag_count
+                   matched_tag_count,
+                   profile_score,
+                   popularity_score,
+                   freshness_score
               FROM (
                     SELECT ranked.question_id,
                            ranked.score,
                            ranked.matched_tag_count,
+                           ranked.profile_score,
+                           ranked.popularity_score,
+                           ranked.freshness_score,
                            ROW_NUMBER() OVER (
                                ORDER BY ranked.score DESC, ranked.question_id DESC
                            ) AS rn
@@ -234,12 +289,29 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                             SELECT q.question_id,
                                    ROUND(
                                        NVL(SUM(utp.weight), 0)
-                                       + LEAST(q.favorite_count, 20) * 0.10
-                                       + LEAST(q.answer_count, 10) * 0.20
-                                       + LEAST(q.view_count, 100) * 0.01,
+                                       + LEAST(q.favorite_count, 20) * 0.30
+                                       + LEAST(q.answer_count, 10) * 0.40
+                                       + LEAST(q.view_count, 100) * 0.02
+                                       + CASE
+                                             WHEN q.ask_time >= SYSDATE - 7 THEN 2
+                                             WHEN q.ask_time >= SYSDATE - 30 THEN 1
+                                             ELSE 0
+                                         END,
                                        2
                                    ) AS score,
-                                   COUNT(utp.tag_id) AS matched_tag_count
+                                   COUNT(utp.tag_id) AS matched_tag_count,
+                                   ROUND(NVL(SUM(utp.weight), 0), 2) AS profile_score,
+                                   ROUND(
+                                       LEAST(q.favorite_count, 20) * 0.30
+                                       + LEAST(q.answer_count, 10) * 0.40
+                                       + LEAST(q.view_count, 100) * 0.02,
+                                       2
+                                   ) AS popularity_score,
+                                   CASE
+                                       WHEN q.ask_time >= SYSDATE - 7 THEN 2
+                                       WHEN q.ask_time >= SYSDATE - 30 THEN 1
+                                       ELSE 0
+                                   END AS freshness_score
                               FROM questions q
                               LEFT JOIN question_tags qt
                                 ON qt.question_id = q.question_id
@@ -262,7 +334,8 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                       q.status,
                                       q.favorite_count,
                                       q.answer_count,
-                                      q.view_count
+                                      q.view_count,
+                                      q.ask_time
                            ) ranked
                      WHERE ranked.score > 0
                    )
@@ -281,14 +354,15 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
             ) VALUES (
                 p_user_id,
                 rec.question_id,
-                'TAG_BASED',
-                'USER_TAG_PROFILE',
+                'HYBRID',
                 CASE
-                    WHEN rec.matched_tag_count > 0 THEN
-                        'Matched ' || rec.matched_tag_count || ' tag(s) in user profile'
-                    ELSE
-                        'Recommended by popularity and activity'
+                    WHEN rec.matched_tag_count > 0 THEN 'USER_TAG_PROFILE'
+                    ELSE 'POPULARITY'
                 END,
+                'Hybrid: tags=' || rec.matched_tag_count
+                    || ', profile=' || TO_CHAR(rec.profile_score)
+                    || ', popularity=' || TO_CHAR(rec.popularity_score)
+                    || ', freshness=' || TO_CHAR(rec.freshness_score),
                 rec.score,
                 SYSDATE,
                 'ACTIVE'

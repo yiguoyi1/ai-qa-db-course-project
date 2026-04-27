@@ -8,10 +8,10 @@
 - `QUESTION_TAGS` 保存问题与标签的多对多关系。
 - `USER_TAG_PROFILE` 保存用户对标签的兴趣权重。
 - `RECOMMENDATIONS` 保存推荐结果。
-- `qa_app_pkg.rebuild_user_tag_profile` 已经能根据提问、收藏、浏览、反馈等行为重建画像。
-- `qa_app_pkg.generate_recommendations` 已经能基于 `TAG_BASED + USER_TAG_PROFILE` 生成推荐。
+- `qa_app_pkg.rebuild_user_tag_profile` 已经能根据提问、回答、收藏、浏览、反馈、评论和搜索等行为重建画像。
+- `qa_app_pkg.generate_recommendations` 已经能基于 `HYBRID + USER_TAG_PROFILE + POPULARITY` 生成推荐。
 
-下一阶段的目标不是重做推荐系统，而是在现有结构上补强三件事：
+本轮增强不是重做推荐系统，而是在现有结构上补强三件事：
 
 1. 让问题标签来源更清楚。
 2. 让用户画像权重更稳定。
@@ -202,18 +202,17 @@ AI 标签分析需要输入：
 user_id + tag_id + weight
 ```
 
-### 6.2 权重来源建议
+### 6.2 已落地权重来源
 
-建议逐步增强 `rebuild_user_tag_profile`：
+`rebuild_user_tag_profile` 当前按以下行为累计用户标签兴趣：
 
-| 行为 | 建议权重 |
+| 行为 | 当前权重或规则 |
 | --- | --- |
 | 用户提问带标签 | 5 |
 | 用户回答某问题 | 4 |
 | 用户收藏某问题 | 3 |
-| 用户点赞某回答 | 2 |
-| 用户评分某回答 | 0 到 2 |
-| 用户长时间浏览某问题 | 1 到 2 |
+| 用户浏览某问题 | 基础 1，叠加停留时长和点击深度，上限受控 |
+| 用户反馈某回答 | 点赞、点踩和评分组合换算 |
 | 用户评论某回答 | 1.5 |
 | 用户搜索关键词命中标签 | 1 |
 
@@ -229,15 +228,15 @@ user_id + tag_id + weight
 
 ## 7. 阶段五：问题推荐增强
 
-### 7.1 第一阶段推荐策略
+### 7.1 当前 HYBRID 推荐策略
 
-继续使用可解释规则：
+当前使用可解释的混合规则：
 
 ```text
 推荐分 = 标签匹配分 + 热度分 + 新鲜度分
 ```
 
-建议拆分：
+当前拆分：
 
 - 标签匹配分：来自 `USER_TAG_PROFILE.weight`
 - 热度分：浏览数、收藏数、回答数
@@ -253,7 +252,7 @@ user_id + tag_id + weight
 - `HYBRID`
 - `MANUAL`
 
-建议下一步重点落地 `HYBRID`。
+当前 `generate_recommendations` 生成的主要推荐类型为 `HYBRID`。当候选问题命中用户画像标签时，`REC_SOURCE` 记录为 `USER_TAG_PROFILE`；没有画像标签命中但仍具备热度或新鲜度价值时，`REC_SOURCE` 记录为 `POPULARITY`。
 
 ### 7.3 聚类和开源算法
 
@@ -272,7 +271,7 @@ user_id + tag_id + weight
 
 建议路线：
 
-1. 先做 `HYBRID` 规则推荐。
+1. 保持当前 `HYBRID` 规则推荐作为主链路。
 2. 再做 TF-IDF 文本相似推荐。
 3. 最后再考虑聚类生成主题频道。
 
@@ -383,10 +382,10 @@ user_id + tag_id + weight
 - `GET /api/tags` 仅返回 `ACTIVE` 标签。
 - 新增管理员基础标签治理接口：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`。
 - 新增公开标签建议接口：`GET /api/tags/suggestions`，用于发帖时按关键词提示已有 `ACTIVE` 标签。
+- `rebuild_user_tag_profile` 已扩展回答、评论、搜索等行为权重，画像来源更完整。
+- `generate_recommendations` 已升级为 `HYBRID` 推荐，推荐理由会说明画像分、热度分和新鲜度分。
 
 仍待后续阶段处理：
 
 - 标签创建、标签合并和批量审核。
-- 用户画像权重规则增强。
-- `HYBRID` 推荐策略增强。
 - 基于文本相似度或聚类的推荐补充。

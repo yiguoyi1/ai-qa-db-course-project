@@ -51,6 +51,7 @@ class RecommendationRepository:
             FROM user_tag_profile utp
             JOIN tags t
               ON t.tag_id = utp.tag_id
+             AND t.status = 'ACTIVE'
             WHERE utp.user_id = :user_id
             ORDER BY utp.weight DESC, t.tag_name
             """,
@@ -177,6 +178,7 @@ class RecommendationRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id IN ({placeholders})
             ORDER BY qt.question_id, t.tag_name
             """,
