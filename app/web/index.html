@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI QA 社区 - 智能问答社区平台</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-soft: #eff6ff;
+            --cyan: #06b6d4;
+            --violet: #7c3aed;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-soft: #94a3b8;
+            --card: rgba(255, 255, 255, 0.82);
+            --white: #ffffff;
+            --border: rgba(148, 163, 184, 0.22);
+            --shadow: 0 24px 70px rgba(37, 99, 235, 0.14);
+            --shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.08);
+            --radius-md: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text-main);
+            font-family: "PingFang SC", "Microsoft YaHei", "SF Pro Display", system-ui, sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.18), transparent 32%),
+                radial-gradient(circle at 88% 8%, rgba(6, 182, 212, 0.14), transparent 34%),
+                linear-gradient(180deg, #f8fbff 0%, #eef5ff 42%, #ffffff 100%);
+            overflow-x: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .page-shell {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image:
+                linear-gradient(rgba(37, 99, 235, 0.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.055) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 68%);
+            pointer-events: none;
+        }
+
+        .orb {
+            position: fixed;
+            width: 380px;
+            height: 380px;
+            border-radius: 999px;
+            filter: blur(34px);
+            opacity: 0.32;
+            z-index: -1;
+            animation: floatOrb 9s ease-in-out infinite alternate;
+        }
+
+        .orb.one {
+            left: -120px;
+            top: 120px;
+            background: #60a5fa;
+        }
+
+        .orb.two {
+            right: -140px;
+            top: 40px;
+            background: #22d3ee;
+            animation-delay: 1.4s;
+        }
+
+        .orb.three {
+            right: 12%;
+            bottom: 10%;
+            background: #a78bfa;
+            opacity: 0.18;
+            animation-delay: 2.4s;
+        }
+
+        @keyframes floatOrb {
+            from {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+
+            to {
+                transform: translate3d(32px, 24px, 0) scale(1.08);
+            }
+        }
+
+        .container {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(18px);
+            background: rgba(255, 255, 255, 0.72);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 22px;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #dbeafe, #ffffff);
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.16);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .nav-links a {
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -8px;
+            height: 3px;
+            border-radius: 999px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-links a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-action {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            box-shadow: 0 16px 34px rgba(37, 99, 235, 0.26);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 44px rgba(37, 99, 235, 0.34);
+        }
+
+        .btn-ghost {
+            color: var(--primary);
+            background: rgba(239, 246, 255, 0.84);
+            border: 1px solid rgba(147, 197, 253, 0.55);
+        }
+
+        .btn-ghost:hover {
+            background: #dbeafe;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn {
+            display: none;
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fff;
+            color: var(--primary);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .hero {
+            padding: 86px 0 70px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 520px;
+            gap: 56px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 14px;
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.75);
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 800;
+            box-shadow: 0 10px 26px rgba(37, 99, 235, 0.08);
+        }
+
+        .hero h1 {
+            margin: 24px 0 20px;
+            font-size: clamp(42px, 6vw, 72px);
+            line-height: 1.04;
+            letter-spacing: -0.055em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(120deg, #1d4ed8, #2563eb 48%, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-desc {
+            max-width: 690px;
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 18px;
+            line-height: 1.85;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 34px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            max-width: 620px;
+            margin-top: 34px;
+        }
+
+        .mini-stat {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.66);
+            backdrop-filter: blur(14px);
+        }
+
+        .mini-stat strong {
+            display: block;
+            color: var(--primary);
+            font-size: 22px;
+            line-height: 1.1;
+        }
+
+        .mini-stat span {
+            display: block;
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .hero-mockup-wrap {
+            position: relative;
+        }
+
+        .hero-mockup-wrap::before {
+            content: "";
+            position: absolute;
+            inset: -24px;
+            border-radius: 36px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(6, 182, 212, 0.16));
+            filter: blur(28px);
+            z-index: -1;
+        }
+
+        .browser-card {
+            overflow: hidden;
+            border: 1px solid rgba(147, 197, 253, 0.48);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow);
+        }
+
+        .browser-top {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 18px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(248, 250, 252, 0.8);
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 999px;
+            background: #cbd5e1;
+        }
+
+        .dot.red {
+            background: #fb7185;
+        }
+
+        .dot.yellow {
+            background: #fbbf24;
+        }
+
+        .dot.green {
+            background: #34d399;
+        }
+
+        .mockup-content {
+            padding: 22px;
+        }
+
+        .mock-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .mock-search {
+            flex: 1;
+            height: 42px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: #f8fafc;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .mock-btn {
+            padding: 10px 16px;
+            border-radius: 14px;
+            color: #fff;
+            background: var(--primary);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .mock-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 150px;
+            gap: 16px;
+        }
+
+        .question-card {
+            padding: 18px;
+            border: 1px solid rgba(203, 213, 225, 0.78);
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+            margin-bottom: 14px;
+        }
+
+        .question-card h3 {
+            margin: 0 0 9px;
+            font-size: 16px;
+            line-height: 1.45;
+        }
+
+        .question-card p {
+            margin: 0 0 14px;
+            color: var(--text-soft);
+            font-size: 13px;
+        }
+
+        .mock-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .status-pill {
+            margin-left: auto;
+            color: #047857;
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .mock-side {
+            padding: 16px;
+            border: 1px solid rgba(203, 213, 225, 0.78);
+            border-radius: 22px;
+            background: #fff;
+            align-self: start;
+        }
+
+        .mock-side h4 {
+            margin: 0 0 12px;
+            font-size: 14px;
+        }
+
+        .mock-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mock-tags span,
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 7px 11px;
+            color: var(--primary);
+            background: #e0e7ff;
+            font-size: 13px;
+            font-weight: 800;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        section {
+            padding: 76px 0;
+        }
+
+        .section-head {
+            max-width: 760px;
+            margin: 0 auto 34px;
+            text-align: center;
+        }
+
+        .section-kicker {
+            display: inline-flex;
+            margin-bottom: 13px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: clamp(30px, 4vw, 46px);
+            line-height: 1.16;
+            letter-spacing: -0.035em;
+        }
+
+        .section-head p {
+            margin: 16px auto 0;
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .feature-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--card);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(18px);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+
+        .glass-card::after {
+            content: "";
+            position: absolute;
+            right: -42px;
+            top: -42px;
+            width: 120px;
+            height: 120px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(37, 99, 235, 0.26);
+            box-shadow: 0 24px 55px rgba(37, 99, 235, 0.14);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #dbeafe, #fff);
+            color: var(--primary);
+            font-size: 24px;
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
+        }
+
+        .glass-card h3 {
+            margin: 20px 0 10px;
+            font-size: 19px;
+        }
+
+        .glass-card p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .showcase {
+            padding-top: 40px;
+        }
+
+        .showcase-frame {
+            padding: 16px;
+            border-radius: 34px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(6, 182, 212, 0.1));
+            box-shadow: var(--shadow);
+        }
+
+        .showcase .browser-card {
+            box-shadow: none;
+        }
+
+        .wide-mock {
+            padding: 26px;
+        }
+
+        .wide-nav {
+            display: grid;
+            grid-template-columns: 160px minmax(220px, 1fr) 120px;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .wide-brand {
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .wide-feed {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 22px;
+        }
+
+        .feed-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .feed-title h3 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .ask-button {
+            color: #fff;
+            background: var(--primary);
+            padding: 11px 18px;
+            border-radius: 14px;
+            font-weight: 900;
+        }
+
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .scene-card {
+            padding: 26px;
+            border-radius: var(--radius-md);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .scene-card strong {
+            display: block;
+            margin: 16px 0 8px;
+            font-size: 18px;
+        }
+
+        .scene-card p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.75;
+            font-size: 14px;
+        }
+
+        .data-band {
+            padding: 42px;
+            border-radius: 34px;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(125, 211, 252, 0.34), transparent 28%),
+                linear-gradient(135deg, #1d4ed8, #2563eb 52%, #06b6d4);
+            color: #fff;
+            box-shadow: var(--shadow);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .data-item {
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+        }
+
+        .data-item strong {
+            display: block;
+            font-size: 34px;
+            line-height: 1;
+        }
+
+        .data-item span {
+            display: block;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.78);
+            font-weight: 700;
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tag-pill {
+            padding: 12px 18px;
+            font-size: 15px;
+            background: rgba(224, 231, 255, 0.8);
+            border: 1px solid rgba(147, 197, 253, 0.45);
+            cursor: default;
+        }
+
+        .tag-pill:hover {
+            transform: translateY(-4px) scale(1.03);
+            background: #dbeafe;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.16);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+            counter-reset: step;
+        }
+
+        .step-card {
+            position: relative;
+            padding: 30px;
+            border-radius: var(--radius-md);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .step-card::before {
+            counter-increment: step;
+            content: "0" counter(step);
+            display: inline-flex;
+            width: 52px;
+            height: 52px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--cyan));
+            font-weight: 900;
+            margin-bottom: 18px;
+        }
+
+        .step-card h3 {
+            margin: 0 0 10px;
+            font-size: 20px;
+        }
+
+        .step-card p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+
+        .faq-list {
+            max-width: 860px;
+            margin: 0 auto;
+            display: grid;
+            gap: 14px;
+        }
+
+        .faq-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.86);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 900;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .faq-icon {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            transition: transform 0.2s ease;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.24s ease;
+        }
+
+        .faq-answer p {
+            margin: 0;
+            padding: 0 22px 20px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .faq-item.open .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding: 54px 0 30px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 34px;
+        }
+
+        .footer h3,
+        .footer h4 {
+            margin: 0 0 14px;
+            color: #fff;
+        }
+
+        .footer p,
+        .footer a {
+            color: #94a3b8;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .footer-links {
+            display: grid;
+            gap: 8px;
+        }
+
+        .copyright {
+            margin-top: 36px;
+            padding-top: 22px;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            color: #64748b;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 1080px) {
+            .hero-grid,
+            .wide-feed {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-mockup-wrap {
+                max-width: 640px;
+                margin: 0 auto;
+            }
+
+            .card-grid,
+            .scene-grid,
+            .data-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .feature-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 860px) {
+            .nav-links {
+                position: fixed;
+                left: 20px;
+                right: 20px;
+                top: 86px;
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 18px;
+                border: 1px solid var(--border);
+                border-radius: 22px;
+                background: rgba(255, 255, 255, 0.94);
+                box-shadow: var(--shadow-soft);
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 10px 12px;
+            }
+
+            .nav-action .btn-primary {
+                display: none;
+            }
+
+            .menu-btn {
+                display: inline-grid;
+                place-items: center;
+            }
+
+            .hero {
+                padding-top: 56px;
+            }
+
+            .mock-main,
+            .wide-nav {
+                grid-template-columns: 1fr;
+            }
+
+            .steps,
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                width: min(100% - 28px, 1180px);
+            }
+
+            .nav-inner {
+                height: 68px;
+            }
+
+            .brand {
+                font-size: 19px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            .hero-desc {
+                font-size: 16px;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+            }
+
+            .hero-stats,
+            .card-grid,
+            .feature-grid,
+            .scene-grid,
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .data-band {
+                padding: 24px;
+            }
+
+            .wide-mock,
+            .mockup-content {
+                padding: 16px;
+            }
+
+            .mock-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <div class="grid-bg"></div>
+        <div class="orb one"></div>
+        <div class="orb two"></div>
+        <div class="orb three"></div>
+
+        <header class="navbar">
+            <div class="container nav-inner">
+                <a class="brand" href="#top" aria-label="AI QA 社区首页">
+                    <span class="brand-mark">💡</span>
+                    <span>AI QA 社区</span>
+                </a>
+
+                <nav class="nav-links" id="navLinks" aria-label="主导航">
+                    <a href="#advantages">产品优势</a>
+                    <a href="#features">核心功能</a>
+                    <a href="#scenes">使用场景</a>
+                    <a href="#tags">热门标签</a>
+                    <a href="#faq">常见问题</a>
+                </nav>
+
+                <div class="nav-action">
+                    <a class="btn btn-primary" href="/login">立即体验</a>
+                    <button class="menu-btn" id="menuBtn" aria-label="打开菜单">☰</button>
+                </div>
+            </div>
+        </header>
+
+        <main id="top">
+            <section class="hero">
+                <div class="container hero-grid">
+                    <div>
+                        <span class="eyebrow">AI 驱动 · 社区共创 · 知识沉淀</span>
+                        <h1>
+                            让每一个问题，<br>
+                            都能更快找到<span class="gradient-text">答案</span>
+                        </h1>
+                        <p class="hero-desc">
+                            AI QA 社区是一个融合智能推荐、问题热榜、标签检索与社区互动的智能问答平台，帮助用户高效提问、搜索和沉淀知识。
+                        </p>
+
+                        <div class="hero-actions">
+                            <a class="btn btn-primary" href="/login">立即进入社区</a>
+                            <a class="btn btn-ghost" href="#features">查看功能</a>
+                        </div>
+
+                        <div class="hero-stats">
+                            <div class="mini-stat">
+                                <strong>Hybrid</strong>
+                                <span>热度与新鲜度推荐</span>
+                            </div>
+                            <div class="mini-stat">
+                                <strong>Tag</strong>
+                                <span>标签化知识检索</span>
+                            </div>
+                            <div class="mini-stat">
+                                <strong>AI</strong>
+                                <span>智能提问与问答辅助</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-mockup-wrap" aria-label="产品界面模拟图">
+                        <div class="browser-card">
+                            <div class="browser-top">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="mockup-content">
+                                <div class="mock-nav">
+                                    <div class="mock-search">🔍 搜索感兴趣的问题...</div>
+                                    <div class="mock-btn">+ 提问</div>
+                                </div>
+
+                                <div class="mock-main">
+                                    <div>
+                                        <div class="question-card">
+                                            <h3>如果我在 22 岁成为马斯克的助手，那么前途怎么样</h3>
+                                            <p>点击查看详情全文...</p>
+                                            <div class="mock-meta">
+                                                <span>👤 Corld</span>
+                                                <span>💬 2 个回答</span>
+                                                <span>⭐ 1 次收藏</span>
+                                                <span class="status-pill">已解决</span>
+                                            </div>
+                                        </div>
+                                        <div class="question-card">
+                                            <h3>我想学习几种著名排序算法的代码实现</h3>
+                                            <p>算法学习、代码实现、复杂度分析都可以集中讨论。</p>
+                                            <div class="mock-meta">
+                                                <span>👤 wcr111</span>
+                                                <span>💬 2 个回答</span>
+                                                <span>⭐ 0 次收藏</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <aside class="mock-side">
+                                        <h4>热门标签</h4>
+                                        <div class="mock-tags">
+                                            <span>deepseek</span>
+                                            <span>docker</span>
+                                            <span>oracle</span>
+                                            <span>算法</span>
+                                        </div>
+                                    </aside>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="advantages">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">PRODUCT ADVANTAGES</span>
+                        <h2>从提问到沉淀，让知识流动更高效</h2>
+                        <p>围绕搜索、推荐、标签和社区互动构建完整问答闭环，让用户更快找到答案，也让优质内容持续产生价值。</p>
+                    </div>
+
+                    <div class="card-grid">
+                        <article class="glass-card">
+                            <div class="icon-box">🧠</div>
+                            <h3>智能问答推荐</h3>
+                            <p>根据热度、收藏量、浏览量和新鲜度推荐高质量问题，帮助用户优先看到值得关注的内容。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">🔍</div>
+                            <h3>高效搜索问题</h3>
+                            <p>通过关键词快速定位相关问答内容，减少重复提问，让历史知识真正被复用。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">🏷️</div>
+                            <h3>标签分类浏览</h3>
+                            <p>使用 deepseek、docker、oracle 等标签快速筛选内容，让兴趣主题更清晰。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">💬</div>
+                            <h3>社区互动沉淀</h3>
+                            <p>支持提问、回答、收藏和已解决状态，逐步形成结构化、可追踪的知识沉淀。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">CORE FEATURES</span>
+                        <h2>一个完整的智能问答社区体验</h2>
+                        <p>不只是信息流列表，而是围绕“发现问题、理解问题、解决问题、沉淀问题”的产品化流程。</p>
+                    </div>
+
+                    <div class="card-grid feature-grid">
+                        <article class="glass-card">
+                            <div class="icon-box">✍️</div>
+                            <h3>发布问题</h3>
+                            <p>用户可以快速提出问题并选择相关标签，让问题更容易被理解和检索。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">🔥</div>
+                            <h3>浏览热榜</h3>
+                            <p>查看当前讨论度最高的问题，快速捕捉社区正在关注的热点内容。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">🧭</div>
+                            <h3>搜索问答</h3>
+                            <p>输入关键词查找历史问题和答案，让知识不再散落在不同页面里。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">⭐</div>
+                            <h3>收藏问题</h3>
+                            <p>收藏感兴趣的问题，方便后续复盘、学习和继续追踪讨论。</p>
+                        </article>
+
+                        <article class="glass-card">
+                            <div class="icon-box">✅</div>
+                            <h3>问题状态管理</h3>
+                            <p>支持开放中、已解决等状态展示，让用户一眼判断问题处理进度。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="showcase">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">INTERFACE SHOWCASE</span>
+                        <h2>清爽、现代、容易上手的社区界面</h2>
+                        <p>围绕搜索框、热榜列表、热门标签和提问入口构建高频操作区，降低用户进入社区后的使用成本。</p>
+                    </div>
+
+                    <div class="showcase-frame">
+                        <div class="browser-card">
+                            <div class="browser-top">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+
+                            <div class="wide-mock">
+                                <div class="wide-nav">
+                                    <div class="wide-brand">💡 AI QA 社区</div>
+                                    <div class="mock-search">🔍 搜索感兴趣的问题...</div>
+                                    <div class="mock-btn">搜索</div>
+                                </div>
+
+                                <div class="wide-feed">
+                                    <div>
+                                        <div class="feed-title">
+                                            <h3>热榜问答</h3>
+                                            <span class="ask-button">+ 提问</span>
+                                        </div>
+
+                                        <div class="question-card">
+                                            <h3>有没有去英国看英超的旅游攻略</h3>
+                                            <p>点击查看详情全文...</p>
+                                            <div class="mock-meta">
+                                                <span>👤 Corld</span>
+                                                <span>💬 1 个回答</span>
+                                                <span>⭐ 1 次收藏</span>
+                                                <span>⏱ 2026/4/22</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="question-card">
+                                            <h3>在 AI 发展的浪潮下，普通大学生应该如何紧跟时代潮流</h3>
+                                            <p>学习路径、职业规划、AI 工具使用都可以在这里交流。</p>
+                                            <div class="mock-meta">
+                                                <span>👤 wcr111</span>
+                                                <span>💬 3 个回答</span>
+                                                <span>⭐ 1 次收藏</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <aside class="mock-side">
+                                        <h4>热门标签</h4>
+                                        <div class="mock-tags">
+                                            <span>deepseek</span>
+                                            <span>docker</span>
+                                            <span>oracle</span>
+                                            <span>recommendation</span>
+                                            <span>考研数学</span>
+                                        </div>
+                                    </aside>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="scenes">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">USE CASES</span>
+                        <h2>适合学习、开发、兴趣与团队协作</h2>
+                        <p>AI QA 社区不是单一垂直问答工具，而是可以承载多类型知识内容的社区平台。</p>
+                    </div>
+
+                    <div class="scene-grid">
+                        <article class="scene-card">
+                            <div class="icon-box">🎓</div>
+                            <strong>学生学习答疑</strong>
+                            <p>考研、课程、论文、项目问题都可以提问，沉淀成可复用的学习资料。</p>
+                        </article>
+
+                        <article class="scene-card">
+                            <div class="icon-box">💻</div>
+                            <strong>程序开发交流</strong>
+                            <p>Docker、数据库、算法、部署等问题集中讨论，减少重复踩坑。</p>
+                        </article>
+
+                        <article class="scene-card">
+                            <div class="icon-box">🌍</div>
+                            <strong>兴趣知识分享</strong>
+                            <p>体育、旅游、生活经验等内容持续沉淀，形成更丰富的社区内容生态。</p>
+                        </article>
+
+                        <article class="scene-card">
+                            <div class="icon-box">🏢</div>
+                            <strong>团队知识库</strong>
+                            <p>将常见问题转化为团队可复用的知识资产，提升协作和交接效率。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="container">
+                    <div class="data-band">
+                        <div class="section-head" style="color:#fff; margin-bottom:28px;">
+                            <span class="section-kicker" style="color:#bfdbfe;">DATA HIGHLIGHTS</span>
+                            <h2>用数据体现社区价值</h2>
+                            <p style="color:rgba(255,255,255,.78);">适合课程设计展示，也适合对外介绍平台愿景和产品能力。</p>
+                        </div>
+
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <strong>10万+</strong>
+                                <span>问题沉淀</span>
+                            </div>
+                            <div class="data-item">
+                                <strong>3倍</strong>
+                                <span>信息检索效率提升</span>
+                            </div>
+                            <div class="data-item">
+                                <strong>24小时</strong>
+                                <span>智能推荐更新</span>
+                            </div>
+                            <div class="data-item">
+                                <strong>99%</strong>
+                                <span>常见问题可快速定位</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tags">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">POPULAR TAGS</span>
+                        <h2>用标签快速连接兴趣与知识</h2>
+                        <p>热门标签帮助用户快速进入感兴趣的话题，也为推荐系统和知识画像提供更清晰的结构化信号。</p>
+                    </div>
+
+                    <div class="tag-cloud">
+                        <span class="tag-pill">deepseek</span>
+                        <span class="tag-pill">docker</span>
+                        <span class="tag-pill">oracle</span>
+                        <span class="tag-pill">recommendation</span>
+                        <span class="tag-pill">英超</span>
+                        <span class="tag-pill">考研数学</span>
+                        <span class="tag-pill">数据库</span>
+                        <span class="tag-pill">云计算</span>
+                        <span class="tag-pill">算法</span>
+                        <span class="tag-pill">旅行攻略</span>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">HOW IT WORKS</span>
+                        <h2>三步完成一次高效问答</h2>
+                        <p>从发现问题到收藏沉淀，整个流程尽量轻量、直观、符合社区产品使用习惯。</p>
+                    </div>
+
+                    <div class="steps">
+                        <article class="step-card">
+                            <h3>搜索或发布问题</h3>
+                            <p>先搜索历史内容，如果没有合适答案，可以快速发布新问题并添加标签。</p>
+                        </article>
+
+                        <article class="step-card">
+                            <h3>浏览推荐答案与相关标签</h3>
+                            <p>通过热榜、推荐和标签入口查看相关内容，让答案发现过程更自然。</p>
+                        </article>
+
+                        <article class="step-card">
+                            <h3>收藏优质内容并沉淀知识</h3>
+                            <p>将高价值问题收藏起来，持续形成个人和社区都能复用的知识资产。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">FAQ</span>
+                        <h2>常见问题</h2>
+                        <p>快速了解 AI QA 社区的定位、使用方式和核心机制。</p>
+                    </div>
+
+                    <div class="faq-list">
+                        <article class="faq-item open">
+                            <button class="faq-question" type="button">
+                                <span>AI QA 社区适合哪些用户使用？</span>
+                                <span class="faq-icon">＋</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>适合学生、开发者、课程项目团队以及希望沉淀知识内容的用户。无论是学习答疑、技术交流还是经验分享，都可以通过问答和标签形成结构化内容。</p>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button class="faq-question" type="button">
+                                <span>是否需要登录才能提问？</span>
+                                <span class="faq-icon">＋</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>是的。登录后才能发布问题、回答问题、收藏内容和进入个人中心，这样可以保证内容归属清晰，也方便后续查看自己的提问和收藏。</p>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button class="faq-question" type="button">
+                                <span>问题热榜是如何生成的？</span>
+                                <span class="faq-icon">＋</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>热榜会综合问题的回答数、收藏量、浏览量和发布时间等因素，让高互动内容和新鲜问题都有机会被用户看到。</p>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button class="faq-question" type="button">
+                                <span>可以收藏问题吗？</span>
+                                <span class="faq-icon">＋</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>可以。用户可以收藏感兴趣的问题，之后在个人中心快速查看，适合复习、跟踪和整理高价值内容。</p>
+                            </div>
+                        </article>
+
+                        <article class="faq-item">
+                            <button class="faq-question" type="button">
+                                <span>是否支持按标签查找内容？</span>
+                                <span class="faq-icon">＋</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>支持。平台会展示热门标签，用户也可以在发布问题时选择或创建标签，后续可通过标签快速定位相关内容。</p>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div>
+                        <h3>💡 AI QA 社区</h3>
+                        <p>一个融合智能推荐、热榜发现、标签检索和社区互动的智能问答平台，让问题更快被看见，让答案持续沉淀。</p>
+                    </div>
+
+                    <div>
+                        <h4>快速链接</h4>
+                        <div class="footer-links">
+                            <a href="#advantages">产品优势</a>
+                            <a href="#features">核心功能</a>
+                            <a href="#scenes">使用场景</a>
+                            <a href="#faq">常见问题</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4>产品能力</h4>
+                        <div class="footer-links">
+                            <a href="#tags">热门标签</a>
+                            <a href="#features">智能推荐</a>
+                            <a href="#features">搜索问答</a>
+                            <a href="#features">收藏沉淀</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4>联系方式</h4>
+                        <p>课程设计项目展示</p>
+                        <p>Email：contact@aiqa.example</p>
+                        <p>地址：AI QA 社区项目组</p>
+                    </div>
+                </div>
+
+                <div class="copyright">
+                    © 2026 AI QA 社区. All rights reserved.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const menuBtn = document.getElementById("menuBtn");
+        const navLinks = document.getElementById("navLinks");
+
+        menuBtn.addEventListener("click", () => {
+            navLinks.classList.toggle("open");
+            menuBtn.textContent = navLinks.classList.contains("open") ? "×" : "☰";
+        });
+
+        document.querySelectorAll(".nav-links a").forEach(link => {
+            link.addEventListener("click", () => {
+                navLinks.classList.remove("open");
+                menuBtn.textContent = "☰";
+            });
+        });
+
+        document.querySelectorAll(".faq-item").forEach(item => {
+            const button = item.querySelector(".faq-question");
+            const answer = item.querySelector(".faq-answer");
+
+            const syncHeight = () => {
+                answer.style.maxHeight = item.classList.contains("open")
+                    ? `${answer.scrollHeight}px`
+                    : "0px";
+            };
+
+            button.addEventListener("click", () => {
+                item.classList.toggle("open");
+                syncHeight();
+            });
+
+            syncHeight();
+        });
+
+        window.addEventListener("resize", () => {
+            document.querySelectorAll(".faq-item").forEach(item => {
+                const answer = item.querySelector(".faq-answer");
+                if (item.classList.contains("open")) {
+                    answer.style.maxHeight = `${answer.scrollHeight}px`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

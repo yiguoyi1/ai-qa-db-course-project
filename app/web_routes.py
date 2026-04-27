@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
@@ -20,8 +20,9 @@ def _page_response(filename: str) -> FileResponse:
 
 
 @web_router.get("/")
-def root_page() -> RedirectResponse:
-    return RedirectResponse(url="/login")
+@web_router.get("/index.html")
+def landing_page() -> FileResponse:
+    return _page_response("index.html")
 
 
 @web_router.get("/login")
