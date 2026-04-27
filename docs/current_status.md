@@ -45,6 +45,7 @@
 - 用户登录：`POST /api/auth/login`
 - AI 首答提问：`POST /api/questions/ask`
 - 纯社区式发帖：`POST /api/questions`
+- 发帖标签增强：`tag_ids` 绑定已有标签，`custom_tags` 创建或复用自定义标签，`auto_tag` 支持无标签时 AI 自动补标签
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
@@ -271,6 +272,8 @@
 
 - 多轮对话前端入口与页面交互
 - 评论图片与图片审核后台
+- 标签管理后台与标签合并审核
+- 用户画像权重和混合推荐策略增强
 - 推荐规则人工干预入口
 
 ## 5. 当前最稳妥的协作口径
@@ -284,6 +287,7 @@
 
 如果后续继续开发，建议优先顺序为：
 
-1. 先补评论图片与媒体审核、清理后台
-2. 再补推荐规则人工干预入口
-3. 补多轮对话前端入口与页面交互
+1. 先补标签管理后台与标签合并审核，避免 AI 或用户自定义标签长期失控
+2. 再补用户画像权重和 `HYBRID` 推荐策略增强
+3. 补评论图片与媒体审核、清理后台
+4. 补多轮对话前端入口与页面交互

@@ -43,6 +43,7 @@ class MetaRepository:
                 tag_id,
                 tag_name
             FROM tags
+            WHERE status = 'ACTIVE'
             ORDER BY tag_name
             """
         )

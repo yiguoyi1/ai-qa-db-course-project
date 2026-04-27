@@ -72,6 +72,9 @@ class QuestionRepository:
                 EXISTS (
                     SELECT 1
                     FROM question_tags qt_filter
+                    JOIN tags t_filter
+                      ON t_filter.tag_id = qt_filter.tag_id
+                     AND t_filter.status = 'ACTIVE'
                     WHERE qt_filter.question_id = q.question_id
                       AND qt_filter.tag_id = :tag_id
                 )
@@ -146,22 +149,37 @@ class QuestionRepository:
         connection: oracledb.Connection,
         question_id: int,
         tag_ids: list[int],
+        *,
+        source: str = "USER_SELECTED",
+        confidence_score: float | None = None,
     ) -> None:
         if not tag_ids:
             return
 
         deduplicated_tag_ids = list(dict.fromkeys(tag_ids))
-        rows = [{"question_id": question_id, "tag_id": tag_id} for tag_id in deduplicated_tag_ids]
+        rows = [
+            {
+                "question_id": question_id,
+                "tag_id": tag_id,
+                "source": source,
+                "confidence_score": confidence_score,
+            }
+            for tag_id in deduplicated_tag_ids
+        ]
 
         cursor = connection.cursor()
         cursor.executemany(
             """
             INSERT INTO question_tags (
                 question_id,
-                tag_id
+                tag_id,
+                source,
+                confidence_score
             ) VALUES (
                 :question_id,
-                :tag_id
+                :tag_id,
+                :source,
+                :confidence_score
             )
             """,
             rows,
@@ -227,6 +245,7 @@ class QuestionRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id = :question_id
             ORDER BY t.tag_name
             """,
@@ -420,6 +439,7 @@ class QuestionRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id IN ({placeholders})
             ORDER BY qt.question_id, t.tag_name
             """,

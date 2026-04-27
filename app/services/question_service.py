@@ -1,3 +1,5 @@
+import re
+
 import oracledb
 
 from app.core.errors import AppError, NotFoundError, ValidationError
@@ -6,6 +8,7 @@ from app.repositories.answer_repository import AnswerRepository
 from app.repositories.log_repository import LogRepository
 from app.repositories.media_repository import MediaRepository
 from app.repositories.question_repository import QuestionRepository
+from app.repositories.tag_repository import TagRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.question import (
     AskQuestionRequest,
@@ -14,10 +17,12 @@ from app.schemas.question import (
     QuestionListResponse,
 )
 from app.services.ai_answer_service import AIAnswerService
+from app.services.ai_tagging_service import AITaggingService, GeneratedTags
 
 
 class QuestionService:
     VALID_QUESTION_STATUSES = {"OPEN", "RESOLVED", "CLOSED", "ARCHIVED"}
+    MAX_QUESTION_TAGS = 10
 
     def __init__(
         self,
@@ -26,16 +31,23 @@ class QuestionService:
         log_repository: LogRepository | None = None,
         user_repository: UserRepository | None = None,
         media_repository: MediaRepository | None = None,
+        tag_repository: TagRepository | None = None,
         ai_answer_service: AIAnswerService | None = None,
+        ai_tagging_service: AITaggingService | None = None,
     ) -> None:
         self._question_repository = question_repository or QuestionRepository()
         self._answer_repository = answer_repository or AnswerRepository()
         self._log_repository = log_repository or LogRepository()
         self._user_repository = user_repository or UserRepository()
         self._media_repository = media_repository or MediaRepository()
-        self._ai_answer_service = ai_answer_service or AIAnswerService()
+        self._tag_repository = tag_repository or TagRepository()
+        self._ai_answer_service = ai_answer_service
+        self._ai_tagging_service = ai_tagging_service
 
     def ask_question(self, payload: AskQuestionRequest) -> QuestionDetailResponse:
+        if payload.user_id is None:
+            raise ValidationError("user_id is required.")
+
         with get_connection() as connection:
             try:
                 question_id = self._question_repository.create_question(
@@ -45,13 +57,18 @@ class QuestionService:
                     title=payload.title,
                     content=payload.content,
                 )
-                self._question_repository.add_tags(
+                self._attach_question_tags(
                     connection=connection,
                     question_id=question_id,
+                    user_id=int(payload.user_id),
+                    title=payload.title,
+                    content=payload.content,
                     tag_ids=payload.tag_ids,
+                    custom_tags=payload.custom_tags,
+                    auto_tag=payload.auto_tag,
                 )
 
-                generated_answer = self._ai_answer_service.generate_single_answer(
+                generated_answer = self._get_ai_answer_service().generate_single_answer(
                     title=payload.title,
                     content=payload.content,
                 )
@@ -191,6 +208,186 @@ class QuestionService:
                 owner_id=answer["answer_id"],
             )
 
+    def _attach_question_tags(
+        self,
+        *,
+        connection: oracledb.Connection,
+        question_id: int,
+        user_id: int,
+        title: str,
+        content: str,
+        tag_ids: list[int],
+        custom_tags: list[str],
+        auto_tag: bool,
+    ) -> None:
+        selected_tag_ids = self._normalize_tag_ids(tag_ids)
+        bound_tag_ids: set[int] = set()
+
+        if selected_tag_ids:
+            self._question_repository.add_tags(
+                connection=connection,
+                question_id=question_id,
+                tag_ids=selected_tag_ids,
+                source="USER_SELECTED",
+            )
+            bound_tag_ids.update(selected_tag_ids)
+
+        for tag_name in self._normalize_custom_tags(custom_tags):
+            if len(bound_tag_ids) >= self.MAX_QUESTION_TAGS:
+                raise ValidationError(f"A question can have at most {self.MAX_QUESTION_TAGS} tags.")
+
+            tag = self._tag_repository.get_tag_by_name(connection, tag_name)
+            if tag is not None and tag["status"] != "ACTIVE":
+                raise ValidationError(f"Tag '{tag_name}' is not available.")
+            tag_id = (
+                int(tag["tag_id"])
+                if tag is not None
+                else self._tag_repository.create_tag(
+                    connection,
+                    tag_name=tag_name,
+                    source="USER",
+                    create_user_id=user_id,
+                )
+            )
+            if tag_id in bound_tag_ids:
+                continue
+
+            self._question_repository.add_tags(
+                connection=connection,
+                question_id=question_id,
+                tag_ids=[tag_id],
+                source="USER_CREATED",
+            )
+            bound_tag_ids.add(tag_id)
+
+        if bound_tag_ids or not auto_tag:
+            return
+
+        generated_tags = self._generate_ai_tags(
+            connection=connection,
+            title=title,
+            content=content,
+        )
+        if generated_tags is None:
+            return
+
+        if generated_tags.prompt_text:
+            self._log_repository.create_prompt_log(
+                connection=connection,
+                question_id=question_id,
+                prompt_text=generated_tags.prompt_text,
+                response_text=generated_tags.response_text,
+                token_usage=generated_tags.token_usage,
+                model_name=generated_tags.model_name,
+            )
+
+        for candidate in generated_tags.candidates:
+            if len(bound_tag_ids) >= self.MAX_QUESTION_TAGS:
+                break
+
+            tag_id = candidate.tag_id
+            source = candidate.source
+            if tag_id is None:
+                tag = self._tag_repository.get_tag_by_name(connection, candidate.tag_name)
+                if tag is not None:
+                    if tag["status"] != "ACTIVE":
+                        continue
+                    tag_id = int(tag["tag_id"])
+                    source = "AI_MATCHED"
+                else:
+                    tag_id = self._tag_repository.create_tag(
+                        connection,
+                        tag_name=candidate.tag_name,
+                        source="AI",
+                        create_user_id=user_id,
+                        description=generated_tags.reason[:200] or None,
+                    )
+                    source = "AI_CREATED"
+
+            if tag_id in bound_tag_ids:
+                continue
+
+            self._question_repository.add_tags(
+                connection=connection,
+                question_id=question_id,
+                tag_ids=[tag_id],
+                source=source,
+                confidence_score=candidate.confidence_score,
+            )
+            bound_tag_ids.add(tag_id)
+
+    def _generate_ai_tags(
+        self,
+        *,
+        connection: oracledb.Connection,
+        title: str,
+        content: str,
+    ) -> GeneratedTags | None:
+        existing_tags = self._tag_repository.list_active_tags(connection)
+        try:
+            return self._get_ai_tagging_service().analyze_question_tags(
+                title=title,
+                content=content,
+                existing_tags=existing_tags,
+            )
+        except Exception:
+            return None
+
+    def _get_ai_answer_service(self) -> AIAnswerService:
+        if self._ai_answer_service is None:
+            self._ai_answer_service = AIAnswerService()
+        return self._ai_answer_service
+
+    def _get_ai_tagging_service(self) -> AITaggingService:
+        if self._ai_tagging_service is None:
+            self._ai_tagging_service = AITaggingService()
+        return self._ai_tagging_service
+
+    @classmethod
+    def _normalize_tag_ids(cls, tag_ids: list[int]) -> list[int]:
+        normalized: list[int] = []
+        seen: set[int] = set()
+
+        for raw_tag_id in tag_ids:
+            tag_id = int(raw_tag_id)
+            if tag_id <= 0:
+                raise ValidationError("tag_ids must contain positive integers.")
+            if tag_id in seen:
+                continue
+            if len(normalized) >= cls.MAX_QUESTION_TAGS:
+                raise ValidationError(f"A question can have at most {cls.MAX_QUESTION_TAGS} tags.")
+            seen.add(tag_id)
+            normalized.append(tag_id)
+
+        return normalized
+
+    @classmethod
+    def _normalize_custom_tags(cls, custom_tags: list[str]) -> list[str]:
+        normalized: list[str] = []
+        seen: set[str] = set()
+
+        for raw_tag_name in custom_tags:
+            tag_name = cls._normalize_tag_name(raw_tag_name)
+            if not tag_name:
+                continue
+            key = tag_name.casefold()
+            if key in seen:
+                continue
+            if len(normalized) >= cls.MAX_QUESTION_TAGS:
+                raise ValidationError(f"A question can have at most {cls.MAX_QUESTION_TAGS} tags.")
+            seen.add(key)
+            normalized.append(tag_name)
+
+        return normalized
+
+    @staticmethod
+    def _normalize_tag_name(tag_name: str) -> str:
+        normalized = re.sub(r"\s+", "-", tag_name.strip().lstrip("#"))
+        normalized = normalized.strip("-").lower()
+        if len(normalized) > 50:
+            normalized = normalized[:50].strip("-")
+        return normalized
+
     @staticmethod
     def _translate_database_error(exc: oracledb.DatabaseError) -> AppError:
         details = exc.args[0] if exc.args else exc
@@ -207,19 +404,39 @@ class QuestionService:
 
     def publish_question(self, user_id: int, payload: QuestionCreate) -> dict:
         with get_connection() as connection:
-            default_category_id = self._question_repository.get_first_active_category_id(connection)
-            if default_category_id is None:
-                raise ValidationError("No ACTIVE category is available for publishing questions.")
+            try:
+                category_id = payload.category_id
+                if category_id is None:
+                    category_id = self._question_repository.get_first_active_category_id(connection)
+                if category_id is None:
+                    raise ValidationError("No ACTIVE category is available for publishing questions.")
 
-            q_id = self._question_repository.create_question(
-                connection=connection,
-                user_id=user_id,
-                category_id=default_category_id,
-                title=payload.title,
-                content=payload.content,
-            )
-            connection.commit()
-            return {"question_id": q_id, "message": "发布成功"}
+                question_id = self._question_repository.create_question(
+                    connection=connection,
+                    user_id=user_id,
+                    category_id=category_id,
+                    title=payload.title,
+                    content=payload.content,
+                )
+                self._attach_question_tags(
+                    connection=connection,
+                    question_id=question_id,
+                    user_id=user_id,
+                    title=payload.title,
+                    content=payload.content,
+                    tag_ids=payload.tag_ids,
+                    custom_tags=payload.custom_tags,
+                    auto_tag=payload.auto_tag,
+                )
+                connection.commit()
+            except oracledb.DatabaseError as exc:
+                connection.rollback()
+                raise self._translate_database_error(exc) from exc
+            except Exception:
+                connection.rollback()
+                raise
+
+            return {"question_id": question_id, "message": "published"}
 
     def accept_answer(
         self,

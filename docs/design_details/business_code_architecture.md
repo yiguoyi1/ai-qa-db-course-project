@@ -78,6 +78,7 @@ app/
   services/
     admin_service.py
     ai_answer_service.py
+    ai_tagging_service.py
     answer_service.py
     auth_service.py
     browse_service.py
@@ -103,6 +104,7 @@ app/
     question_repository.py
     recommendation_repository.py
     search_repository.py
+    tag_repository.py
     user_center_repository.py
     user_repository.py
   integrations/
@@ -110,6 +112,7 @@ app/
       openai_client.py
   prompts/
     question_answer_prompt.py
+    question_tag_prompt.py
   web/
     login.html
     home.html

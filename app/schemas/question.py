@@ -13,6 +13,8 @@ class AskQuestionRequest(APIModel):
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
     tag_ids: list[int] = Field(default_factory=list)
+    custom_tags: list[str] = Field(default_factory=list)
+    auto_tag: bool = True
 
 
 class TagItem(APIModel):
@@ -83,5 +85,9 @@ class QuestionDetailResponse(APIModel):
 
 
 class QuestionCreate(APIModel):
+    category_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
+    tag_ids: list[int] = Field(default_factory=list)
+    custom_tags: list[str] = Field(default_factory=list)
+    auto_tag: bool = True

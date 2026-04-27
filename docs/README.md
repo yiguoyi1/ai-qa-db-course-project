@@ -20,6 +20,7 @@
 7. [community_platform_design.md](design_details/community_platform_design.md)
 8. [business_code_architecture.md](design_details/business_code_architecture.md)
 9. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+10. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
 
 ## 2. 项目当前定位
 

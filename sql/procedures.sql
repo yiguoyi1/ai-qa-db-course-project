@@ -113,6 +113,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                   FROM questions q
                   JOIN question_tags qt
                     ON qt.question_id = q.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
                  WHERE q.user_id = p_user_id
 
                 UNION ALL
@@ -122,6 +125,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                   FROM favorites f
                   JOIN question_tags qt
                     ON qt.question_id = f.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
                  WHERE f.user_id = p_user_id
 
                 UNION ALL
@@ -136,6 +142,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                   FROM browse_history b
                   JOIN question_tags qt
                     ON qt.question_id = b.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
                  WHERE b.user_id = p_user_id
 
                 UNION ALL
@@ -154,6 +163,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                     ON a.answer_id = af.answer_id
                   JOIN question_tags qt
                     ON qt.question_id = a.question_id
+                  JOIN tags t
+                    ON t.tag_id = qt.tag_id
+                   AND t.status = 'ACTIVE'
                  WHERE af.user_id = p_user_id
                ) src
          GROUP BY src.tag_id
@@ -177,9 +189,12 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
           FROM questions q
           LEFT JOIN question_tags qt
             ON qt.question_id = q.question_id
+          LEFT JOIN tags t
+            ON t.tag_id = qt.tag_id
+           AND t.status = 'ACTIVE'
           LEFT JOIN user_tag_profile utp
             ON utp.user_id = p_user_id
-           AND utp.tag_id = qt.tag_id
+           AND utp.tag_id = t.tag_id
          WHERE q.question_id = p_question_id
          GROUP BY q.favorite_count, q.answer_count, q.view_count;
 
@@ -228,9 +243,12 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                               FROM questions q
                               LEFT JOIN question_tags qt
                                 ON qt.question_id = q.question_id
+                              LEFT JOIN tags t
+                                ON t.tag_id = qt.tag_id
+                               AND t.status = 'ACTIVE'
                               LEFT JOIN user_tag_profile utp
                                 ON utp.user_id = p_user_id
-                               AND utp.tag_id = qt.tag_id
+                               AND utp.tag_id = t.tag_id
                              WHERE q.user_id <> p_user_id
                                AND q.status = 'OPEN'
                                AND NOT EXISTS (

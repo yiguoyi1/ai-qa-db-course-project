@@ -13,11 +13,11 @@
 | --- | --- | --- | --- | --- |
 | `USERS` | 用户与权限 | 保存账号身份、角色、用户状态和当前头像引用 | `USERNAME`, `ROLE`, `STATUS`, `LAST_LOGIN_TIME`, `AVATAR_MEDIA_ID` | 是登录、提问、收藏、推荐等全部业务的主体表 |
 | `CATEGORIES` | 问题分类 | 管理问题所属分类 | `CATEGORY_NAME`, `STATUS` | 用于问题归类和后台分类运营 |
-| `TAGS` | 标签管理 | 存储可复用标签 | `TAG_NAME` | 是画像与推荐计算的基础标签集合 |
+| `TAGS` | 标签管理 | 存储可复用标签及其来源状态 | `TAG_NAME`, `SOURCE`, `STATUS`, `CREATE_USER_ID` | 是画像与推荐计算的基础标签集合，可区分系统、用户、AI、管理员来源 |
 | `MEDIA_ASSETS` | 媒体资源 | 统一保存头像、问题配图、回答配图的元数据和 BLOB 内容 | `OWNER_TYPE`, `OWNER_ID`, `PUBLIC_URL`, `FILE_CONTENT`, `STATUS` | 图片二进制保存在 Oracle `BLOB`，`PUBLIC_URL` 由后端读取 BLOB 返回 |
 | `QUESTIONS` | 问题管理 | 存储用户提出的问题和当前采纳答案 | `USER_ID`, `CATEGORY_ID`, `TITLE`, `STATUS`, `ACCEPTED_ANSWER_ID` | 是问答系统的核心主表 |
 | `ANSWERS` | 回答管理 | 存储 AI、人工或系统回答 | `QUESTION_ID`, `ANSWER_TYPE`, `CONTENT`, `AVG_RATING` | 承载回答内容及其质量统计，并通过 `(QUESTION_ID, ANSWER_ID)` 支撑采纳答案约束 |
-| `QUESTION_TAGS` | 标签关联 | 建立问题与标签的多对多关系 | `QUESTION_ID`, `TAG_ID` | 为推荐、画像和标签展示提供连接关系 |
+| `QUESTION_TAGS` | 标签关联 | 建立问题与标签的多对多关系并记录绑定来源 | `QUESTION_ID`, `TAG_ID`, `SOURCE`, `CONFIDENCE_SCORE` | 为推荐、画像和标签展示提供连接关系，可追踪用户选择、自定义标签和 AI 自动标签 |
 
 ## 3. 用户行为表
 

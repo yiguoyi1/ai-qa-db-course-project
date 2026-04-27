@@ -45,17 +45,21 @@
 ### 3.1 业务目标
 
 - 保存用户提出的问题
+- 支持用户选择已有标签、输入自定义标签或由 AI 自动补标签
 - 记录 AI 或人工回答
 - 自动维护问题回答数
 
 ### 3.2 数据流步骤
 
-1. 用户提交问题标题、正文、分类
+1. 用户提交问题标题、正文、分类，以及可选的 `tag_ids`、`custom_tags`、`auto_tag`
 2. 系统写入 `QUESTIONS`
-3. 系统根据标签策略写入 `QUESTION_TAGS`
-4. 若为 AI 回答，写入 `ANSWERS`，同时记录 `AI_PROMPT_LOG`
-5. 若为人工补充，也写入 `ANSWERS`
-6. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
+3. 如果用户选择已有标签，系统写入 `QUESTION_TAGS.SOURCE = 'USER_SELECTED'`
+4. 如果用户输入自定义标签，系统创建或复用 `TAGS`，并写入 `QUESTION_TAGS.SOURCE = 'USER_CREATED'`
+5. 如果用户没有提供标签且 `auto_tag=true`，系统调用 AI 分析标签，匹配已有标签或创建新标签
+6. AI 自动标签的 Prompt 与响应复用 `AI_PROMPT_LOG` 记录
+7. 若为 AI 回答，写入 `ANSWERS`，同时记录回答生成的 `AI_PROMPT_LOG`
+8. 若为人工补充，也写入 `ANSWERS`
+9. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
 
 ### 3.3 涉及数据表
 
