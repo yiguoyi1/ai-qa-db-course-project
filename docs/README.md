@@ -17,13 +17,14 @@
 4. [testing_guide.md](testing_guide.md)
 5. [security_update_configuration.md](security_update_configuration.md)
 6. [oracle_cloud_free_deployment.md](oracle_cloud_free_deployment.md)
-7. [desktop_client_setup.md](desktop_client_setup.md)
-8. [onboarding_checklist.md](onboarding_checklist.md)
-9. [admin_governance_guide.md](admin_governance_guide.md)
-10. [community_platform_design.md](design_details/community_platform_design.md)
-11. [business_code_architecture.md](design_details/business_code_architecture.md)
-12. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
-13. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
+7. [aliyun_ecs_deployment.md](aliyun_ecs_deployment.md)
+8. [desktop_client_setup.md](desktop_client_setup.md)
+9. [onboarding_checklist.md](onboarding_checklist.md)
+10. [admin_governance_guide.md](admin_governance_guide.md)
+11. [community_platform_design.md](design_details/community_platform_design.md)
+12. [business_code_architecture.md](design_details/business_code_architecture.md)
+13. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+14. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
 
 ## 2. 项目当前定位
 

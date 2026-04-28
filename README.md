@@ -23,6 +23,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - [docs/testing_guide.md](docs/testing_guide.md)
 - [docs/security_update_configuration.md](docs/security_update_configuration.md)
 - [docs/oracle_cloud_free_deployment.md](docs/oracle_cloud_free_deployment.md)
+- [docs/aliyun_ecs_deployment.md](docs/aliyun_ecs_deployment.md)
 - [docs/onboarding_checklist.md](docs/onboarding_checklist.md)
 - [docs/chat_followup_api_guide.md](docs/chat_followup_api_guide.md)
 
