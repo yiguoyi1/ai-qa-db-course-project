@@ -260,6 +260,22 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 2. 生成 WiX `.msi`。
 3. 安装后打开客户端，能看到桌面启动页并进入现有登录页。
 
+#### TC-DESKTOP-05 GitHub Actions Windows 出包 待测
+
+测试步骤：
+
+1. 进入 GitHub 仓库的 `Actions` 页面。
+2. 选择 `Build Windows Desktop Client`。
+3. 点击 `Run workflow` 手动触发。
+4. 等待 workflow 完成。
+5. 下载 `ai-qa-community-windows` artifact。
+
+预期结果：
+
+1. workflow 在 `windows-latest` 环境成功完成。
+2. artifact 中包含 NSIS `-setup.exe`。
+3. artifact 中包含 WiX `.msi`。
+
 ### 7.2 登录与登录态
 
 #### TC-LOGIN-01 注册新用户 ✅

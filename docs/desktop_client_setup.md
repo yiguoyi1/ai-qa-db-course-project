@@ -259,7 +259,28 @@ desktop/src-tauri/target/release/bundle/msi/
 - MSI 产物通常是 `AI QA Community_*.msi`。
 - Tauri 官方说明 `.msi` 只能在 Windows 上构建。
 
-## 5. 安装包分发建议
+## 5. 通过 GitHub Actions 下载 Windows 安装包
+
+仓库工作流：
+
+```text
+.github/workflows/build-desktop-windows.yml
+```
+
+如果你有 GitHub 仓库权限，可以这样下载 Windows 客户端：
+
+1. 打开 GitHub 仓库页面。
+2. 进入 Actions。
+3. 选择 `Build Windows Desktop Client`。
+4. 点击 `Run workflow` 手动触发，或等待 `main` 分支推送后自动触发。
+5. 等待 workflow 运行完成。
+6. 打开对应 run。
+7. 在 Artifacts 区域下载 `ai-qa-community-windows`。
+8. 解压 artifact，里面应包含 NSIS `-setup.exe` 和 WiX `.msi`。
+
+注意：修改或新增 `.github/workflows/*.yml` 时，推送使用的 GitHub Personal Access Token 需要具备 `workflow` 权限。
+
+## 6. 安装包分发建议
 
 开发演示阶段：
 
@@ -274,7 +295,7 @@ desktop/src-tauri/target/release/bundle/msi/
 - 自动更新策略。
 - 后端地址配置策略。
 
-## 6. 验证客户端是否可用
+## 7. 验证客户端是否可用
 
 无论 macOS 还是 Windows，打开客户端后按下面顺序验证：
 
@@ -288,9 +309,9 @@ desktop/src-tauri/target/release/bundle/msi/
 8. 打开一个问题详情。
 9. 进入用户中心或管理员后台，确认页面跳转正常。
 
-## 7. 常见问题
+## 8. 常见问题
 
-### 7.1 `npm` 找不到
+### 8.1 `npm` 找不到
 
 说明 Node.js 没有安装完整，或 PATH 没刷新。
 
@@ -300,7 +321,7 @@ desktop/src-tauri/target/release/bundle/msi/
 2. 关闭并重新打开终端。
 3. 再执行 `node -v` 和 `npm -v`。
 
-### 7.2 `cargo` 或 `rustc` 找不到
+### 8.2 `cargo` 或 `rustc` 找不到
 
 说明 Rust 没装好，或 PATH 没刷新。
 
@@ -311,7 +332,7 @@ desktop/src-tauri/target/release/bundle/msi/
 3. 重新打开终端。
 4. 执行 `rustc --version` 和 `cargo --version`。
 
-### 7.3 Windows 构建时报 MSVC 或 linker 错误
+### 8.3 Windows 构建时报 MSVC 或 linker 错误
 
 通常是 Microsoft C++ Build Tools 没装完整。
 
@@ -322,15 +343,15 @@ desktop/src-tauri/target/release/bundle/msi/
 3. 勾选 `Desktop development with C++`。
 4. 确认 Windows SDK 已安装。
 
-### 7.4 Windows 客户端提示 WebView2 缺失
+### 8.4 Windows 客户端提示 WebView2 缺失
 
 安装 Microsoft Edge WebView2 Runtime Evergreen Bootstrapper。
 
-### 7.5 `.msi` 构建失败并提到 `light.exe`
+### 8.5 `.msi` 构建失败并提到 `light.exe`
 
 检查 Windows VBSCRIPT 可选功能是否启用。
 
-### 7.6 启动页一直显示无法连接后端
+### 8.6 启动页一直显示无法连接后端
 
 先确认后端真的启动：
 
@@ -350,11 +371,11 @@ http://127.0.0.1:8000/health
 $env:AI_QA_BACKEND_URL="http://127.0.0.1:<你的端口>"
 ```
 
-### 7.7 macOS 打开 `.app` 被系统拦截
+### 8.7 macOS 打开 `.app` 被系统拦截
 
 开发阶段产物通常没有签名和公证。可右键打开，或在系统设置里允许打开。正式分发前需要补代码签名与公证。
 
-## 8. 不要提交这些内容
+## 9. 不要提交这些内容
 
 这些目录和文件是构建产物或本机依赖，不应该提交：
 
@@ -366,7 +387,7 @@ desktop/src-tauri/gen/
 
 当前 `.gitignore` 已经忽略它们。
 
-## 9. 快速命令备忘
+## 10. 快速命令备忘
 
 macOS：
 

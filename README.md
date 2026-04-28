@@ -163,6 +163,8 @@ npm run build:windows
 
 Windows 版会生成 NSIS `-setup.exe` 和 WiX `.msi`，产物位于 `desktop/src-tauri/target/release/bundle/`。
 
+也可以通过 GitHub Actions 出 Windows 安装包：进入仓库的 `Actions` 页面，选择 `Build Windows Desktop Client`，手动运行后下载 `ai-qa-community-windows` artifact。
+
 ## 当前最值得先改的地方
 
 基于当前代码现状，前几轮核心收口已经完成到可用状态：
