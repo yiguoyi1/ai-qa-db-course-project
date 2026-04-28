@@ -9,7 +9,7 @@ from app.schemas.base import APIModel
 
 class CreateCommentRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
-    content: str = Field(min_length=1)
+    content: str = Field(min_length=1, max_length=2000)
     parent_comment_id: int | None = Field(default=None, gt=0)
 
 

@@ -1293,6 +1293,12 @@
         window.location.href = LOGIN_PAGE_URL;
     }
 
+    function switchToGuestMode() {
+        clearSession();
+        renderGuestNav();
+        updateHomeSectionUi();
+    }
+
     function goToLogin() {
         window.location.href = LOGIN_PAGE_URL;
     }
@@ -1698,6 +1704,9 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
+                if ([401, 403, 423].includes(response.status)) {
+                    switchToGuestMode();
+                }
                 return;
             }
             const profile = await response.json();
@@ -1721,7 +1730,7 @@
     }
 
     // 🌟 3. 核心：拉取帖子列表的通用函数
-    async function loadQuestions(page = 1) {
+    async function loadQuestions(page = 1, retryAsGuest = true) {
         const token = sessionStorage.getItem('access_token');
         currentQuestionPage = page;
 
@@ -1763,6 +1772,10 @@
                 }
                 renderQuestions(data);
             } else if ([401, 403, 423].includes(response.status)) {
+                if (token && retryAsGuest) {
+                    switchToGuestMode();
+                    return loadQuestions(page, false);
+                }
                 const err = await response.json().catch(() => ({}));
                 redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
             } else {

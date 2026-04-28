@@ -1764,6 +1764,11 @@
             window.location.href = LOGIN_PAGE_URL;
         }
 
+        function switchToGuestMode() {
+            clearSession();
+            renderGuestNav();
+        }
+
         function goToLogin() {
             window.location.href = LOGIN_PAGE_URL;
         }
@@ -1973,6 +1978,9 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) {
+                    if ([401, 403, 423].includes(response.status)) {
+                        switchToGuestMode();
+                    }
                     return;
                 }
                 const profile = await response.json();
@@ -2120,6 +2128,99 @@
 
         function escapeAttr(value) {
             return escapeHtml(value);
+        }
+
+        function renderPlainText(value) {
+            return escapeHtml(value).replace(/\n/g, '<br>');
+        }
+
+        let markedConfigured = false;
+
+        function configureMarked() {
+            if (markedConfigured || typeof marked === 'undefined') {
+                return;
+            }
+            marked.setOptions({
+                highlight: function (code, lang) {
+                    if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    if (typeof hljs !== 'undefined') {
+                        return hljs.highlightAuto(code).value;
+                    }
+                    return escapeHtml(code);
+                },
+                breaks: true
+            });
+            markedConfigured = true;
+        }
+
+        function sanitizeRenderedHtml(html) {
+            const template = document.createElement('template');
+            template.innerHTML = String(html || '');
+            const allowedTags = new Set([
+                'A', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'EM', 'H1', 'H2', 'H3',
+                'H4', 'H5', 'H6', 'HR', 'LI', 'OL', 'P', 'PRE', 'SPAN',
+                'STRONG', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR', 'UL'
+            ]);
+            const allowedAttrs = {
+                A: new Set(['href', 'title', 'target', 'rel']),
+                CODE: new Set(['class']),
+                PRE: new Set(['class']),
+                SPAN: new Set(['class'])
+            };
+            const safeUrlPattern = /^(https?:|mailto:|tel:|#|\/)/i;
+
+            function cleanNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    node.remove();
+                    return;
+                }
+
+                const tagName = node.tagName;
+                if (!allowedTags.has(tagName)) {
+                    const textNode = document.createTextNode(node.textContent || '');
+                    node.replaceWith(textNode);
+                    return;
+                }
+
+                [...node.attributes].forEach(attr => {
+                    const attrName = attr.name.toLowerCase();
+                    const tagAllowedAttrs = allowedAttrs[tagName] || new Set();
+                    if (!tagAllowedAttrs.has(attrName)) {
+                        node.removeAttribute(attr.name);
+                        return;
+                    }
+
+                    if (attrName === 'href' && !safeUrlPattern.test(attr.value.trim())) {
+                        node.removeAttribute(attr.name);
+                    }
+                    if (attrName === 'class' && !/^[a-z0-9_\-\s]+$/i.test(attr.value)) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+
+                if (tagName === 'A' && node.getAttribute('href')) {
+                    node.setAttribute('target', '_blank');
+                    node.setAttribute('rel', 'noopener noreferrer');
+                }
+
+                [...node.childNodes].forEach(cleanNode);
+            }
+
+            [...template.content.childNodes].forEach(cleanNode);
+            return template.innerHTML;
+        }
+
+        function renderMarkdown(content) {
+            configureMarked();
+            if (typeof marked === 'undefined') {
+                return renderPlainText(content);
+            }
+            return sanitizeRenderedHtml(marked.parse(String(content || '')));
         }
 
         function resolvePublicUrl(url) {
@@ -3112,7 +3213,7 @@
                 const senderLabel = sender === 'user' ? getFollowUpUserMessageLabel(state) : (sender === 'ai' ? 'AI 助手' : '系统');
                 const modelLabel = message.model_name ? ` · ${escapeHtml(message.model_name)}` : '';
                 const contentHtml = sender === 'ai'
-                    ? marked.parse(String(message.content || ''))
+                    ? renderMarkdown(message.content)
                     : escapeHtml(message.content);
                 const contentClass = sender === 'ai'
                     ? 'ai-message-content markdown-content'
@@ -3428,7 +3529,7 @@
             }
         }
 
-        async function loadQuestionDetail(resetBrowseSession = false) {
+        async function loadQuestionDetail(resetBrowseSession = false, retryAsGuest = true) {
             const questionId = getCurrentQuestionId();
 
             if (!questionId) {
@@ -3452,6 +3553,10 @@
                     }
                     renderDetail(data);
                 } else if ([401, 403, 423].includes(response.status)) {
+                    if (sessionStorage.getItem('access_token') && retryAsGuest) {
+                        switchToGuestMode();
+                        return loadQuestionDetail(resetBrowseSession, false);
+                    }
                     const err = await response.json().catch(() => ({}));
                     redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
                 } else {
@@ -3490,7 +3595,7 @@
             const date = new Date(q.ask_time).toLocaleString();
             const author = getDisplayName(q.username, q.author_nickname, q.user_id);
             const questionAuthorHtml = renderAuthorMeta(author, q.author_avatar_url);
-            const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
+            const content = q.content ? renderPlainText(q.content) : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
             const statusBadge = buildQuestionStatusBadge(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
             const canAcceptAnswers = canCurrentUserAccept(q);
@@ -3505,16 +3610,7 @@
                 ownerId: q.question_id
             });
 
-            // 🌟 告诉 marked.js：当你遇到代码块时，请叫 highlight.js 来涂色！
-            marked.setOptions({
-                highlight: function (code, lang) {
-                    if (lang && hljs.getLanguage(lang)) {
-                        return hljs.highlight(code, { language: lang }).value;
-                    }
-                    return hljs.highlightAuto(code).value;
-                },
-                breaks: true // 允许原生的回车换行
-            });
+            configureMarked();
 
             // 🌟 新增：拼装回答（评论区）的 HTML 🌟
             let answersHtml = '<h3 style="margin-top: 48px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 18px; color: #111827;">💬 回答区</h3>';
@@ -3593,7 +3689,7 @@
 
                             <div id="wrapper-${ansId}" class="answer-wrapper">
                                 <div class="markdown-content" style="font-size: 15px; line-height: 1.8; color: #334155;">
-                                    ${marked.parse(ans.content)}
+                                    ${renderMarkdown(ans.content)}
                                 </div>
                                 ${renderMediaGrid(ans.images, '回答配图', {
                                     canDelete: currentUserId === Number(ans.user_id) && (ans.answer_type === 'MANUAL' || !ans.provider_name),

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 
 from app.api.auth_deps import AuthenticatedUser, get_current_user
 from app.api.deps import get_media_service
-from app.core.errors import AppError
+from app.core.errors import AppError, ValidationError
 from app.schemas.media import (
     AnswerImageDeleteResponse,
     AnswerImageListResponse,
@@ -15,6 +15,32 @@ from app.services.media_service import MediaService
 
 
 router = APIRouter(tags=["media"])
+
+
+async def _read_limited_upload_file(
+    file: UploadFile,
+    *,
+    max_size: int,
+    label: str,
+) -> bytes:
+    chunks: list[bytes] = []
+    total_size = 0
+    chunk_size = 1024 * 1024
+
+    while True:
+        chunk = await file.read(chunk_size)
+        if not chunk:
+            break
+        total_size += len(chunk)
+        if total_size > max_size:
+            limit_mb = max_size // (1024 * 1024)
+            raise ValidationError(f"{label} file size must be at most {limit_mb}MB.")
+        chunks.append(chunk)
+
+    if total_size == 0:
+        raise ValidationError(f"{label} file must not be empty.")
+
+    return b"".join(chunks)
 
 
 @router.get(
@@ -43,7 +69,11 @@ async def upload_current_user_avatar(
     service: MediaService = Depends(get_media_service),
 ) -> AvatarMediaResponse:
     try:
-        content = await file.read()
+        content = await _read_limited_upload_file(
+            file,
+            max_size=MediaService.MAX_AVATAR_SIZE,
+            label="Avatar",
+        )
         return service.upload_current_user_avatar(
             user_id=current_user.user_id,
             original_file_name=file.filename,
@@ -98,7 +128,11 @@ async def upload_question_image(
     service: MediaService = Depends(get_media_service),
 ) -> QuestionImageListResponse:
     try:
-        content = await file.read()
+        content = await _read_limited_upload_file(
+            file,
+            max_size=MediaService.MAX_QUESTION_IMAGE_SIZE,
+            label="Question image",
+        )
         return service.upload_question_image(
             user_id=current_user.user_id,
             question_id=question_id,
@@ -160,7 +194,11 @@ async def upload_answer_image(
     service: MediaService = Depends(get_media_service),
 ) -> AnswerImageListResponse:
     try:
-        content = await file.read()
+        content = await _read_limited_upload_file(
+            file,
+            max_size=MediaService.MAX_ANSWER_IMAGE_SIZE,
+            label="Answer image",
+        )
         return service.upload_answer_image(
             user_id=current_user.user_id,
             answer_id=answer_id,

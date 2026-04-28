@@ -1,9 +1,17 @@
+import re
 from typing import Any
 
 import oracledb
 
 
 class SearchRepository:
+    @staticmethod
+    def _build_oracle_text_query(keyword: str) -> str | None:
+        terms = re.findall(r"[\w\u4e00-\u9fff]+", keyword.casefold())
+        if not terms:
+            return None
+        return " AND ".join(f"{{{term}}}" for term in terms[:6])
+
     @staticmethod
     def _attach_favorite_state(
         connection: oracledb.Connection,
@@ -53,19 +61,36 @@ class SearchRepository:
         category_id: int | None,
         tag_id: int | None,
         status: str | None,
+        use_oracle_text: bool = False,
     ) -> tuple[list[str], dict[str, Any]]:
-        clauses = [
-            """
-            (
-                LOWER(q.title) LIKE :keyword_like
-                OR DBMS_LOB.INSTR(LOWER(q.content), LOWER(:keyword)) > 0
-            )
-            """
-        ]
-        binds: dict[str, Any] = {
-            "keyword": keyword,
-            "keyword_like": f"%{keyword.lower()}%",
-        }
+        oracle_text_query = (
+            SearchRepository._build_oracle_text_query(keyword)
+            if use_oracle_text
+            else None
+        )
+        if oracle_text_query:
+            clauses = [
+                """
+                (
+                    CONTAINS(q.title, :keyword_text_query, 1) > 0
+                    OR CONTAINS(q.content, :keyword_text_query, 2) > 0
+                )
+                """
+            ]
+            binds: dict[str, Any] = {"keyword_text_query": oracle_text_query}
+        else:
+            clauses = [
+                """
+                (
+                    LOWER(q.title) LIKE :keyword_like
+                    OR DBMS_LOB.INSTR(LOWER(q.content), LOWER(:keyword)) > 0
+                )
+                """
+            ]
+            binds = {
+                "keyword": keyword,
+                "keyword_like": f"%{keyword.lower()}%",
+            }
 
         if category_id is not None:
             clauses.append("q.category_id = :category_id")
@@ -122,12 +147,14 @@ class SearchRepository:
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = None,
+        use_oracle_text: bool = False,
     ) -> int:
         where_clauses, binds = self._build_search_filters(
             keyword=keyword,
             category_id=category_id,
             tag_id=tag_id,
             status=status,
+            use_oracle_text=use_oracle_text,
         )
 
         cursor = connection.cursor()
@@ -153,12 +180,14 @@ class SearchRepository:
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = None,
+        use_oracle_text: bool = False,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_search_filters(
             keyword=keyword,
             category_id=category_id,
             tag_id=tag_id,
             status=status,
+            use_oracle_text=use_oracle_text,
         )
         binds.update(
             {

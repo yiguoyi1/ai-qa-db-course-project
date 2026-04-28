@@ -67,10 +67,13 @@
   sql/migrations/20260422_add_media_assets.sql `
   sql/migrations/20260422_add_question_acceptance.sql `
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql
+  sql/migrations/20260427_extend_tag_metadata.sql `
+  sql/migrations/20260428_add_question_oracle_text_indexes.sql
 ```
 
 macOS 或 PowerShell 7 可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。
+
+如果已导入 `20260428_add_question_oracle_text_indexes.sql`，可以在 `.env` 中设置 `SEARCH_USE_ORACLE_TEXT=true` 启用 Oracle Text 全文搜索；未导入时保持默认 `false`。
 
 常用启动命令：
 

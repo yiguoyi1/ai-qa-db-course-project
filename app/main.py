@@ -19,11 +19,26 @@ app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],      # 允许所有域名访问（本地开发最方便）
-    allow_credentials=True,
-    allow_methods=["*"],      # 允许所有方法（GET, POST, 还有那个 OPTIONS!）
-    allow_headers=["*"],      # 允许所有请求头
+    allow_origins=list(settings.cors_allow_origins),
+    allow_credentials="*" not in settings.cors_allow_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    if settings.content_security_policy:
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            settings.content_security_policy,
+        )
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    return response
+
 
 @app.get("/health")
 def health_check() -> dict[str, str]:

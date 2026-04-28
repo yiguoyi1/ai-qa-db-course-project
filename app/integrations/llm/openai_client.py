@@ -25,6 +25,8 @@ class DeepSeekClient:
         self._client = OpenAI(
             api_key=settings.deepseek_api_key,
             base_url=settings.deepseek_base_url,
+            timeout=settings.deepseek_timeout_seconds,
+            max_retries=1,
         )
 
     def generate_answer(

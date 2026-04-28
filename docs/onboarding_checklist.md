@@ -73,10 +73,13 @@ Copy-Item .env.example .env
   sql/migrations/20260422_add_media_assets.sql `
   sql/migrations/20260422_add_question_acceptance.sql `
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql
+  sql/migrations/20260427_extend_tag_metadata.sql `
+  sql/migrations/20260428_add_question_oracle_text_indexes.sql
 ```
 
 macOS 或 PowerShell 7 下可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个 SQL 文件之间用空格分隔。
+
+`20260428_add_question_oracle_text_indexes.sql` 是搜索性能优化迁移。导入后可把 `.env` 里的 `SEARCH_USE_ORACLE_TEXT` 改成 `true`，未导入时保持默认 `false`。
 
 如果是第一次接手，建议再执行一次结构验证：
 

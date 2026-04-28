@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+from threading import Lock
+from time import time
+
 from passlib.context import CryptContext
 from jose import jwt
 
@@ -37,7 +40,11 @@ def _get_jwt_config() -> tuple[str, str, int]:
         settings.jwt_access_token_expire_minutes,
     )
 
+
 class AuthService:
+    _login_attempts: dict[str, list[float]] = {}
+    _login_attempts_lock = Lock()
+
     def __init__(
         self,
         user_repository: UserRepository | None = None,
@@ -68,11 +75,14 @@ class AuthService:
 
     def login(self, payload: LoginRequest, *, ip_address: str | None = None) -> TokenResponse:
         secret_key, algorithm, access_token_expire_minutes = _get_jwt_config()
+        rate_limit_key = self._build_login_rate_limit_key(payload.username, ip_address)
+        self._ensure_login_not_rate_limited(rate_limit_key)
 
         with get_connection() as connection:
             # 1. 去数据库里找这个人
             user = self._user_repository.get_user_by_username(connection, payload.username)
             if not user:
+                self._record_failed_login(rate_limit_key)
                 raise ValidationError("用户名或密码错误") # 故意不告诉黑客是用户名错还是密码错
 
             status_error = self._get_login_status_error(user["status"])
@@ -88,6 +98,7 @@ class AuthService:
 
             # 2. 核心操作：验证密码。用加密器核对明文和数据库里的乱码是否匹配
             if not pwd_context.verify(payload.password, user["password_hash"]):
+                self._record_failed_login(rate_limit_key)
                 self._log_login_attempt(
                     connection=connection,
                     user_id=user["user_id"],
@@ -108,6 +119,7 @@ class AuthService:
                 ip_address=ip_address,
                 result="SUCCESS",
             )
+            self._clear_failed_logins(rate_limit_key)
             connection.commit()
 
             # 4. 把发好的房卡端给服务员
@@ -132,6 +144,48 @@ class AuthService:
             ip_address=ip_address,
             result=result,
         )
+
+    @staticmethod
+    def _build_login_rate_limit_key(username: str, ip_address: str | None) -> str:
+        normalized_username = username.strip().casefold()
+        normalized_ip = (ip_address or "unknown").strip() or "unknown"
+        return f"{normalized_ip}:{normalized_username}"
+
+    @classmethod
+    def _ensure_login_not_rate_limited(cls, key: str) -> None:
+        settings = get_settings()
+        if settings.auth_login_max_failures <= 0 or settings.auth_login_window_seconds <= 0:
+            return
+
+        now = time()
+        cutoff = now - settings.auth_login_window_seconds
+        with cls._login_attempts_lock:
+            attempts = [item for item in cls._login_attempts.get(key, []) if item >= cutoff]
+            cls._login_attempts[key] = attempts
+            if len(attempts) >= settings.auth_login_max_failures:
+                retry_after = max(1, int(settings.auth_login_window_seconds - (now - attempts[0])))
+                raise AppError(
+                    f"登录失败次数过多，请 {retry_after} 秒后再试。",
+                    status_code=429,
+                )
+
+    @classmethod
+    def _record_failed_login(cls, key: str) -> None:
+        settings = get_settings()
+        if settings.auth_login_max_failures <= 0 or settings.auth_login_window_seconds <= 0:
+            return
+
+        now = time()
+        cutoff = now - settings.auth_login_window_seconds
+        with cls._login_attempts_lock:
+            attempts = [item for item in cls._login_attempts.get(key, []) if item >= cutoff]
+            attempts.append(now)
+            cls._login_attempts[key] = attempts
+
+    @classmethod
+    def _clear_failed_logins(cls, key: str) -> None:
+        with cls._login_attempts_lock:
+            cls._login_attempts.pop(key, None)
 
     @staticmethod
     def _get_login_status_error(user_status: str) -> AppError | None:
