@@ -1332,7 +1332,8 @@
         }
 
         function logout() {
-            redirectToLogin();
+            clearSession();
+            window.location.href = HOME_PAGE_URL;
         }
 
         function goHome() {

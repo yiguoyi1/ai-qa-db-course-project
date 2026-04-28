@@ -229,6 +229,29 @@
         background: linear-gradient(90deg, #2563eb, #38bdf8);
     }
 
+    .home-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 12px;
+        margin-bottom: 22px;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .home-link:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        transform: translateY(-1px);
+    }
+
     .header h1 {
         color: #0f172a;
         letter-spacing: -0.05em;
@@ -286,6 +309,8 @@
 <body>
 
 <div class="auth-container">
+  <button class="home-link" type="button" onclick="goHome()">← 返回社区首页</button>
+
   <div class="header">
     <h1 id="form-title">欢迎回来</h1>
     <p id="form-subtitle">登录你的 AI 问答社区账号</p>
@@ -333,6 +358,10 @@
 
   function buildApiUrl(path) {
       return new URL(path, window.location.origin).toString();
+  }
+
+  function goHome() {
+      window.location.href = HOME_PAGE_URL;
   }
 
   // 切换登录/注册表单的 UI 逻辑

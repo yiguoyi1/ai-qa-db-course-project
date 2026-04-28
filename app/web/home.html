@@ -100,6 +100,23 @@
 
         .navbar-user { display: flex; align-items: center; gap: 14px; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .nav-login-button {
+            height: 40px;
+            padding: 0 18px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+        .nav-login-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
         .user-menu { position: relative; }
         .user-avatar-button {
             width: 46px;
@@ -1099,7 +1116,8 @@
 
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
-        <div class="user-menu">
+        <button id="login-entry" class="nav-login-button" type="button" onclick="goToLogin()" style="display:none;">登录</button>
+        <div class="user-menu" id="user-menu-wrapper">
             <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
                 <span class="nav-avatar" id="nav-avatar">我</span>
             </button>
@@ -1273,6 +1291,21 @@
             alert(message);
         }
         window.location.href = LOGIN_PAGE_URL;
+    }
+
+    function goToLogin() {
+        window.location.href = LOGIN_PAGE_URL;
+    }
+
+    function isAuthenticated() {
+        return Boolean(sessionStorage.getItem('access_token') && getCurrentUserId());
+    }
+
+    function buildAuthHeaders(extraHeaders = {}) {
+        const token = sessionStorage.getItem('access_token');
+        return token
+            ? { ...extraHeaders, 'Authorization': `Bearer ${token}` }
+            : { ...extraHeaders };
     }
 
     // 🌟 1. 全局变量，记录当前的搜索词
@@ -1515,7 +1548,9 @@
         }
         if (currentHomeSection === 'recommend') {
             title.textContent = '推荐问答';
-            subtitle.textContent = '根据你的兴趣画像和历史行为展示更可能感兴趣的问题。';
+            subtitle.textContent = isAuthenticated()
+                ? '根据你的兴趣画像和历史行为展示更可能感兴趣的问题。'
+                : '登录后可开启个性化推荐，当前先展示社区热门内容。';
             return;
         }
         title.textContent = '热榜问答';
@@ -1581,6 +1616,45 @@
         avatar.textContent = getInitial(displayName);
     }
 
+    function renderGuestNav() {
+        const greeting = document.getElementById('user-greeting');
+        const loginEntry = document.getElementById('login-entry');
+        const menuWrapper = document.getElementById('user-menu-wrapper');
+        const adminEntry = document.getElementById('admin-entry');
+        if (greeting) {
+            greeting.innerText = '游客浏览';
+        }
+        if (loginEntry) {
+            loginEntry.style.display = 'inline-flex';
+            loginEntry.style.alignItems = 'center';
+        }
+        if (menuWrapper) {
+            menuWrapper.style.display = 'none';
+        }
+        if (adminEntry) {
+            adminEntry.style.display = 'none';
+        }
+    }
+
+    function renderAuthenticatedNav(displayName, role = '') {
+        const greeting = document.getElementById('user-greeting');
+        const loginEntry = document.getElementById('login-entry');
+        const menuWrapper = document.getElementById('user-menu-wrapper');
+        const adminEntry = document.getElementById('admin-entry');
+        if (greeting) {
+            greeting.innerText = `欢迎回来, ${displayName || '同学'}`;
+        }
+        if (loginEntry) {
+            loginEntry.style.display = 'none';
+        }
+        if (menuWrapper) {
+            menuWrapper.style.display = 'block';
+        }
+        if (adminEntry) {
+            adminEntry.style.display = role === 'ADMIN' ? 'flex' : 'none';
+        }
+    }
+
     function getUserDisplayName(user, fallback = '社区用户') {
         return user?.author_nickname
             || user?.nickname
@@ -1615,6 +1689,7 @@
     async function loadCurrentUserProfileForNav() {
         const token = sessionStorage.getItem('access_token');
         if (!token) {
+            renderGuestNav();
             return;
         }
         try {
@@ -1627,13 +1702,10 @@
             }
             const profile = await response.json();
             const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
-            document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+            renderAuthenticatedNav(displayName, profile.role || sessionStorage.getItem('user_role') || '');
             setNavAvatar(displayName, profile.avatar_url);
             sessionStorage.setItem('username', profile.username || '');
             sessionStorage.setItem('nickname', profile.nickname || '');
-            if (profile.role === 'ADMIN') {
-                document.getElementById('admin-entry').style.display = 'flex';
-            }
         } catch (error) {
             console.error('加载导航用户信息失败:', error);
         }
@@ -1654,35 +1726,33 @@
         currentQuestionPage = page;
 
         const userId = getCurrentUserId();
+        const usePersonalRecommend = Boolean(token && userId && currentHomeSection === 'recommend' && !currentSearchQuery);
         const questionFilters = getQuestionFilterParams();
         const requestPath = currentSearchQuery
             ? '/api/search/questions'
-            : (currentHomeSection === 'recommend' ? `/api/users/${userId}/recommendations` : '/api/questions');
+            : (usePersonalRecommend ? `/api/users/${userId}/recommendations` : '/api/questions');
         const url = buildApiUrl(requestPath, currentSearchQuery
             ? { page, page_size: 10, q: currentSearchQuery, ...questionFilters }
-            : (currentHomeSection === 'recommend'
+            : (usePersonalRecommend
                 ? { status: 'ACTIVE' }
                 : { page, page_size: 50, ...questionFilters }));
 
         try {
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: buildAuthHeaders({ 'Content-Type': 'application/json' })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                if (!currentSearchQuery && currentHomeSection === 'recommend') {
+                if (usePersonalRecommend) {
                     const items = Array.isArray(data.items)
                         ? data.items.map(item => item.question).filter(Boolean).filter(questionMatchesFilters)
                         : [];
                     renderQuestions({ items });
                     return;
                 }
-                if (!currentSearchQuery && currentHomeSection === 'hot') {
+                if (!currentSearchQuery && ['hot', 'recommend'].includes(currentHomeSection)) {
                     const items = Array.isArray(data.items) ? [...data.items] : [];
                     items.sort((a, b) => {
                         const scoreDiff = getQuestionHotScore(b) - getQuestionHotScore(a);
@@ -1711,11 +1781,6 @@
         const displayName = nickname || username || '同学';
         const role = sessionStorage.getItem('user_role');
 
-        if (!token) {
-            alert('您还没有登录，请先登录！');
-            window.location.href = LOGIN_PAGE_URL;
-            return;
-        }
         const url = new URL(window.location.href);
         currentSearchQuery = url.searchParams.get('q')?.trim() || '';
         currentHomeSection = currentSearchQuery ? 'hot' : getHomeSectionFromUrl();
@@ -1731,10 +1796,11 @@
             statusSelect.value = currentStatusFilter;
         }
         updateHomeSectionUi();
-        document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
-        setNavAvatar(displayName || '我', '');
-        if (role === 'ADMIN') {
-            document.getElementById('admin-entry').style.display = 'flex';
+        if (token) {
+            renderAuthenticatedNav(displayName, role);
+            setNavAvatar(displayName || '我', '');
+        } else {
+            renderGuestNav();
         }
         await loadCurrentUserProfileForNav();
 
@@ -1901,7 +1967,10 @@
     // 退出登录逻辑
     function logout() {
         clearSession();
-        window.location.href = LOGIN_PAGE_URL;
+        closeUserMenu();
+        renderGuestNav();
+        updateHomeSectionUi();
+        loadQuestions(1);
     }
 
     function goToProfile() {
@@ -1918,6 +1987,10 @@
     }
     // 🌟 弹窗的开启与关闭逻辑
     async function openPostModal() {
+        if (!isAuthenticated()) {
+            redirectToLogin('请先登录后再发布问题。');
+            return;
+        }
         document.getElementById('post-modal').style.display = 'flex';
         document.body.classList.add('modal-open');
         if (availableCategories.length === 0) {
@@ -2253,6 +2326,12 @@
 
     // 🌟 核心：提交帖子到后端
     async function submitQuestion() {
+        const token = sessionStorage.getItem('access_token');
+        if (!token || !getCurrentUserId()) {
+            redirectToLogin('请先登录后再发布问题。');
+            return;
+        }
+
         const titleInput = document.getElementById('post-title').value.trim();
         const contentInput = document.getElementById('post-content').value.trim();
 
@@ -2265,7 +2344,6 @@
             return;
         }
 
-        const token = sessionStorage.getItem('access_token');
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
         const categoryId = Number(document.getElementById('post-category')?.value || 0);
         if (!categoryId) {

@@ -128,6 +128,23 @@
         }
         .navbar-user { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .nav-login-button {
+            height: 40px;
+            padding: 0 18px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+        .nav-login-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
         .user-menu { position: relative; }
         .user-avatar-button {
             width: 46px;
@@ -1297,8 +1314,6 @@
 
         .detail-card,
         .answer-composer-card,
-        .comment-shell,
-        .ai-followup-shell,
         .user-menu-panel {
             background: var(--surface-glass);
             border: 1px solid rgba(219, 227, 239, 0.92);
@@ -1336,7 +1351,6 @@
         }
 
         .media-uploader,
-        .ai-followup-shell,
         .comment-form,
         .comment-item,
         .ai-session-list,
@@ -1379,6 +1393,218 @@
             letter-spacing: -0.02em;
         }
 
+        /* Interaction surfaces: keep comments and AI follow-up embedded in answer cards. */
+        .answer-card {
+            margin-top: 20px;
+            padding: 24px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid #dbe3ef;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
+        }
+
+        .answer-card.accepted {
+            background: linear-gradient(180deg, #f7fef9 0%, #ffffff 82%);
+            border-color: #bbf7d0;
+            box-shadow: 0 12px 30px rgba(22, 163, 74, 0.08);
+        }
+
+        .answer-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            flex-wrap: wrap;
+        }
+
+        .answer-action-button {
+            min-height: 34px;
+            background: #ffffff;
+            border: 1px solid #d4deeb;
+            border-radius: 999px;
+            padding: 6px 14px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+
+        .answer-action-button:hover {
+            border-color: #93c5fd;
+            background: #f8fbff;
+            color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .comment-shell {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .comment-toolbar {
+            padding: 10px 12px;
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            background: rgba(248, 250, 252, 0.72);
+            box-shadow: none;
+        }
+
+        .comment-counter {
+            min-height: 32px;
+            padding: 5px 10px;
+            background: #f8fbff;
+            border-color: #d4deeb;
+            color: #1e40af;
+            font-weight: 800;
+        }
+
+        .comment-toolbar-hint {
+            color: #748198;
+        }
+
+        .comment-btn {
+            min-height: 34px;
+            padding: 7px 13px;
+            border-color: #d4deeb !important;
+            background: #ffffff !important;
+            color: #334155 !important;
+            box-shadow: none !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .comment-btn.primary {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 18px rgba(37, 99, 235, 0.16) !important;
+        }
+
+        .comment-btn.primary:hover:not(:disabled) {
+            background: #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+        }
+
+        .comment-btn.subtle {
+            background: #ffffff !important;
+        }
+
+        .comment-panel {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(248, 250, 252, 0.72);
+            border: 1px solid #dbe3ef;
+            box-shadow: none;
+        }
+
+        .comment-item {
+            background: #ffffff;
+            border-color: #e1e8f2;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .comment-item.reply {
+            background: #f9fbff;
+        }
+
+        .comment-composer {
+            border-color: #dbe3ef;
+            background: #ffffff;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-followup-shell {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .ai-followup-toolbar {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #dbe3ef;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.86), rgba(239, 246, 255, 0.58));
+            box-shadow: none;
+        }
+
+        .ai-followup-title {
+            color: #243b64;
+            gap: 9px;
+        }
+
+        .ai-followup-title span {
+            width: 28px;
+            height: 28px;
+            background: #eaf2ff;
+            color: #1d4ed8;
+            border: 1px solid #d6e6ff;
+        }
+
+        .ai-followup-hint {
+            margin-left: 37px;
+            color: #748198;
+        }
+
+        .ai-followup-panel {
+            margin-top: 10px;
+            border-radius: 14px;
+            border-color: #dbe3ef;
+            background: #ffffff;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.055);
+        }
+
+        .ai-followup-layout {
+            grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+            min-height: 320px;
+        }
+
+        .ai-session-list {
+            background: #f8fafc;
+            border-color: #e1e8f2;
+        }
+
+        .ai-session-item {
+            border-color: #e1e8f2;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-chat-head,
+        .ai-chat-composer {
+            background: #ffffff;
+            border-color: #e1e8f2;
+        }
+
+        .ai-message-list {
+            background: #f8fafc;
+        }
+
+        .ai-message {
+            border-color: #e1e8f2;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-message.ai {
+            background: #f8fbff;
+            border-color: #dbeafe;
+        }
+
         @media (max-width: 980px) {
             .container {
                 max-width: 780px;
@@ -1391,6 +1617,49 @@
 
             .sidebar-sticky {
                 position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .answer-card {
+                padding: 18px;
+            }
+
+            .comment-toolbar,
+            .ai-followup-toolbar {
+                align-items: flex-start;
+            }
+
+            .comment-toolbar-actions,
+            .ai-followup-actions {
+                width: 100%;
+            }
+
+            .comment-toolbar-actions .comment-btn,
+            .ai-followup-actions .comment-btn {
+                flex: 1 1 0;
+                justify-content: center;
+            }
+
+            .ai-followup-title {
+                align-items: flex-start;
+            }
+
+            .ai-followup-hint {
+                margin-left: 0;
+            }
+
+            .ai-followup-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-session-list {
+                border-right: none;
+                border-bottom: 1px solid #e1e8f2;
+            }
+
+            .ai-message {
+                max-width: 100%;
             }
         }
 
@@ -1411,7 +1680,8 @@
         </div>
         <div class="navbar-user">
             <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
-            <div class="user-menu">
+            <button id="login-entry" class="nav-login-button" type="button" onclick="goToLogin()" style="display:none;">登录</button>
+            <div class="user-menu" id="user-menu-wrapper">
                 <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
                     <span class="nav-avatar" id="nav-avatar">我</span>
                 </button>
@@ -1494,8 +1764,26 @@
             window.location.href = LOGIN_PAGE_URL;
         }
 
+        function goToLogin() {
+            window.location.href = LOGIN_PAGE_URL;
+        }
+
+        function isAuthenticated() {
+            return Boolean(sessionStorage.getItem('access_token') && getCurrentUserId());
+        }
+
+        function buildAuthHeaders(extraHeaders = {}) {
+            const token = sessionStorage.getItem('access_token');
+            return token
+                ? { ...extraHeaders, 'Authorization': `Bearer ${token}` }
+                : { ...extraHeaders };
+        }
+
         function logout() {
-            redirectToLogin();
+            clearSession();
+            closeUserMenu();
+            renderGuestNav();
+            loadQuestionDetail(false);
         }
 
         function goToProfile() {
@@ -1611,6 +1899,45 @@
             avatar.textContent = getInitial(displayName);
         }
 
+        function renderGuestNav() {
+            const greeting = document.getElementById('detail-user-greeting');
+            const loginEntry = document.getElementById('login-entry');
+            const menuWrapper = document.getElementById('user-menu-wrapper');
+            const adminEntry = document.getElementById('admin-entry');
+            if (greeting) {
+                greeting.innerText = '游客浏览';
+            }
+            if (loginEntry) {
+                loginEntry.style.display = 'inline-flex';
+                loginEntry.style.alignItems = 'center';
+            }
+            if (menuWrapper) {
+                menuWrapper.style.display = 'none';
+            }
+            if (adminEntry) {
+                adminEntry.style.display = 'none';
+            }
+        }
+
+        function renderAuthenticatedNav(displayName, role = '') {
+            const greeting = document.getElementById('detail-user-greeting');
+            const loginEntry = document.getElementById('login-entry');
+            const menuWrapper = document.getElementById('user-menu-wrapper');
+            const adminEntry = document.getElementById('admin-entry');
+            if (greeting) {
+                greeting.innerText = `欢迎回来, ${displayName || '同学'}`;
+            }
+            if (loginEntry) {
+                loginEntry.style.display = 'none';
+            }
+            if (menuWrapper) {
+                menuWrapper.style.display = 'block';
+            }
+            if (adminEntry) {
+                adminEntry.style.display = role === 'ADMIN' ? 'flex' : 'none';
+            }
+        }
+
         function closeUserMenu() {
             const panel = document.getElementById('user-menu-panel');
             const trigger = document.getElementById('user-menu-trigger');
@@ -1637,6 +1964,7 @@
         async function loadCurrentUserProfileForNav() {
             const token = sessionStorage.getItem('access_token');
             if (!token) {
+                renderGuestNav();
                 return;
             }
             try {
@@ -1649,13 +1977,10 @@
                 }
                 const profile = await response.json();
                 const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
-                document.getElementById('detail-user-greeting').innerText = `欢迎回来, ${displayName}`;
+                renderAuthenticatedNav(displayName, profile.role || sessionStorage.getItem('user_role') || '');
                 setNavAvatar(displayName, profile.avatar_url);
                 sessionStorage.setItem('username', profile.username || '');
                 sessionStorage.setItem('nickname', profile.nickname || '');
-                if (profile.role === 'ADMIN') {
-                    document.getElementById('admin-entry').style.display = 'flex';
-                }
             } catch (error) {
                 console.error('加载导航用户信息失败:', error);
             }
@@ -1741,22 +2066,25 @@
             }
 
             const isOpen = question.status === 'OPEN';
-            textarea.disabled = !isOpen;
+            const loggedIn = isAuthenticated();
+            textarea.disabled = !isOpen || !loggedIn;
             submitButton.disabled = !isOpen;
             const imageInput = document.getElementById('answer-images');
             const imageLabel = document.querySelector('label[for="answer-images"]');
             if (imageInput) {
-                imageInput.disabled = !isOpen;
+                imageInput.disabled = !isOpen || !loggedIn;
             }
             if (imageLabel) {
-                imageLabel.style.opacity = isOpen ? '1' : '0.55';
-                imageLabel.style.pointerEvents = isOpen ? 'auto' : 'none';
+                imageLabel.style.opacity = isOpen && loggedIn ? '1' : '0.55';
+                imageLabel.style.pointerEvents = isOpen && loggedIn ? 'auto' : 'none';
             }
 
             if (isOpen) {
-                hint.innerText = '当前问题开放回答中，可以继续补充你的思路。';
-                textarea.placeholder = '分享你的知识和见解...';
-                submitButton.innerText = '发 布 回 答';
+                hint.innerText = loggedIn
+                    ? '当前问题开放回答中，可以继续补充你的思路。'
+                    : '登录后可以发布回答、上传配图并参与互动。';
+                textarea.placeholder = loggedIn ? '分享你的知识和见解...' : '请先登录后再撰写回答。';
+                submitButton.innerText = loggedIn ? '发 布 回 答' : '登录后回答';
                 submitButton.style.opacity = '1';
                 submitButton.style.cursor = 'pointer';
                 return;
@@ -1981,6 +2309,11 @@
         }
 
         function handleAnswerImageSelection(event) {
+            if (!isAuthenticated()) {
+                event.target.value = '';
+                redirectToLogin('请先登录后再上传回答配图。');
+                return;
+            }
             const files = Array.from(event.target.files || []);
             const { selected, errors } = buildSelectedImageItems(
                 files,
@@ -2384,7 +2717,7 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
@@ -2425,7 +2758,7 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
@@ -2459,6 +2792,10 @@
         }
 
         async function openCommentComposer(answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再发表评论。');
+                return;
+            }
             if (!canCommentOnQuestion(currentQuestionDetail)) {
                 alert('当前问题不再接受新评论。');
                 return;
@@ -2485,6 +2822,10 @@
         }
 
         async function toggleReplyComposer(answerId, commentId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再回复评论。');
+                return;
+            }
             if (!canCommentOnQuestion(currentQuestionDetail)) {
                 alert('当前问题不再接受新评论。');
                 return;
@@ -2860,6 +3201,10 @@
 
         async function preloadFollowUpSessions(questionId, answerId) {
             const state = getFollowUpState(answerId);
+            if (!isAuthenticated()) {
+                updateFollowUpToolbar(answerId);
+                return;
+            }
             if (state.sessionsLoaded || state.loadingSessions) {
                 updateFollowUpToolbar(answerId);
                 return;
@@ -2925,6 +3270,10 @@
         }
 
         async function toggleFollowUpPanel(questionId, answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再查看 AI 追问。');
+                return;
+            }
             const state = getFollowUpState(answerId);
             state.visible = !state.visible;
             renderFollowUpPanel(questionId, answerId);
@@ -2991,6 +3340,10 @@
         }
 
         async function startNewFollowUpSession(questionId, answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再追问 AI。');
+                return;
+            }
             const state = getFollowUpState(answerId);
             state.visible = true;
             state.activeSessionId = null;
@@ -3076,7 +3429,6 @@
         }
 
         async function loadQuestionDetail(resetBrowseSession = false) {
-            const token = sessionStorage.getItem('access_token');
             const questionId = getCurrentQuestionId();
 
             if (!questionId) {
@@ -3087,7 +3439,7 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
@@ -3115,18 +3467,12 @@
             const token = sessionStorage.getItem('access_token');
             const username = sessionStorage.getItem('username');
             const role = sessionStorage.getItem('user_role');
-            if (!token) {
-                alert('请先登录！');
-                window.location.href = LOGIN_PAGE_URL;
-                return;
-            }
             const displayName = sessionStorage.getItem('nickname') || username;
-            document.getElementById('detail-user-greeting').innerText = displayName
-                ? `欢迎回来, ${displayName}`
-                : '已登录用户';
-            setNavAvatar(displayName || '我', '');
-            if (role === 'ADMIN') {
-                document.getElementById('admin-entry').style.display = 'flex';
+            if (token) {
+                renderAuthenticatedNav(displayName || '同学', role);
+                setNavAvatar(displayName || '我', '');
+            } else {
+                renderGuestNav();
             }
             await loadCurrentUserProfileForNav();
             await loadQuestionDetail(true);
@@ -3191,9 +3537,7 @@
                     const acceptButtonHtml = canShowAcceptButton
                         ? `<button id="accept-btn-${ansId}" onclick="acceptAnswer(${q.question_id}, ${ansId})" ${acceptButtonDisabled} style="${acceptButtonStyle} border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; transition: all 0.2s;">${acceptButtonLabel}</button>`
                         : '';
-                    const answerCardStyle = ans.is_accepted
-                        ? 'background:#f0fdf4; border:1px solid #86efac; box-shadow: 0 1px 2px rgba(0,0,0,0.02);'
-                        : 'background:#f8fafc; border:1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);';
+                    const answerCardClass = ans.is_accepted ? 'answer-card accepted' : 'answer-card';
                     const isAiAnswer = ans.answer_type === 'AI';
 
                     // 🌟 智能判断：是人类还是 AI？
@@ -3236,10 +3580,8 @@
                     ` : '';
 
                     // 组装带高级样式的 HTML
-                    // 组装带高级样式的 HTML
-                    // 组装带高级样式的 HTML
                     answersHtml += `
-                        <div style="${answerCardStyle} padding: 24px; border-radius: 12px; margin-top: 20px;">
+                        <div class="${answerCardClass}">
 
                             <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -3263,11 +3605,11 @@
 
                             <button id="btn-${ansId}" class="toggle-btn" style="margin-bottom: 12px;" onclick="toggleAnswer(${ansId})">阅读全文 ↓</button>
 
-                            <div style="display: flex; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
-                                <button id="like-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'Y')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <div class="answer-actions">
+                                <button id="like-btn-${ansId}" class="answer-action-button" onclick="toggleFeedback(${ansId}, 'Y')">
                                     👍 <span id="like-count-${ansId}">${ans.like_count || 0}</span>
                                 </button>
-                                <button id="dislike-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'N')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                <button id="dislike-btn-${ansId}" class="answer-action-button" onclick="toggleFeedback(${ansId}, 'N')">
                                     👎 <span id="dislike-count-${ansId}">${ans.dislike_count || 0}</span>
                                 </button>
                                 ${acceptButtonHtml}
@@ -3348,7 +3690,9 @@
                     if (ans.answer_type === 'AI') {
                         const followUpState = getFollowUpState(ans.answer_id);
                         updateFollowUpToolbar(ans.answer_id);
-                        preloadFollowUpSessions(q.question_id, ans.answer_id);
+                        if (isAuthenticated()) {
+                            preloadFollowUpSessions(q.question_id, ans.answer_id);
+                        }
                         if (followUpState.visible) {
                             renderFollowUpPanel(q.question_id, ans.answer_id);
                         }
@@ -3365,6 +3709,10 @@
 
         async function acceptAnswer(questionId, answerId) {
             const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再采纳答案。');
+                return;
+            }
 
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}/accept-answer`), {
@@ -3446,6 +3794,12 @@
 
         // 🌟 真正提交回答到后端（完美适配原作者接口）
         async function submitAnswer() {
+            const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再发布回答。');
+                return;
+            }
+
             const content = document.getElementById('my-answer-content').value.trim();
             if (!content) {
                 alert("❌ 还没有填写回答内容哦！");
@@ -3453,7 +3807,6 @@
             }
 
             const questionId = getCurrentQuestionId();
-            const token = sessionStorage.getItem('access_token');
             const imagesToUpload = [...selectedAnswerImages];
 
             // 按钮变灰，防止用户狂点
@@ -3518,6 +3871,10 @@
         // 🌟 商业级反馈交互：无刷新、带变色动画、局部 DOM 更新
         async function toggleFeedback(answerId, isLike) {
             const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再进行点赞或点踩。');
+                return;
+            }
             const likeCountSpan = document.getElementById(`like-count-${answerId}`);
             const dislikeCountSpan = document.getElementById(`dislike-count-${answerId}`);
 
