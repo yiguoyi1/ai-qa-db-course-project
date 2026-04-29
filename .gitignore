@@ -21,6 +21,7 @@ Thumbs.db
 # Logs
 *.log
 uploads/
+seed_outputs/
 
 # Desktop client
 /desktop/node_modules/
