@@ -328,6 +328,7 @@ python .\scripts\start_business_test.py
 - 不要把 `.env` 提交进 Git
 - 不要在 Python 里手动维护浏览量、收藏数、回答数、点赞数、平均分，数据库已经有触发器
 - 不要在应用层重复实现推荐算法，优先调用数据库过程
+- 不要绕过 `sql/views.sql` 里的视图口径做重复报表 SQL，除非确实需要更细粒度的业务查询
 - 不要忽略网页前端和后端之间的接口错位
 - 如果改了数据库约束，记得同步：
   - `sql/create_tables.sql`

@@ -109,7 +109,7 @@ CREATE TABLE questions (
         FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_questions_category
         FOREIGN KEY (category_id) REFERENCES categories (category_id),
-    CONSTRAINT ck_questions_status CHECK (status IN ('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED')),
+    CONSTRAINT ck_questions_status CHECK (status IN ('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED', 'DELETED')),
     CONSTRAINT ck_questions_view_count CHECK (view_count >= 0),
     CONSTRAINT ck_questions_favorite_count CHECK (favorite_count >= 0),
     CONSTRAINT ck_questions_answer_count CHECK (answer_count >= 0)

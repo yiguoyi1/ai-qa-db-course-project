@@ -150,6 +150,7 @@ class RecommendationRepository:
              AND m.status = 'ACTIVE'
             WHERE r.user_id = :user_id
               AND r.status = :status
+              AND q.status <> 'DELETED'
             ORDER BY r.rec_score DESC, r.rec_id DESC
             """,
             {

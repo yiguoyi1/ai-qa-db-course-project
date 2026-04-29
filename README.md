@@ -34,6 +34,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - `sql/create_tables.sql`：建表、主外键、唯一约束、检查约束、索引
 - `sql/procedures.sql`：统计同步、画像重建、推荐生成
 - `sql/triggers.sql`：自动维护统计字段与登录时间
+- `sql/views.sql`：问题概览、热门问题、回答质量、用户画像和推荐明细视图
 - `sql/seed_data.sql`：固定演示数据
 - `scripts/validate-oracle-schema.ps1`：结构和业务规则校验
 
@@ -288,7 +289,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
   sql/migrations/20260422_add_media_assets.sql `
   sql/migrations/20260422_add_question_acceptance.sql `
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql
+  sql/migrations/20260427_extend_tag_metadata.sql `
+  sql/migrations/20260429_add_deleted_question_status.sql
 ```
 
 如果你只缺某一次迁移，也可以只传对应的 `.sql` 文件。macOS / PowerShell 7 下使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。
@@ -310,7 +312,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 该脚本会：
 
 - 创建临时校验用户
-- 执行 `create_tables.sql`、`procedures.sql`、`triggers.sql`
+- 执行 `create_tables.sql`、`procedures.sql`、`triggers.sql`、`views.sql`
 - 检查无效对象与编译错误
 - 运行正向与逆向测试
 - 验证触发器、统计字段、推荐逻辑

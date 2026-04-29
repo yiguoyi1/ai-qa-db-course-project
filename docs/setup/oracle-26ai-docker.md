@@ -68,7 +68,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
 - The compose file pins the image to `23.26.1.0`, which is the Oracle AI Database 26ai Free image tag currently listed in Oracle Container Registry.
 - If you want a smaller image for quicker pulls, change `ORACLE_IMAGE_TAG` to `23.26.1.0-lite`.
 - Oracle Database Free images ship with a pre-built database. Startup is fast, but if you mount a fresh data volume, first-time initialization can still take several minutes.
-- The repo already includes working schema files for tables, procedures, and triggers.
+- The repo already includes working schema files for tables, procedures, triggers, and views.
 - After schema changes, you can rerun `validate-oracle-schema.ps1` to verify compilation, constraints, trigger behavior, and recommendation logic.
 
 ## Useful commands

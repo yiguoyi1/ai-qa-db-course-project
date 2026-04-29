@@ -278,6 +278,27 @@ def update_question_status(
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
+@router.delete(
+    "/questions/{question_id}",
+    response_model=AdminQuestionStatusResponse,
+    status_code=status.HTTP_200_OK,
+)
+def delete_question(
+    question_id: int,
+    reason: str | None = Query(default=None, max_length=200),
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminQuestionStatusResponse:
+    try:
+        return service.delete_question(
+            admin_user_id=admin_user.user_id,
+            question_id=question_id,
+            reason=reason,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
 @router.patch(
     "/comments/{comment_id}/status",
     response_model=AdminCommentStatusResponse,

@@ -21,7 +21,7 @@ class AdminService:
     VALID_LOGIN_RESULTS = {"SUCCESS", "FAILURE", "LOCKED"}
     VALID_USER_ROLES = {"USER", "ADMIN"}
     VALID_USER_STATUSES = {"ACTIVE", "INACTIVE", "LOCKED", "DISABLED"}
-    VALID_QUESTION_STATUSES = {"OPEN", "RESOLVED", "CLOSED", "ARCHIVED"}
+    VALID_QUESTION_STATUSES = {"OPEN", "RESOLVED", "CLOSED", "ARCHIVED", "DELETED"}
     VALID_COMMENT_STATUSES = {"ACTIVE", "HIDDEN"}
     VALID_TAG_SOURCES = {"SYSTEM", "USER", "AI", "ADMIN"}
     VALID_TAG_STATUSES = {"ACTIVE", "PENDING", "DISABLED"}
@@ -602,6 +602,50 @@ class AdminService:
             message="Question status updated successfully.",
         )
 
+    def delete_question(
+        self,
+        *,
+        admin_user_id: int,
+        question_id: int,
+        reason: str | None = None,
+    ) -> AdminQuestionStatusResponse:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+        normalized_reason = self._normalize_reason(reason)
+
+        with get_connection() as connection:
+            question = self._admin_repository.get_question_context(connection, question_id)
+            if question is None:
+                raise NotFoundError(f"Question {question_id} was not found.")
+            if question["status"] == "DELETED":
+                raise ValidationError("Question has already been deleted.")
+
+            updated_count = self._admin_repository.update_question_status(
+                connection,
+                question_id=question_id,
+                status="DELETED",
+            )
+            if updated_count == 0:
+                raise NotFoundError(f"Question {question_id} could not be deleted.")
+
+            reason_part = f", reason={normalized_reason}" if normalized_reason else ""
+            self._log_repository.create_operation_log(
+                connection,
+                user_id=admin_user_id,
+                op_type="ADMIN_DELETE_QUESTION",
+                op_content=(
+                    f"question_id={question_id}, title={question['title']}, "
+                    f"from={question['status']}, to=DELETED{reason_part}"
+                ),
+            )
+            connection.commit()
+
+        return AdminQuestionStatusResponse(
+            question_id=question_id,
+            status="DELETED",
+            message="Question deleted successfully.",
+        )
+
     def update_comment_status(
         self,
         *,
@@ -712,7 +756,7 @@ class AdminService:
     def _require_question_status(self, value: str) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_QUESTION_STATUSES:
-            raise ValidationError("status must be OPEN, RESOLVED, CLOSED, or ARCHIVED.")
+            raise ValidationError("status must be OPEN, RESOLVED, CLOSED, ARCHIVED, or DELETED.")
         return normalized
 
     def _require_comment_status(self, value: str) -> str:
@@ -720,3 +764,12 @@ class AdminService:
         if normalized not in self.VALID_COMMENT_STATUSES:
             raise ValidationError("status must be ACTIVE or HIDDEN.")
         return normalized
+
+    @staticmethod
+    def _normalize_reason(value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.strip().split())
+        if len(normalized) > 200:
+            raise ValidationError("reason must be at most 200 characters.")
+        return normalized or None

@@ -15,7 +15,7 @@
 | `CATEGORIES` | 问题分类 | 管理问题所属分类 | `CATEGORY_NAME`, `STATUS` | 用于问题归类和后台分类运营 |
 | `TAGS` | 标签管理 | 存储可复用标签及其来源状态 | `TAG_NAME`, `SOURCE`, `STATUS`, `CREATE_USER_ID` | 是画像与推荐计算的基础标签集合，可区分系统、用户、AI、管理员来源 |
 | `MEDIA_ASSETS` | 媒体资源 | 统一保存头像、问题配图、回答配图的元数据和 BLOB 内容 | `OWNER_TYPE`, `OWNER_ID`, `PUBLIC_URL`, `FILE_CONTENT`, `STATUS` | 图片二进制保存在 Oracle `BLOB`，`PUBLIC_URL` 由后端读取 BLOB 返回 |
-| `QUESTIONS` | 问题管理 | 存储用户提出的问题和当前采纳答案 | `USER_ID`, `CATEGORY_ID`, `TITLE`, `STATUS`, `ACCEPTED_ANSWER_ID` | 是问答系统的核心主表 |
+| `QUESTIONS` | 问题管理 | 存储用户提出的问题、软删除状态和当前采纳答案 | `USER_ID`, `CATEGORY_ID`, `TITLE`, `STATUS`, `ACCEPTED_ANSWER_ID` | 是问答系统的核心主表 |
 | `ANSWERS` | 回答管理 | 存储 AI、人工或系统回答 | `QUESTION_ID`, `ANSWER_TYPE`, `CONTENT`, `AVG_RATING` | 承载回答内容及其质量统计，并通过 `(QUESTION_ID, ANSWER_ID)` 支撑采纳答案约束 |
 | `QUESTION_TAGS` | 标签关联 | 建立问题与标签的多对多关系并记录绑定来源 | `QUESTION_ID`, `TAG_ID`, `SOURCE`, `CONFIDENCE_SCORE` | 为推荐、画像和标签展示提供连接关系，可追踪用户选择、自定义标签和 AI 自动标签 |
 
@@ -65,7 +65,17 @@
 | `ANSWERS` | `AVG_RATING` | `ANSWER_FEEDBACK` | 触发器调用过程重算 |
 | `USERS` | `LAST_LOGIN_TIME` | `LOGIN_LOG` | 成功登录后触发器同步 |
 
-## 8. 产品模块到数据表的映射
+## 8. 视图结构
+
+| 视图名 | 业务作用 | 主要来源 |
+| --- | --- | --- |
+| `V_QUESTION_OVERVIEW` | 问题概览查询，整合作者、分类、统计字段、标签数、图片数和活跃度分 | `QUESTIONS`, `USERS`, `CATEGORIES`, `QUESTION_TAGS`, `MEDIA_ASSETS` |
+| `V_HOT_QUESTIONS` | 热门问题候选列表，面向首页热点和课程展示 | `V_QUESTION_OVERVIEW` |
+| `V_ANSWER_QUALITY_SUMMARY` | 回答质量概览，整合反馈、评论和采纳状态 | `ANSWERS`, `QUESTIONS`, `ANSWER_FEEDBACK`, `ANSWER_COMMENTS` |
+| `V_USER_TAG_PROFILE_DETAIL` | 用户画像明细，展示标签权重和画像排名 | `USER_TAG_PROFILE`, `USERS`, `TAGS` |
+| `V_ACTIVE_RECOMMENDATION_DETAIL` | 当前有效推荐明细，整合推荐、问题、作者和分类 | `RECOMMENDATIONS`, `QUESTIONS`, `USERS`, `CATEGORIES` |
+
+## 9. 产品模块到数据表的映射
 
 | 产品模块 | 主要数据表 |
 | --- | --- |
@@ -82,7 +92,7 @@
 | 头像与内容图片 | `MEDIA_ASSETS`, `USERS` |
 | 采纳答案 | `QUESTIONS`, `ANSWERS` |
 
-## 9. 当前版本的表设计特点
+## 10. 当前版本的表设计特点
 
 - 主链路完整：从用户、问题、回答到推荐都已经具备对应表结构
 - 行为与主数据分离：便于统计、审计和后续扩展
@@ -90,5 +100,6 @@
 - 采纳答案约束更稳：通过 `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID)` 复合外键保证不能跨问题采纳回答
 - 媒体资源统一：头像、问题配图和回答配图全部落入 `MEDIA_ASSETS`，图片内容保存在 `FILE_CONTENT BLOB`
 - 画像与推荐解耦：画像负责沉淀兴趣，推荐负责产出结果
+- 视图层可解释：常用展示和统计查询已通过 `sql/views.sql` 固化为数据库视图
 - 日志能力完整：登录日志、操作日志、Prompt 日志、会话日志分层清晰
 - 设计偏向课程答辩友好：每个模块都能明确说明“业务目的”和“数据库落点”

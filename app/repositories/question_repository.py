@@ -85,6 +85,8 @@ class QuestionRepository:
         if status is not None:
             clauses.append("q.status = :status")
             binds["status"] = status
+        else:
+            clauses.append("q.status <> 'DELETED'")
 
         return clauses, binds
 
@@ -295,6 +297,53 @@ class QuestionRepository:
             "accepted_answer_id": int(row[3]) if row[3] is not None else None,
         }
 
+    def get_question_context(
+        self,
+        connection: oracledb.Connection,
+        question_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                question_id,
+                user_id,
+                title,
+                status
+            FROM questions
+            WHERE question_id = :question_id
+            """,
+            {"question_id": question_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "question_id": int(row[0]),
+            "user_id": int(row[1]),
+            "title": row[2],
+            "status": row[3],
+        }
+
+    def update_question_status(
+        self,
+        connection: oracledb.Connection,
+        *,
+        question_id: int,
+        status: str,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE questions
+            SET status = :status
+            WHERE question_id = :question_id
+            """,
+            {"question_id": question_id, "status": status},
+        )
+        return int(cursor.rowcount or 0)
+
     def accept_answer(
         self,
         connection: oracledb.Connection,
@@ -309,7 +358,7 @@ class QuestionRepository:
             SET accepted_answer_id = :answer_id,
                 status = 'RESOLVED'
             WHERE q.question_id = :question_id
-              AND q.status NOT IN ('CLOSED', 'ARCHIVED')
+              AND q.status NOT IN ('CLOSED', 'ARCHIVED', 'DELETED')
               AND EXISTS (
                   SELECT 1
                   FROM answers a

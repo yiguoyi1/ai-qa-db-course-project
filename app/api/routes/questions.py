@@ -11,6 +11,7 @@ from app.schemas.answer import AcceptAnswerRequest
 from app.schemas.question import (
     AskQuestionRequest,
     QuestionCreate,
+    QuestionDeleteResponse,
     QuestionDetailResponse,
     QuestionListResponse,
 )
@@ -83,6 +84,25 @@ def get_question_detail(
     try:
         return service.get_question_detail(
             question_id,
+            current_user_id=current_user_id,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.delete(
+    "/{question_id}",
+    response_model=QuestionDeleteResponse,
+    status_code=status.HTTP_200_OK,
+)
+def delete_question(
+    question_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    service: QuestionService = Depends(get_question_service),
+) -> QuestionDeleteResponse:
+    try:
+        return service.delete_question(
+            question_id=question_id,
             current_user_id=current_user_id,
         )
     except AppError as exc:

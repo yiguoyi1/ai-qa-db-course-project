@@ -74,7 +74,8 @@ Copy-Item .env.example .env
   sql/migrations/20260422_add_question_acceptance.sql `
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
   sql/migrations/20260427_extend_tag_metadata.sql `
-  sql/migrations/20260428_add_question_oracle_text_indexes.sql
+  sql/migrations/20260428_add_question_oracle_text_indexes.sql `
+  sql/migrations/20260429_add_deleted_question_status.sql
 ```
 
 macOS 或 PowerShell 7 下可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个 SQL 文件之间用空格分隔。
@@ -265,6 +266,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 - [create_tables.sql](../sql/create_tables.sql)
 - [procedures.sql](../sql/procedures.sql)
 - [triggers.sql](../sql/triggers.sql)
+- [views.sql](../sql/views.sql)
 - [constraints_and_rules.md](design_details/constraints_and_rules.md)
 - `sql/migrations/`
 

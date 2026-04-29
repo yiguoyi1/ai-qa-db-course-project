@@ -150,6 +150,7 @@ python -m frontend_cli.main menu
 sql/create_tables.sql
 sql/procedures.sql
 sql/triggers.sql
+sql/views.sql
 sql/seed_data.sql
 ```
 

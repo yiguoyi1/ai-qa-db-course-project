@@ -86,6 +86,12 @@ class QuestionDetailResponse(APIModel):
     author_avatar_url: str | None = None
 
 
+class QuestionDeleteResponse(APIModel):
+    question_id: int
+    status: str
+    message: str
+
+
 class QuestionCreate(APIModel):
     category_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=1, max_length=200)

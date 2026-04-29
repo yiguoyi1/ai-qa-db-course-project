@@ -288,8 +288,8 @@
 1. 管理员定位目标问题。
 2. 网页后台可通过最近问题列表查看问题 ID，并一键填入治理表单。
 3. 系统读取 `QUESTIONS` 当前状态。
-4. 管理员执行状态调整，例如 `CLOSED` 或 `ARCHIVED`。
-5. 系统更新 `QUESTIONS.STATUS`。
+4. 管理员执行状态调整，例如 `CLOSED`、`ARCHIVED` 或 `DELETED`。
+5. 系统更新 `QUESTIONS.STATUS`；删除问题采用软删除，不物理删除问题、回答和评论。
 6. 写入 `OPERATION_LOG`。
 
 涉及数据表：

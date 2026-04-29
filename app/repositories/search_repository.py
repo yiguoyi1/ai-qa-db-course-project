@@ -112,6 +112,8 @@ class SearchRepository:
         if status is not None:
             clauses.append("q.status = :status")
             binds["status"] = status
+        else:
+            clauses.append("q.status <> 'DELETED'")
 
         return clauses, binds
 

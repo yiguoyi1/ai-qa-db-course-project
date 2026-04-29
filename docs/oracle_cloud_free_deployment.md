@@ -211,6 +211,7 @@ Autonomous Database 上建议使用 SQLcl、SQL Developer 或 Python 脚本导�
 sql/create_tables.sql
 sql/procedures.sql
 sql/triggers.sql
+sql/views.sql
 sql/seed_data.sql
 sql/migrations/*.sql
 ```
@@ -221,8 +222,9 @@ sql/migrations/*.sql
 1. create_tables.sql
 2. procedures.sql
 3. triggers.sql
-4. seed_data.sql
-5. migrations 按日期顺序执行
+4. views.sql
+5. seed_data.sql
+6. migrations 按日期顺序执行
 ```
 
 如果导入了：

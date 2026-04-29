@@ -13,6 +13,7 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.question import (
     AskQuestionRequest,
     QuestionCreate,
+    QuestionDeleteResponse,
     QuestionDetailResponse,
     QuestionListResponse,
 )
@@ -127,6 +128,8 @@ class QuestionService:
                 current_user_id=current_user_id,
             )
             if question is None:
+                raise NotFoundError(f"Question {question_id} was not found.")
+            if question["status"] == "DELETED" and question["user_id"] != current_user_id:
                 raise NotFoundError(f"Question {question_id} was not found.")
 
             question["images"] = self._media_repository.list_active_media_by_owner(
@@ -406,7 +409,7 @@ class QuestionService:
             return ValidationError("user_id, category_id, or tag_ids contain invalid references.")
         if "ORA-00001" in message:
             return ValidationError("Duplicate question-tag relationship was detected.")
-        if "ORA-2290" in message:
+        if "ORA-02290" in message or "ORA-2290" in message:
             return ValidationError("Request data violates a database constraint.")
 
         return AppError(f"Database operation failed: {message}", status_code=500)
@@ -447,6 +450,61 @@ class QuestionService:
 
             return {"question_id": question_id, "message": "published"}
 
+    def delete_question(
+        self,
+        *,
+        question_id: int,
+        current_user_id: int,
+    ) -> QuestionDeleteResponse:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+        if current_user_id <= 0:
+            raise ValidationError("current_user_id must be greater than 0.")
+
+        with get_connection() as connection:
+            question = self._question_repository.get_question_context(
+                connection,
+                question_id,
+            )
+            if question is None:
+                raise NotFoundError(f"Question {question_id} was not found.")
+            if question["user_id"] != current_user_id:
+                raise AppError("Only the question author can delete this question.", status_code=403)
+            if question["status"] == "DELETED":
+                raise ValidationError("Question has already been deleted.")
+
+            try:
+                updated_count = self._question_repository.update_question_status(
+                    connection=connection,
+                    question_id=question_id,
+                    status="DELETED",
+                )
+                if updated_count == 0:
+                    raise NotFoundError(f"Question {question_id} could not be deleted.")
+
+                self._log_repository.create_operation_log(
+                    connection,
+                    user_id=current_user_id,
+                    op_type="AUTHOR_DELETE_QUESTION",
+                    op_content=(
+                        f"question_id={question_id}, title={question['title']}, "
+                        f"from={question['status']}, to=DELETED"
+                    ),
+                )
+                connection.commit()
+            except oracledb.DatabaseError as exc:
+                connection.rollback()
+                raise self._translate_database_error(exc) from exc
+            except Exception:
+                connection.rollback()
+                raise
+
+        return QuestionDeleteResponse(
+            question_id=question_id,
+            status="DELETED",
+            message="Question deleted successfully.",
+        )
+
     def accept_answer(
         self,
         *,
@@ -478,8 +536,8 @@ class QuestionService:
             if not (is_owner or is_admin):
                 raise AppError("只有提问者或管理员可以采纳答案。", status_code=403)
 
-            if question["status"] in {"CLOSED", "ARCHIVED"}:
-                raise ValidationError("CLOSED 或 ARCHIVED 状态的问题不能再采纳答案。")
+            if question["status"] in {"CLOSED", "ARCHIVED", "DELETED"}:
+                raise ValidationError("CLOSED、ARCHIVED 或 DELETED 状态的问题不能再采纳答案。")
 
             answer = self._answer_repository.get_answer_context(connection, answer_id)
             if answer is None:

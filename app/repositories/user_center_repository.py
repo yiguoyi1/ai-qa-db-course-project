@@ -222,6 +222,7 @@ class UserCenterRepository:
             SELECT COUNT(*)
             FROM questions
             WHERE user_id = :user_id
+              AND status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -259,6 +260,7 @@ class UserCenterRepository:
               ON m.media_id = u.avatar_media_id
              AND m.status = 'ACTIVE'
             WHERE q.user_id = :user_id
+              AND q.status <> 'DELETED'
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
@@ -305,8 +307,11 @@ class UserCenterRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM answers
-            WHERE user_id = :user_id
+            FROM answers a
+            JOIN questions q
+              ON q.question_id = a.question_id
+            WHERE a.user_id = :user_id
+              AND q.status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -346,6 +351,7 @@ class UserCenterRepository:
             JOIN questions q
               ON q.question_id = a.question_id
             WHERE a.user_id = :user_id
+              AND q.status <> 'DELETED'
             ORDER BY
                 CASE
                     WHEN q.accepted_answer_id = a.answer_id THEN 0
@@ -402,8 +408,11 @@ class UserCenterRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM favorites
-            WHERE user_id = :user_id
+            FROM favorites f
+            JOIN questions q
+              ON q.question_id = f.question_id
+            WHERE f.user_id = :user_id
+              AND q.status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -445,6 +454,7 @@ class UserCenterRepository:
               ON m.media_id = u.avatar_media_id
              AND m.status = 'ACTIVE'
             WHERE f.user_id = :user_id
+              AND q.status <> 'DELETED'
             ORDER BY f.favorite_time DESC, f.favorite_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
@@ -520,6 +530,7 @@ class UserCenterRepository:
                 JOIN questions q
                   ON q.question_id = bh.question_id
                 WHERE bh.user_id = :user_id
+                  AND q.status <> 'DELETED'
             )
             WHERE rn = 1
             ORDER BY browse_time DESC, history_id DESC

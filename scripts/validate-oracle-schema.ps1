@@ -6,7 +6,8 @@ param(
     [string[]]$SqlFiles = @(
         "sql/create_tables.sql",
         "sql/procedures.sql",
-        "sql/triggers.sql"
+        "sql/triggers.sql",
+        "sql/views.sql"
     )
 )
 
@@ -97,6 +98,7 @@ CONNECT $tempUser/"$tempPassword"@//localhost:1521/$ServiceName
 @/tmp/create_tables.sql
 @/tmp/procedures.sql
 @/tmp/triggers.sql
+@/tmp/views.sql
 
 PROMPT === INVALID OBJECTS ===
 SELECT object_type, object_name, status

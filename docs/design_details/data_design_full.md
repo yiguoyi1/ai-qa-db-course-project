@@ -9,7 +9,7 @@
 3. 支持 AI 回答过程的数据记录，提高系统的智能化特征与可追溯性。
 4. 支持单轮问答与多轮对话两种业务场景。
 5. 通过主键、外键、唯一约束及检查约束保证数据完整性与一致性。
-6. 满足数据库课程设计要求，当前版本已覆盖表、主键、外键、索引、触发器、存储过程、函数及大对象等内容，并为视图与更多推荐扩展预留空间。
+6. 满足数据库课程设计要求，当前版本已覆盖表、主键、外键、索引、触发器、存储过程、函数、视图及大对象等内容，并为更多推荐扩展预留空间。
 
 ---
 
@@ -511,15 +511,17 @@
 
 ## 3.8 视图设计
 
-当前仓库尚未落地独立视图脚本。
+当前仓库已落地独立视图脚本 `sql/views.sql`，用于把常见统计查询和展示查询封装为稳定的数据库对象。
 
-从产品与课程设计角度，后续可补充以下视图：
+当前视图包括：
 
-1. 热门问题视图：聚合浏览量、收藏数、回答数，用于首页热点展示
-2. 用户推荐视图：按用户查看当前有效推荐结果
-3. 用户兴趣视图：按用户查看标签权重分布
+1. `V_QUESTION_OVERVIEW`：问题概览，整合作者、分类、标签数、图片数、统计字段和活跃度分
+2. `V_HOT_QUESTIONS`：热门问题，基于问题概览筛选可展示问题并提供热度分
+3. `V_ANSWER_QUALITY_SUMMARY`：回答质量概览，整合点赞、点踩、评分、采纳状态、评论数和反馈数
+4. `V_USER_TAG_PROFILE_DETAIL`：用户兴趣画像明细，展示用户、标签、权重和画像排名
+5. `V_ACTIVE_RECOMMENDATION_DETAIL`：当前有效推荐明细，整合推荐结果、目标用户、问题作者和分类信息
 
-当前版本已通过基础表、索引、过程和触发器支撑这些视图后续扩展。
+这些视图不替代业务表和过程，而是用于课程答辩、后台查询、报表展示和后续页面开发。
 
 ---
 
@@ -572,7 +574,7 @@
 1. `USERS.ROLE`: `USER`, `ADMIN`
 2. `USERS.STATUS`: `ACTIVE`, `INACTIVE`, `LOCKED`, `DISABLED`
 3. `CATEGORIES.STATUS`: `ACTIVE`, `INACTIVE`
-4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`
+4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`, `DELETED`
 5. `ANSWERS.ANSWER_TYPE`: `AI`, `MANUAL`, `SYSTEM`
 6. `ANSWER_COMMENTS.STATUS`: `ACTIVE`, `HIDDEN`, `DELETED`
 7. `MEDIA_ASSETS.OWNER_TYPE`: `USER_AVATAR`, `QUESTION`, `ANSWER`

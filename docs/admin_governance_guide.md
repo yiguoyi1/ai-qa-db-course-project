@@ -182,6 +182,7 @@ http://127.0.0.1:8000/admin
 ### 6.4 内容治理
 
 - `PATCH /api/admin/questions/{question_id}/status`
+- `DELETE /api/admin/questions/{question_id}`
 - `PATCH /api/admin/comments/{comment_id}/status`
 
 网页后台为了帮助管理员定位 ID，会复用以下普通读接口：
@@ -235,6 +236,7 @@ http://127.0.0.1:8000/admin
 - `RESOLVED`
 - `CLOSED`
 - `ARCHIVED`
+- `DELETED`
 
 ### 7.7 评论治理状态
 

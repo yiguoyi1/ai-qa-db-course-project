@@ -41,7 +41,7 @@
 ### 2.1 数据库与基础设施
 
 - Oracle 26ai Docker 本地运行方案
-- 完整业务 schema、主外键、唯一约束、检查约束、索引
+- 完整业务 schema、主外键、唯一约束、检查约束、索引和视图
 - 统计同步触发器
 - 推荐相关包与过程 `qa_app_pkg`
 - 种子数据导入与结构校验脚本
@@ -55,6 +55,7 @@
 - 纯社区式发帖：`POST /api/questions`
 - 发帖标签增强：`tag_ids` 绑定已有标签，`custom_tags` 创建或复用自定义标签，`auto_tag` 支持无标签时 AI 自动补标签
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
+- 作者删帖：`DELETE /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/tags/suggestions`、`GET /api/search/questions`
@@ -67,6 +68,7 @@
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
 - 管理员标签治理：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`
+- 管理员删帖：`DELETE /api/admin/questions/{question_id}`
 - 管理员基础治理：用户、分类、问题状态、评论状态、登录日志和操作日志相关接口
 - 头像与内容图片：`POST /api/users/me/avatar`、`GET /api/users/me/avatar`、`DELETE /api/users/me/avatar`
 - 问题配图：`POST /api/questions/{question_id}/images`、`GET /api/questions/{question_id}/images`、`DELETE /api/questions/{question_id}/images/{media_id}`

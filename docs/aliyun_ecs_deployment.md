@@ -321,6 +321,7 @@ EOF'
 docker exec -i oracle26ai bash -lc 'sqlplus -L "$APP_USER/$APP_USER_PASSWORD@localhost:1521/FREEPDB1"' < sql/create_tables.sql
 docker exec -i oracle26ai bash -lc 'sqlplus -L "$APP_USER/$APP_USER_PASSWORD@localhost:1521/FREEPDB1"' < sql/procedures.sql
 docker exec -i oracle26ai bash -lc 'sqlplus -L "$APP_USER/$APP_USER_PASSWORD@localhost:1521/FREEPDB1"' < sql/triggers.sql
+docker exec -i oracle26ai bash -lc 'sqlplus -L "$APP_USER/$APP_USER_PASSWORD@localhost:1521/FREEPDB1"' < sql/views.sql
 docker exec -i oracle26ai bash -lc 'sqlplus -L "$APP_USER/$APP_USER_PASSWORD@localhost:1521/FREEPDB1"' < sql/seed_data.sql
 ```
 
