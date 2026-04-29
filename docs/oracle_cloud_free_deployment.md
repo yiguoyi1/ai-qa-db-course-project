@@ -302,7 +302,7 @@ server {
     listen 80;
     server_name <你的域名>;
 
-    client_max_body_size 10m;
+    client_max_body_size 50m;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -423,7 +423,7 @@ sudo systemctl restart ai-qa
 检查 Nginx：
 
 ```nginx
-client_max_body_size 10m;
+client_max_body_size 50m;
 ```
 
 同时确认后端上传限制。当前头像、问题配图、回答配图都有大小限制。

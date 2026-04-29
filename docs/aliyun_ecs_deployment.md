@@ -451,7 +451,7 @@ server {
     listen 80;
     server_name <服务器公网 IP>;
 
-    client_max_body_size 10m;
+    client_max_body_size 50m;
 
     location / {
         proxy_pass http://127.0.0.1:8000;

@@ -75,7 +75,8 @@ Copy-Item .env.example .env
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
   sql/migrations/20260427_extend_tag_metadata.sql `
   sql/migrations/20260428_add_question_oracle_text_indexes.sql `
-  sql/migrations/20260429_add_deleted_question_status.sql
+  sql/migrations/20260429_add_deleted_question_status.sql `
+  sql/migrations/20260429_limit_media_asset_file_size.sql
 ```
 
 macOS 或 PowerShell 7 下可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个 SQL 文件之间用空格分隔。

@@ -191,7 +191,7 @@
 - `ck_media_assets_status`
   - `status IN ('ACTIVE', 'DELETED')`
 - `ck_media_assets_file_size`
-  - `file_size >= 0`
+  - `file_size BETWEEN 0 AND 52428800`
 - `ck_media_assets_sort_order`
   - `sort_order >= 1`
 
@@ -253,7 +253,7 @@ CREATE TABLE media_assets (
         CHECK (owner_type IN ('USER_AVATAR', 'QUESTION', 'ANSWER')),
     CONSTRAINT ck_media_assets_status
         CHECK (status IN ('ACTIVE', 'DELETED')),
-    CONSTRAINT ck_media_assets_file_size CHECK (file_size >= 0),
+    CONSTRAINT ck_media_assets_file_size CHECK (file_size BETWEEN 0 AND 52428800),
     CONSTRAINT ck_media_assets_sort_order CHECK (sort_order >= 1)
 );
 
@@ -401,20 +401,20 @@ CREATE INDEX idx_media_assets_uploader
   - `image/jpeg`
   - `image/png`
   - `image/webp`
-- 单张头像不超过 `2MB`
+- 单张头像不超过 `50MB`
 
 ### 9.2 问题图片规则
 
 - 只有问题作者本人可上传或删除问题图片
 - 每个问题最多 `9` 张图片
-- 单张不超过 `5MB`
+- 单张不超过 `50MB`
 - 只允许图片类型
 
 ### 9.3 回答图片规则
 
 - 只有回答作者本人可上传或删除回答图片
 - 每个回答最多 `6` 张图片
-- 单张不超过 `5MB`
+- 单张不超过 `50MB`
 
 ### 9.4 删除规则
 

@@ -79,7 +79,7 @@ CREATE TABLE media_assets (
     CONSTRAINT ck_media_assets_status CHECK (
         status IN ('ACTIVE', 'DELETED')
     ),
-    CONSTRAINT ck_media_assets_file_size CHECK (file_size >= 0),
+    CONSTRAINT ck_media_assets_file_size CHECK (file_size BETWEEN 0 AND 52428800),
     CONSTRAINT ck_media_assets_sort_order CHECK (sort_order >= 1),
     CONSTRAINT ck_media_assets_delete_time CHECK (
         delete_time IS NULL OR delete_time >= create_time

@@ -290,7 +290,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
   sql/migrations/20260422_add_question_acceptance.sql `
   sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
   sql/migrations/20260427_extend_tag_metadata.sql `
-  sql/migrations/20260429_add_deleted_question_status.sql
+  sql/migrations/20260429_add_deleted_question_status.sql `
+  sql/migrations/20260429_limit_media_asset_file_size.sql
 ```
 
 如果你只缺某一次迁移，也可以只传对应的 `.sql` 文件。macOS / PowerShell 7 下使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。

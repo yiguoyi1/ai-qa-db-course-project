@@ -25,10 +25,11 @@ class MediaService:
         "image/png": ".png",
         "image/webp": ".webp",
     }
-    MAX_AVATAR_SIZE = 2 * 1024 * 1024
-    MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024
+    MAX_IMAGE_SIZE = 50 * 1024 * 1024
+    MAX_AVATAR_SIZE = MAX_IMAGE_SIZE
+    MAX_QUESTION_IMAGE_SIZE = MAX_IMAGE_SIZE
     MAX_QUESTION_IMAGE_COUNT = 9
-    MAX_ANSWER_IMAGE_SIZE = 5 * 1024 * 1024
+    MAX_ANSWER_IMAGE_SIZE = MAX_IMAGE_SIZE
     MAX_ANSWER_IMAGE_COUNT = 6
 
     def __init__(

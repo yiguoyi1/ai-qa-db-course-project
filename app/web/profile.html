@@ -1604,7 +1604,7 @@
                             <div class="profile-avatar-card">
                                 <div class="profile-avatar-preview" id="profile-info-avatar">我</div>
                                 <h3>头像设置</h3>
-                                <p id="profile-avatar-helper">支持 JPG、PNG、WEBP，单张不超过 2MB。</p>
+                                <p id="profile-avatar-helper">支持 JPG、PNG、WEBP，单张不超过 50MB。</p>
                                 <input id="profile-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarSelection(event)">
                                 <div class="profile-avatar-actions">
                                     <button class="btn-outline btn-inline" type="button" onclick="chooseAvatarFile()">选择图片</button>
@@ -1803,7 +1803,7 @@
     const HOME_PAGE_URL = '/home';
     const USER_CENTER_TAB_KEY = 'user_center_active_tab';
     const DEFAULT_ACTIVE_TAB = 'answers';
-    const MAX_AVATAR_UPLOAD_SIZE = 2 * 1024 * 1024;
+    const MAX_AVATAR_UPLOAD_SIZE = 50 * 1024 * 1024;
     const USER_LIST_PAGE_SIZE = 8;
     const RECOMMENDATION_STATUS_META = {
         ACTIVE: '当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。',
@@ -2466,8 +2466,8 @@
         }
         if (helper) {
             helper.textContent = profile.avatar_url
-                ? '当前已设置头像。支持 JPG、PNG、WEBP，单张不超过 2MB。'
-                : '当前还没有头像。支持 JPG、PNG、WEBP，单张不超过 2MB。';
+                ? '当前已设置头像。支持 JPG、PNG、WEBP，单张不超过 50MB。'
+                : '当前还没有头像。支持 JPG、PNG、WEBP，单张不超过 50MB。';
         }
         setProfileBusy(false);
     }
@@ -2488,7 +2488,7 @@
         }
         if (file.size > MAX_AVATAR_UPLOAD_SIZE) {
             clearSelectedAvatarFile();
-            showMessage('头像不能超过 2MB。', false);
+            showMessage('头像不能超过 50MB。', false);
             return;
         }
         clearSelectedAvatarFile();
