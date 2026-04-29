@@ -29,8 +29,38 @@ class GeneratedTags:
 
 
 class AITaggingService:
-    MIN_CONFIDENCE = 60.0
+    MIN_CONFIDENCE = 70.0
     MAX_TAGS = 3
+    MAX_NEW_TAG_LENGTH = 8
+
+    BLOCKED_KEYWORDS = {
+        "ntr",
+        "巨乳",
+        "尤物",
+        "成人",
+        "色情",
+        "低俗",
+        "约炮",
+    }
+    WEAK_TAG_NAMES = {
+        "新手建议",
+        "入门准备清单",
+        "最小可行方案",
+        "产品优化",
+        "方案评估",
+        "日常生活结合",
+        "生活方式优化",
+        "预算有限",
+        "长期使用",
+        "踩坑",
+        "避坑",
+        "怎么安排",
+    }
+    WEAK_TAG_PATTERNS = (
+        re.compile(r".*[-—](最小可行方案|长期使用|避坑|优化)$"),
+        re.compile(r".*(相关问题|核心部分|第一版取舍)$"),
+    )
+    KNOWN_ACRONYMS = ("AI", "API", "CSS", "DIY", "HTTP", "SQL", "UI", "UX")
 
     def __init__(self, client: DeepSeekClient | None = None) -> None:
         self._client = client or DeepSeekClient()
@@ -78,6 +108,8 @@ class AITaggingService:
             if confidence_score < self.MIN_CONFIDENCE:
                 continue
             tag_name = str(existing_by_id[tag_id]["tag_name"])
+            if self._should_reject_tag_name(tag_name, allow_existing=True):
+                continue
             key = tag_name.casefold()
             if key in seen_names:
                 continue
@@ -95,7 +127,7 @@ class AITaggingService:
 
         for item in self._safe_list(data.get("new_tags")):
             tag_name = self._normalize_tag_name(str(item.get("tag_name") or ""))
-            if not tag_name:
+            if not tag_name or self._should_reject_tag_name(tag_name, allow_existing=False):
                 continue
             confidence_score = self._normalize_confidence(item.get("confidence_score"))
             if confidence_score < self.MIN_CONFIDENCE:
@@ -146,10 +178,87 @@ class AITaggingService:
             return 0.0
         return max(0.0, min(100.0, score))
 
-    @staticmethod
-    def _normalize_tag_name(value: str) -> str:
-        normalized = re.sub(r"\s+", "-", value.strip().lstrip("#"))
-        normalized = normalized.strip("-").lower()
+    @classmethod
+    def _normalize_tag_name(cls, value: str) -> str:
+        normalized = value.strip().lstrip("#").strip()
+        normalized = normalized.replace("，", " ").replace("、", " ")
+        normalized = normalized.replace("/", " ").replace("\\", " ")
+
+        if cls._contains_cjk(normalized):
+            normalized = re.sub(r"[\s_]+", "", normalized)
+            normalized = normalized.strip("-—_ ")
+        else:
+            normalized = re.sub(r"\s+", "-", normalized.lower())
+            normalized = normalized.strip("-")
+
+        normalized = cls._normalize_known_acronyms(normalized)
         if len(normalized) > 50:
             normalized = normalized[:50].strip("-")
+        return normalized
+
+    @classmethod
+    def _should_reject_tag_name(cls, tag_name: str, *, allow_existing: bool) -> bool:
+        normalized = cls._normalize_tag_name(tag_name)
+        if not normalized:
+            return True
+
+        compact = normalized.casefold().replace("-", "").replace("—", "")
+        if any(keyword.casefold() in compact for keyword in cls.BLOCKED_KEYWORDS):
+            return True
+
+        if normalized in cls.WEAK_TAG_NAMES:
+            return True
+        if any(pattern.fullmatch(normalized) for pattern in cls.WEAK_TAG_PATTERNS):
+            return True
+
+        if allow_existing and cls._is_hyphenated_latin_phrase(normalized):
+            return True
+
+        if not allow_existing:
+            if len(normalized) > cls.MAX_NEW_TAG_LENGTH:
+                return True
+            if re.search(r"[-—]", normalized):
+                return True
+            if re.search(r"[A-Za-z]", normalized) and not cls._is_allowed_latin_tag(normalized):
+                return True
+            if not cls._contains_cjk(normalized) and len(normalized) < 2:
+                return True
+
+        return False
+
+    @staticmethod
+    def _contains_cjk(value: str) -> bool:
+        return any("\u4e00" <= char <= "\u9fff" for char in value)
+
+    @classmethod
+    def _is_allowed_latin_tag(cls, value: str) -> bool:
+        if cls._contains_cjk(value):
+            return True
+        if re.fullmatch(r"[A-Z]{2,6}", value):
+            return True
+        return value.casefold() in {
+            "css",
+            "deepseek",
+            "docker",
+            "oracle",
+            "sql",
+        }
+
+    @staticmethod
+    def _is_hyphenated_latin_phrase(value: str) -> bool:
+        return (
+            "-" in value
+            and re.fullmatch(r"[A-Za-z0-9+#.-]+", value) is not None
+        )
+
+    @classmethod
+    def _normalize_known_acronyms(cls, value: str) -> str:
+        normalized = value
+        for acronym in cls.KNOWN_ACRONYMS:
+            normalized = re.sub(
+                rf"(?<![A-Za-z]){re.escape(acronym)}(?![A-Za-z])",
+                acronym,
+                normalized,
+                flags=re.IGNORECASE,
+            )
         return normalized

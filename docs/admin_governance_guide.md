@@ -173,6 +173,39 @@ http://127.0.0.1:8000/admin
 - `GET /api/admin/tags`
 - `PATCH /api/admin/tags/{tag_id}`
 
+历史标签批量治理使用脚本：
+
+```powershell
+python scripts/govern_historical_tags.py
+```
+
+默认只输出治理计划，不写数据库。确认计划无误后再执行：
+
+```powershell
+python scripts/govern_historical_tags.py --apply
+```
+
+脚本策略：
+
+- 低俗、无意义或过泛标签会标记为 `DISABLED`，不做硬删除
+- 相似标签会先迁移 `QUESTION_TAGS` 关联，再禁用源标签
+- 如果目标标签不存在，脚本会创建 `source = ADMIN` 的规范标签
+- 如果只是大小写或命名规范化，脚本只重命名原标签，不迁移关联
+
+如需用公网演示数据在本地复现标签治理效果，可以先导入只读公网快照：
+
+```powershell
+python scripts/import_public_snapshot_for_tag_test.py --limit 80
+```
+
+默认只预览公网数据，不写本地库。确认后再执行：
+
+```powershell
+python scripts/import_public_snapshot_for_tag_test.py --limit 80 --apply
+```
+
+该脚本只通过公网 HTTP API 读取问题和标签摘要，不会连接或修改服务器数据库；写入目标是本地 `.env` 指向的 Oracle 测试库。
+
 ### 6.3 用户治理
 
 - `GET /api/admin/users`
