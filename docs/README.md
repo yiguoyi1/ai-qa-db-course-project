@@ -25,6 +25,7 @@
 12. [business_code_architecture.md](design_details/business_code_architecture.md)
 13. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
 14. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
+15. [qa_ai_answer_skill.md](design_details/qa_ai_answer_skill.md)
 
 ## 2. 项目当前定位
 
