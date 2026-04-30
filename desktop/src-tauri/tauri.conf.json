@@ -31,6 +31,9 @@
     "targets": "all",
     "category": "Productivity",
     "shortDescription": "AI QA desktop client",
-    "longDescription": "A desktop client for the AI QA community backed by the existing FastAPI service."
+    "longDescription": "A desktop client for the AI QA community backed by the existing FastAPI service.",
+    "macOS": {
+      "infoPlist": "Info.plist"
+    }
   }
 }

@@ -110,6 +110,7 @@ npm run build:windows
 健康检查：
 
 ```text
+http://120.55.74.107/health
 http://127.0.0.1:8000/health
 ```
 
@@ -224,21 +225,21 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 
 预期结果：
 
-1. 页面显示后端暂时无法连接。
-2. 页面提供默认后端地址 `http://127.0.0.1:8000`。
-3. 页面展示启动 FastAPI 的命令提示。
+1. 如果公网服务不可用，页面显示后端暂时无法连接。
+2. 页面提供默认后端地址 `http://120.55.74.107`。
+3. 页面提示本地开发可手动切换到 `http://127.0.0.1:8000`。
 
 #### TC-DESKTOP-02 后端可用后进入社区首页 待测
 
 测试步骤：
 
-1. 启动 FastAPI：`uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`。
+1. 确认 `http://120.55.74.107/health` 返回 `{"status":"ok"}`。
 2. 在桌面启动页点击“重新检测”，或重新执行 `npm run dev`。
 
 预期结果：
 
 1. 启动页检测 `/health` 成功。
-2. Tauri 窗口进入现有 `/home` 页面，未登录也可以浏览内容。
+2. Tauri 窗口进入服务器 `/home` 页面，未登录也可以浏览内容。
 3. 登录后首页、详情页、用户中心和管理员入口与浏览器端逻辑一致。
 
 #### TC-DESKTOP-03 打包产物 待测

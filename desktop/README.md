@@ -2,8 +2,8 @@
 
 这个目录是 AI QA 社区的 Tauri 桌面客户端。它不重写现有前端，而是提供一个轻量桌面壳：
 
-- 启动后先检测 `http://127.0.0.1:8000/health`。
-- 后端可用时自动进入现有 `/home` 社区首页。
+- 启动后默认检测服务器 `http://120.55.74.107/health`。
+- 后端可用时自动进入服务器 `/home` 社区首页，数据来自服务器上的 Oracle。
 - 游客可先浏览内容，登录后再使用发帖、收藏、回答、评论、AI 追问、用户中心和管理员后台等能力。
 
 ## 环境
@@ -59,7 +59,9 @@ cd desktop
 npm run dev:full:windows
 ```
 
-后端默认地址是 `http://127.0.0.1:8000`。如需改地址：
+安装包默认连接服务器地址 `http://120.55.74.107`。如需本地开发，可在启动页手动改为 `http://127.0.0.1:8000`。
+
+`dev:full` 脚本仍然默认尝试启动本地 FastAPI，方便开发联调。如需让脚本检查其他地址：
 
 ```bash
 AI_QA_BACKEND_URL=http://127.0.0.1:8000 npm run dev:full
@@ -129,4 +131,4 @@ desktop/src-tauri/tauri.windows.conf.json
 
 ## 设计边界
 
-桌面端当前只负责客户端外壳与入口体验，不内置 Oracle、DeepSeek 或 FastAPI 服务。这样可以保持原有 B/S 架构清晰，后续也能平滑切到线上 API 地址。
+桌面端当前只负责客户端外壳与入口体验，不内置 Oracle、DeepSeek 或 FastAPI 服务。默认安装包直接访问线上 FastAPI，由服务器后端连接 Oracle 数据库；本地开发仍可手动切回本机 FastAPI。

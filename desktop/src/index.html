@@ -291,7 +291,7 @@
       </div>
       <h1>企业级 AI 知识社区桌面端</h1>
       <p class="lead">
-        桌面客户端复用现有 FastAPI 与 Web 前端能力，提供独立窗口、固定入口和更接近 SaaS 产品的访问体验。
+        桌面客户端默认连接公网 FastAPI 服务，复用服务器上的 Web 前端与 Oracle 数据库，提供独立窗口和固定入口。
       </p>
       <div class="metric-row" aria-label="客户端能力">
         <div class="metric">
@@ -300,7 +300,7 @@
         </div>
         <div class="metric">
           <strong>API</strong>
-          <span>连接本地 FastAPI</span>
+          <span>连接服务器 FastAPI</span>
         </div>
         <div class="metric">
           <strong>Tauri</strong>
@@ -320,7 +320,7 @@
 
       <div>
         <label for="backend-url">后端地址</label>
-        <input id="backend-url" type="url" value="http://127.0.0.1:8000" spellcheck="false">
+        <input id="backend-url" type="url" value="http://120.55.74.107" spellcheck="false">
       </div>
 
       <div class="actions">
@@ -329,13 +329,14 @@
       </div>
 
       <p class="hint">
-        如果检测失败，请先在项目根目录启动后端：<code>uvicorn app.main:app --reload --host 0.0.0.0 --port 8000</code>
+        默认连接服务器数据；本地开发时可改为 <code>http://127.0.0.1:8000</code>。
       </p>
     </section>
   </main>
 
   <script>
-    const DEFAULT_BACKEND_URL = 'http://127.0.0.1:8000';
+    const DEFAULT_BACKEND_URL = 'http://120.55.74.107';
+    const LEGACY_LOCAL_BACKEND_URLS = new Set(['http://127.0.0.1:8000', 'http://localhost:8000']);
     const COMMUNITY_ENTRY_PATH = '/home';
     const BACKEND_STORAGE_KEY = 'aiqa.desktop.backendUrl';
     const input = document.getElementById('backend-url');
@@ -347,6 +348,15 @@
 
     function normalizeBackendUrl(value) {
       return String(value || DEFAULT_BACKEND_URL).trim().replace(/\/+$/, '');
+    }
+
+    function getInitialBackendUrl() {
+      const storedUrl = normalizeBackendUrl(localStorage.getItem(BACKEND_STORAGE_KEY));
+      if (!storedUrl || LEGACY_LOCAL_BACKEND_URLS.has(storedUrl)) {
+        localStorage.setItem(BACKEND_STORAGE_KEY, DEFAULT_BACKEND_URL);
+        return DEFAULT_BACKEND_URL;
+      }
+      return storedUrl;
     }
 
     function setStatus(type, title, text) {
@@ -367,10 +377,7 @@
       return `${normalizeBackendUrl(backendUrl)}${COMMUNITY_ENTRY_PATH}`;
     }
 
-    async function checkBackend({ autoEnter = false } = {}) {
-      const backendUrl = getBackendUrl();
-      setStatus('', '正在检查后端服务', `正在连接 ${backendUrl}/health`);
-
+    async function fetchBackendHealth(backendUrl) {
       try {
         const response = await fetch(`${backendUrl}/health`, {
           method: 'GET',
@@ -381,7 +388,33 @@
           throw new Error(`HTTP ${response.status}`);
         }
 
-        setStatus('ok', '后端服务已连接', 'FastAPI 已就绪，可以进入 AI QA 社区首页。');
+        return { corsLimited: false };
+      } catch (error) {
+        if (!(error instanceof TypeError)) {
+          throw error;
+        }
+
+        await fetch(`${backendUrl}/health`, {
+          method: 'GET',
+          cache: 'no-store',
+          mode: 'no-cors'
+        });
+
+        return { corsLimited: true };
+      }
+    }
+
+    async function checkBackend({ autoEnter = false } = {}) {
+      const backendUrl = getBackendUrl();
+      setStatus('', '正在检查后端服务', `正在连接 ${backendUrl}/health`);
+
+      try {
+        const { corsLimited } = await fetchBackendHealth(backendUrl);
+        const statusMessage = corsLimited
+          ? '服务器已响应，浏览器跨域限制会在进入同源社区页面后消失。'
+          : 'FastAPI 已就绪，可以进入 AI QA 社区首页。';
+
+        setStatus('ok', '后端服务已连接', statusMessage);
 
         if (autoEnter) {
           window.setTimeout(() => {
@@ -407,7 +440,7 @@
       }
     });
 
-    input.value = normalizeBackendUrl(localStorage.getItem(BACKEND_STORAGE_KEY) || DEFAULT_BACKEND_URL);
+    input.value = getInitialBackendUrl();
     checkBackend({ autoEnter: true });
   </script>
 </body>

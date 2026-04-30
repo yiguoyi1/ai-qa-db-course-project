@@ -494,6 +494,50 @@
             padding: 76px 0;
         }
 
+        .promo-section {
+            padding: 22px 0 82px;
+        }
+
+        .promo-stage {
+            position: relative;
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 10px;
+            border: 1px solid rgba(147, 197, 253, 0.36);
+            border-radius: 34px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(239, 246, 255, 0.78)),
+                linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(124, 58, 237, 0.14));
+            box-shadow: 0 34px 90px rgba(15, 23, 42, 0.14);
+        }
+
+        .promo-stage::before {
+            content: "";
+            position: absolute;
+            inset: -34px 8%;
+            z-index: -1;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.20), rgba(124, 58, 237, 0.14), rgba(56, 189, 248, 0.18));
+            filter: blur(42px);
+            opacity: 0.78;
+        }
+
+        .promo-video-frame {
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            border-radius: 26px;
+            background: #f8fbff;
+        }
+
+        .promo-video-frame video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #f8fbff;
+        }
+
         .section-head {
             max-width: 760px;
             margin: 0 auto 34px;
@@ -977,6 +1021,19 @@
                 grid-template-columns: 1fr;
             }
 
+            .promo-section {
+                padding-top: 8px;
+            }
+
+            .promo-stage {
+                border-radius: 24px;
+                padding: 6px;
+            }
+
+            .promo-video-frame {
+                border-radius: 20px;
+            }
+
             .data-band {
                 padding: 24px;
             }
@@ -1088,6 +1145,7 @@
                 </a>
 
                 <nav class="nav-links" id="navLinks" aria-label="主导航">
+                    <a href="#promo">产品视频</a>
                     <a href="#advantages">产品优势</a>
                     <a href="#features">核心功能</a>
                     <a href="#scenes">使用场景</a>
@@ -1183,6 +1241,31 @@
                                     </aside>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="promo" class="promo-section">
+                <div class="container">
+                    <div class="section-head">
+                        <span class="section-kicker">PRODUCT FILM</span>
+                        <h2>用 28 秒理解 AI QA Community</h2>
+                        <p>围绕信息获取、知识沉淀和团队协作的核心价值，呈现更适合课程展示和产品介绍的 SaaS 视觉表达。</p>
+                    </div>
+
+                    <div class="promo-stage">
+                        <div class="promo-video-frame">
+                            <video
+                                src="/promo/ai-qa-community-enterprise-saas-promo.mp4?v=1p5x"
+                                poster="/promo/ai-qa-community-enterprise-saas-promo-poster.png?v=1p5x"
+                                controls
+                                muted
+                                loop
+                                playsinline
+                                preload="metadata"
+                                aria-label="AI QA Community 产品介绍视频"
+                            ></video>
                         </div>
                     </div>
                 </div>

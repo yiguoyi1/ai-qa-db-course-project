@@ -170,7 +170,9 @@ desktop/src-tauri/tauri.conf.json
 
 一般不需要手动改 Tauri CSP。
 
-如果后续客户端需要访问固定线上 API，优先把后端域名配置到网页端和后端 CORS，而不是把 Tauri CSP 放开成无限制策略。
+桌面安装包当前默认访问线上 API。后续如果绑定域名或改公网地址，优先更新客户端默认后端地址、网页端同源配置和后端 CORS，而不是把 Tauri CSP 放开成无限制策略。
+
+macOS 安装包还通过 `desktop/src-tauri/Info.plist` 合并了 App Transport Security 例外，以便当前 HTTP 公网 IP 可以在 WebView 内访问。正式上线建议改为 HTTPS 域名后再收窄该例外。
 
 ## 8. 修改后需要重启什么
 

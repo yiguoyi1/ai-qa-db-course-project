@@ -163,9 +163,9 @@
 
 - [desktop/src/index.html](../desktop/src/index.html)
   - 本地启动页
-  - 自动检测 `http://127.0.0.1:8000/health`
-  - 后端可用后进入现有 `/home` 社区首页，游客可先浏览内容
-  - 后端不可用时展示启动命令和重新检测入口
+  - 默认自动检测服务器 `http://120.55.74.107/health`
+  - 后端可用后进入服务器 `/home` 社区首页，游客可先浏览内容
+  - 后端不可用时展示本地开发地址提示和重新检测入口
 - [desktop/src-tauri/](../desktop/src-tauri)
   - Tauri 2 桌面壳配置
   - macOS / Windows / Linux 图标资源
@@ -189,7 +189,7 @@
 4. 构建产物位于 `desktop/src-tauri/target/release/bundle/`
 5. Windows 构建入口已补齐，可在 Windows 本机或 GitHub Actions `windows-latest` 环境生成 `.msi` / `-setup.exe`
 
-桌面端当前只作为客户端入口，不内置 Oracle、DeepSeek 或 FastAPI 服务，以保持原有 B/S 架构清晰。
+桌面端当前只作为客户端入口，不内置 Oracle、DeepSeek 或 FastAPI 服务；安装包默认访问线上 FastAPI，由服务器后端连接 Oracle 数据库，本地开发时可手动切回本机服务。
 
 ## 3. 当前最值得先改的地方
 

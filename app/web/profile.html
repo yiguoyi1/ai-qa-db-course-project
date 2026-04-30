@@ -2083,9 +2083,16 @@
 
     function getRecommendationSourceLabel(value) {
         switch (value) {
+            case 'USER_TAG_PROFILE':
+                return '兴趣画像';
+            case 'USER_ACTION':
+                return '近期行为';
+            case 'ADMIN_RULE':
+                return '运营推荐';
             case 'PROFILE':
                 return '兴趣相关';
             case 'POPULAR':
+            case 'POPULARITY':
                 return '社区热度';
             case 'FRESH':
                 return '新鲜内容';
@@ -2096,6 +2103,26 @@
             default:
                 return value || '综合信号';
         }
+    }
+
+    function getRecommendationDisplayReason(item) {
+        const source = item?.rec_source || '';
+        const type = item?.rec_type || '';
+        const reason = item?.rec_reason || '';
+
+        if (source === 'USER_TAG_PROFILE' || /^Matched \d+ tag\(s\)/i.test(reason)) {
+            return '与你的兴趣标签相近，适合优先查看。';
+        }
+        if (source === 'POPULARITY' || type === 'POPULARITY') {
+            return '这条内容近期互动较多，适合快速了解社区热点。';
+        }
+        if (type === 'HYBRID') {
+            return '系统综合你的近期兴趣和社区热度进行了推荐。';
+        }
+        if (type === 'MANUAL' || source === 'MANUAL' || source === 'ADMIN_RULE') {
+            return '这条内容由管理员精选推荐。';
+        }
+        return reason || '系统根据你的近期行为和社区热度进行了推荐。';
     }
 
     function updateRecommendationControls() {
@@ -2171,19 +2198,7 @@
     }
 
     function getRecommendationReasons(item) {
-        const reasons = [];
-        if (item.rec_reason) {
-            reasons.push(`原因：${truncateText(item.rec_reason, 28)}`);
-        }
-        if (item.rec_type) {
-            reasons.push(getRecommendationTypeLabel(item.rec_type));
-        }
-        if (item.rec_source) {
-            reasons.push(`来源：${getRecommendationSourceLabel(item.rec_source)}`);
-        }
-        const tags = Array.isArray(item.question?.tags) ? item.question.tags.slice(0, 2) : [];
-        tags.forEach(tag => reasons.push(`#${tag.tag_name}`));
-        return reasons.slice(0, 4);
+        return [];
     }
 
     function sortRecommendationItems(items) {
@@ -2977,10 +2992,12 @@
                 <div class="featured-recommendation">
                     <span class="featured-kicker">本轮最值得先看的推荐</span>
                     <h3 class="featured-title">${escapeHtml(topItem.question.title)}</h3>
-                    <p class="featured-description">${escapeHtml(topItem.rec_reason || '这条内容与你近期关注的问题更接近，适合优先查看。')}</p>
-                    <div class="featured-reason-list">
-                        ${featuredReasons.map(reason => `<span class="featured-reason-chip">${escapeHtml(reason)}</span>`).join('')}
-                    </div>
+                    <p class="featured-description">${escapeHtml(getRecommendationDisplayReason(topItem))}</p>
+                    ${featuredReasons.length ? `
+                        <div class="featured-reason-list">
+                            ${featuredReasons.map(reason => `<span class="featured-reason-chip">${escapeHtml(reason)}</span>`).join('')}
+                        </div>
+                    ` : ''}
                     <div class="featured-actions">
                         <button class="featured-link primary" type="button" onclick="goToQuestion(${topItem.question.question_id})">先看这条推荐</button>
                     </div>
@@ -3012,7 +3029,7 @@
                                     <span class="pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">${escapeHtml(getRecommendationTypeLabel(item.rec_type))}</span>
                                 </div>
                             </div>
-                            <p>${escapeHtml(item.rec_reason || '系统根据你的近期行为和社区热度进行了推荐。')}</p>
+                            <p>${escapeHtml(getRecommendationDisplayReason(item))}</p>
                             ${buildTagHtml(item.question.tags)}
                             ${reasons.length ? `
                                 <div class="reason-chip-list">
@@ -3038,7 +3055,6 @@
                                 <span>💬 ${item.question.answer_count || 0} 个回答</span>
                                 <span>⭐ ${item.question.favorite_count || 0} 次收藏</span>
                                 <span>👀 ${item.question.view_count || 0} 次浏览</span>
-                                ${item.rec_source ? `<span>📦 ${escapeHtml(getRecommendationSourceLabel(item.rec_source))}</span>` : ''}
                             </div>
                             <div class="item-actions">
                                 <button class="btn-link" onclick="goToQuestion(${item.question.question_id})">查看推荐问题</button>

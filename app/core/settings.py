@@ -21,6 +21,7 @@ DEFAULT_CONTENT_SECURITY_POLICY = (
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
     "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
     "img-src 'self' data: blob:; "
+    "media-src 'self'; "
     "font-src 'self' data:; "
     "connect-src 'self' http: https:; "
     "object-src 'none'; "

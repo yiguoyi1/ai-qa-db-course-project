@@ -10,7 +10,7 @@
 desktop/
 ```
 
-当前客户端是 Tauri 轻量桌面壳，不内置 Oracle、DeepSeek 或 FastAPI。启动后会先检测 `http://127.0.0.1:8000/health`，后端可用后进入现有 `/home` 社区首页；未登录用户可以先浏览内容，右上角登录后再进行发帖、收藏、回答等操作。
+当前客户端是 Tauri 轻量桌面壳，不内置 Oracle、DeepSeek 或 FastAPI。安装包启动后会先检测服务器 `http://120.55.74.107/health`，后端可用后进入服务器 `/home` 社区首页；未登录用户可以先浏览内容，右上角登录后再进行发帖、收藏、回答等操作。本地开发时仍可在启动页手动改为 `http://127.0.0.1:8000`。
 
 官方参考：
 
@@ -23,7 +23,7 @@ desktop/
 
 如果只是体验客户端：
 
-1. 启动项目后端。
+1. 确认服务器 `http://120.55.74.107/health` 可访问。
 2. 获取 `.dmg`、`.app`、`-setup.exe` 或 `.msi` 安装包。
 3. 安装并打开客户端。
 
@@ -49,13 +49,13 @@ Windows PowerShell 示例：
 cd <你的仓库路径>\Facebook
 ```
 
-确认后端可以启动：
+如果要本地开发，确认本机后端可以启动：
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-浏览器打开健康检查：
+浏览器打开本机健康检查：
 
 ```text
 http://127.0.0.1:8000/health
@@ -299,8 +299,8 @@ desktop/src-tauri/target/release/bundle/msi/
 
 无论 macOS 还是 Windows，打开客户端后按下面顺序验证：
 
-1. 启动 FastAPI 后端。
-2. 打开 `http://127.0.0.1:8000/health`，确认返回 `{"status":"ok"}`。
+1. 打开 `http://120.55.74.107/health`，确认返回 `{"status":"ok"}`。
+2. 如需本地开发，再启动本机 FastAPI 并把启动页地址改为 `http://127.0.0.1:8000`。
 3. 打开桌面客户端。
 4. 启动页显示后端已连接。
 5. 客户端自动进入 `/home`。
@@ -353,7 +353,13 @@ desktop/src-tauri/target/release/bundle/msi/
 
 ### 8.6 启动页一直显示无法连接后端
 
-先确认后端真的启动：
+先确认服务器健康检查可用：
+
+```text
+http://120.55.74.107/health
+```
+
+如果要连接本地开发后端，再确认本机 FastAPI 已启动：
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -365,7 +371,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 http://127.0.0.1:8000/health
 ```
 
-如果端口不是 `8000`，在启动页里手动修改后端地址，或设置：
+如果本地端口不是 `8000`，在启动页里手动修改后端地址，或设置：
 
 ```powershell
 $env:AI_QA_BACKEND_URL="http://127.0.0.1:<你的端口>"
