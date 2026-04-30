@@ -193,6 +193,96 @@
             gap: 12px;
         }
 
+        .download-menu {
+            position: relative;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            background: #ffffff;
+            border: 1px solid rgba(147, 197, 253, 0.64);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-download:hover,
+        .download-menu:focus-within .btn-download {
+            color: #ffffff;
+            background: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(37, 99, 235, 0.22);
+        }
+
+        .download-caret {
+            font-size: 12px;
+            transition: transform 0.18s ease;
+        }
+
+        .download-menu:hover .download-caret,
+        .download-menu:focus-within .download-caret {
+            transform: rotate(180deg);
+        }
+
+        .download-options {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 12px);
+            min-width: 220px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+        }
+
+        .download-menu:hover .download-options,
+        .download-menu:focus-within .download-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .download-options::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -14px;
+            height: 14px;
+        }
+
+        .download-options a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 13px;
+            border-radius: 12px;
+            color: #1e293b;
+            font-size: 14px;
+            font-weight: 850;
+            transition: background 0.16s ease, color 0.16s ease;
+        }
+
+        .download-options a:hover,
+        .download-options a:focus {
+            color: var(--primary);
+            background: var(--primary-soft);
+            outline: none;
+        }
+
+        .download-options span {
+            color: var(--text-soft);
+            font-size: 12px;
+            font-weight: 750;
+        }
+
         .btn {
             border: none;
             border-radius: 999px;
@@ -968,6 +1058,10 @@
                 display: none;
             }
 
+            .download-options {
+                right: -54px;
+            }
+
             .menu-btn {
                 display: inline-grid;
                 place-items: center;
@@ -1047,6 +1141,15 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .btn-download {
+                padding: 11px 14px;
+                font-size: 14px;
+            }
+
+            .download-options {
+                min-width: 196px;
+            }
         }
 
         /* Enterprise UI refinement layer: align landing page with the app product surface. */
@@ -1091,6 +1194,10 @@
         .btn-primary:hover {
             background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 62%, #0ea5e9 100%);
             box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-download {
+            border-color: rgba(147, 197, 253, 0.72);
         }
 
         .btn-ghost,
@@ -1154,6 +1261,22 @@
                 </nav>
 
                 <div class="nav-action">
+                    <div class="download-menu">
+                        <button class="btn btn-download" type="button" aria-haspopup="true">
+                            下载客户端
+                            <span class="download-caret">⌄</span>
+                        </button>
+                        <div class="download-options" role="menu" aria-label="客户端下载">
+                            <a href="/downloads/desktop/windows" role="menuitem">
+                                Windows 端
+                                <span>安装包</span>
+                            </a>
+                            <a href="/downloads/desktop/macos" role="menuitem">
+                                macOS 端
+                                <span>DMG</span>
+                            </a>
+                        </div>
+                    </div>
                     <a class="btn btn-primary" href="/home">立即体验</a>
                     <button class="menu-btn" id="menuBtn" aria-label="打开菜单">☰</button>
                 </div>
