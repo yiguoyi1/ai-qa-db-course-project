@@ -1181,6 +1181,14 @@
             text-decoration: underline;
         }
 
+        .btn-link.danger {
+            color: #dc2626;
+        }
+
+        .btn-link.danger:hover {
+            color: #b91c1c;
+        }
+
         @media (max-width: 1080px) {
             .stat-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1548,7 +1556,6 @@
 
             <div class="hero-actions">
                 <button class="btn-outline" type="button" onclick="openProfileInfo()">个人信息</button>
-                <button id="rebuild-profile-btn" class="btn-outline" onclick="rebuildProfile()">重建兴趣画像</button>
                 <button id="generate-recommendations-btn" class="btn-primary" onclick="generateRecommendations()">刷新推荐</button>
             </div>
         </div>
@@ -1584,9 +1591,6 @@
             </button>
             <button class="module-tab" type="button" data-tab="search">
                 搜索 <span class="module-tab-count" id="tab-count-search">-</span>
-            </button>
-            <button class="module-tab" type="button" data-tab="tags">
-                画像 <span class="module-tab-count" id="tab-count-tags">-</span>
             </button>
         </div>
 
@@ -1708,11 +1712,10 @@
                     <div class="panel-header">
                         <div>
                             <h2>推荐给我的内容</h2>
-                            <p>根据兴趣画像和历史行为生成的候选问题。</p>
+                            <p>根据你的社区行为和内容热度生成的候选问题。</p>
                         </div>
                         <div class="inline-actions">
                             <button id="generate-recommendations-inline-btn" class="btn-primary btn-inline" type="button" onclick="generateRecommendations()">刷新推荐</button>
-                            <button id="rebuild-and-generate-btn" class="btn-outline btn-inline" type="button" onclick="rebuildProfileAndGenerate()">重建画像并刷新</button>
                         </div>
                     </div>
                     <div class="panel-body" id="recommendations-panel">
@@ -1720,16 +1723,6 @@
                             <div class="recommendation-controls-top">
                                 <div class="recommendation-summary">
                                     <span class="summary-chip" id="recommendation-active-count">活跃推荐 -</span>
-                                    <span class="summary-chip" id="recommendation-last-request">本次生成条数 10</span>
-                                </div>
-                                <div class="recommendation-config">
-                                    <label for="recommendation-limit">生成数量</label>
-                                    <select id="recommendation-limit" class="recommendation-select" onchange="updateRecommendationLimit(this.value)">
-                                        <option value="5">5 条</option>
-                                        <option value="10" selected>10 条</option>
-                                        <option value="20">20 条</option>
-                                        <option value="30">30 条</option>
-                                    </select>
                                 </div>
                             </div>
                             <div class="recommendation-filter-group">
@@ -1737,12 +1730,8 @@
                                 <button id="recommendation-filter-EXPIRED" class="filter-chip" type="button" onclick="setRecommendationStatus('EXPIRED')">已过期</button>
                                 <button id="recommendation-filter-DISMISSED" class="filter-chip" type="button" onclick="setRecommendationStatus('DISMISSED')">已忽略</button>
                             </div>
-                            <div class="recommendation-sort-group">
-                                <button id="recommendation-sort-score" class="filter-chip active" type="button" onclick="setRecommendationSort('score')">按分值排序</button>
-                                <button id="recommendation-sort-time" class="filter-chip" type="button" onclick="setRecommendationSort('time')">按时间排序</button>
-                            </div>
                             <div class="recommendation-helper" id="recommendation-helper-text">
-                                当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。
+                                当前展示活跃推荐。系统会自动更新推荐依据。
                             </div>
                         </div>
                         <div id="recommendations-list-container">
@@ -1780,20 +1769,6 @@
                 </div>
             </section>
 
-            <section class="tab-panel" data-tab="tags">
-                <div class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <h2>兴趣画像</h2>
-                            <p>点击“重建兴趣画像”后展示当前标签偏好，用于支撑推荐。</p>
-                        </div>
-                        <button class="btn-outline btn-inline" type="button" onclick="rebuildProfile()">重建兴趣画像</button>
-                    </div>
-                    <div class="panel-body" id="profile-tags-panel">
-                        <div class="empty-state">当前还没有展示画像标签，点击上方按钮即可立即重建。</div>
-                    </div>
-                </div>
-            </section>
         </div>
     </section>
 </div>
@@ -1806,9 +1781,9 @@
     const MAX_AVATAR_UPLOAD_SIZE = 50 * 1024 * 1024;
     const USER_LIST_PAGE_SIZE = 8;
     const RECOMMENDATION_STATUS_META = {
-        ACTIVE: '当前展示活跃推荐。你可以先重建兴趣画像，再按设定条数刷新推荐结果。',
+        ACTIVE: '当前展示活跃推荐。系统会自动根据近期行为更新推荐依据。',
         EXPIRED: '这里展示已经过期的历史推荐，方便回看系统之前给过什么内容。',
-        DISMISSED: '这里展示已经被忽略的推荐结果，便于后续人工核对推荐策略。'
+        DISMISSED: '这里展示已经被忽略的推荐结果。'
     };
     const VALID_TABS = new Set([
         'profile-info',
@@ -1818,14 +1793,13 @@
         'recommendations',
         'browse',
         'search',
-        'tags',
     ]);
     const recommendationUiState = {
         status: 'ACTIVE',
-        limit: 10,
+        limit: 20,
         sortBy: 'score',
         activeCount: null,
-        requestedLimit: 10,
+        requestedLimit: 20,
         loadingList: false,
         generating: false,
         rebuilding: false,
@@ -2110,13 +2084,13 @@
     function getRecommendationSourceLabel(value) {
         switch (value) {
             case 'PROFILE':
-                return '兴趣画像';
+                return '兴趣相关';
             case 'POPULAR':
                 return '社区热度';
             case 'FRESH':
                 return '新鲜内容';
             case 'HYBRID':
-                return '画像 + 热度 + 新鲜度';
+                return '综合推荐';
             case 'MANUAL':
                 return '人工推荐';
             default:
@@ -2125,20 +2099,11 @@
     }
 
     function updateRecommendationControls() {
-        const limitSelect = document.getElementById('recommendation-limit');
         const activeCount = document.getElementById('recommendation-active-count');
-        const lastRequest = document.getElementById('recommendation-last-request');
         const helper = document.getElementById('recommendation-helper-text');
         const generateButton = document.getElementById('generate-recommendations-btn');
         const generateInlineButton = document.getElementById('generate-recommendations-inline-btn');
-        const rebuildButton = document.getElementById('rebuild-profile-btn');
-        const rebuildAndGenerateButton = document.getElementById('rebuild-and-generate-btn');
         const busy = recommendationUiState.generating || recommendationUiState.rebuilding || recommendationUiState.loadingList;
-
-        if (limitSelect) {
-            limitSelect.value = String(recommendationUiState.limit);
-            limitSelect.disabled = busy;
-        }
 
         if (activeCount) {
             activeCount.textContent = recommendationUiState.activeCount === null
@@ -2146,16 +2111,12 @@
                 : `活跃推荐 ${recommendationUiState.activeCount}`;
         }
 
-        if (lastRequest) {
-            lastRequest.textContent = `本次生成条数 ${recommendationUiState.requestedLimit}`;
-        }
-
         if (helper) {
             const baseText = RECOMMENDATION_STATUS_META[recommendationUiState.status] || RECOMMENDATION_STATUS_META.ACTIVE;
             if (recommendationUiState.generating) {
-                helper.textContent = `正在按 ${recommendationUiState.limit} 条的配置生成推荐，请稍候...`;
+                helper.textContent = '正在刷新推荐，请稍候...';
             } else if (recommendationUiState.rebuilding) {
-                helper.textContent = '正在重建兴趣画像，这会影响后续推荐结果。';
+                helper.textContent = '正在更新推荐依据，请稍候...';
             } else if (recommendationUiState.loadingList) {
                 helper.textContent = `正在查询${getRecommendationStatusLabel(recommendationUiState.status)}...`;
             } else {
@@ -2166,8 +2127,6 @@
         [
             generateButton,
             generateInlineButton,
-            rebuildButton,
-            rebuildAndGenerateButton,
         ].forEach(button => {
             if (button) {
                 button.disabled = busy;
@@ -2180,14 +2139,6 @@
         if (generateInlineButton) {
             generateInlineButton.textContent = recommendationUiState.generating ? '正在刷新推荐...' : '刷新推荐';
         }
-        if (rebuildButton) {
-            rebuildButton.textContent = recommendationUiState.rebuilding ? '正在重建画像...' : '重建兴趣画像';
-        }
-        if (rebuildAndGenerateButton) {
-            rebuildAndGenerateButton.textContent = recommendationUiState.rebuilding
-                ? '正在重建画像...'
-                : (recommendationUiState.generating ? '正在刷新推荐...' : '重建画像并刷新');
-        }
 
         Object.keys(RECOMMENDATION_STATUS_META).forEach(statusKey => {
             const filterButton = document.getElementById(`recommendation-filter-${statusKey}`);
@@ -2198,14 +2149,7 @@
             filterButton.disabled = busy;
         });
 
-        ['score', 'time'].forEach(sortKey => {
-            const sortButton = document.getElementById(`recommendation-sort-${sortKey}`);
-            if (!sortButton) {
-                return;
-            }
-            sortButton.classList.toggle('active', recommendationUiState.sortBy === sortKey);
-            sortButton.disabled = busy;
-        });
+        recommendationUiState.sortBy = 'score';
     }
 
     function updateRecommendationLimit(value) {
@@ -2721,6 +2665,27 @@
         renderQuestions(mergePagedList('questions', data, append));
     }
 
+    async function deleteProfileQuestion(questionId) {
+        if (!Number.isInteger(Number(questionId)) || Number(questionId) <= 0) {
+            showMessage('问题 ID 无效，无法删除。', false);
+            return;
+        }
+
+        const confirmed = window.confirm('确定要删除这篇帖子吗？删除后其他用户将无法继续浏览或操作。');
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await fetchWithAuth(`/api/questions/${questionId}`, { method: 'DELETE' });
+            showMessage('帖子已删除。', true);
+            pagedListState.questions = { page: 1, total: 0, items: [], loading: false };
+            await Promise.all([loadProfile(), loadQuestions(1)]);
+        } catch (error) {
+            showMessage(error.message || '删除帖子失败，请稍后重试。', false);
+        }
+    }
+
     async function loadAnswers(page = 1, append = false) {
         const userId = getCurrentUserId();
         const data = await fetchJson(`/api/users/${userId}/answers`, { page, page_size: USER_LIST_PAGE_SIZE });
@@ -2797,9 +2762,6 @@
             }
         });
 
-        if (document.getElementById('tab-count-tags').innerText === '-') {
-            setTabCount('tags', 0);
-        }
     }
 
     function renderLoadError(sectionKey, message) {
@@ -2884,6 +2846,7 @@
                             </div>
                             <div class="item-actions">
                                 <button class="btn-link" onclick="goToQuestion(${item.question_id})">查看详情</button>
+                                <button class="btn-link danger" onclick="deleteProfileQuestion(${item.question_id})">删除</button>
                             </div>
                         </div>
                     `;
@@ -2991,15 +2954,14 @@
 
         if (!items.length) {
             const emptyText = recommendationUiState.status === 'ACTIVE'
-                ? '当前还没有可展示的活跃推荐，先重建画像再刷新推荐会更有效。'
+                ? '当前还没有可展示的活跃推荐，可以刷新后再查看。'
                 : `当前没有“${getRecommendationStatusLabel(recommendationUiState.status)}”记录。`;
             container.innerHTML = `
                 <div class="empty-state">
                     ${escapeHtml(emptyText)}
                     ${recommendationUiState.status === 'ACTIVE' ? `
                         <div class="item-actions" style="justify-content:center; margin-top:16px;">
-                            <button class="btn-link" onclick="rebuildProfile()">先重建画像</button>
-                            <button class="btn-link" onclick="generateRecommendations()">直接刷新推荐</button>
+                            <button class="btn-link" onclick="generateRecommendations()">刷新推荐</button>
                         </div>
                     ` : ''}
                 </div>
@@ -3008,9 +2970,6 @@
         }
 
         const topItem = items[0];
-        const scores = items.map(item => Number(item.rec_score || 0));
-        const topScore = Math.max(...scores, 0);
-        const averageScore = scores.reduce((sum, value) => sum + value, 0) / scores.length;
         const featuredReasons = getRecommendationReasons(topItem);
 
         container.innerHTML = `
@@ -3018,13 +2977,12 @@
                 <div class="featured-recommendation">
                     <span class="featured-kicker">本轮最值得先看的推荐</span>
                     <h3 class="featured-title">${escapeHtml(topItem.question.title)}</h3>
-                    <p class="featured-description">${escapeHtml(topItem.rec_reason || '这条内容在当前画像与行为数据下得分最高，适合优先查看。')}</p>
+                    <p class="featured-description">${escapeHtml(topItem.rec_reason || '这条内容与你近期关注的问题更接近，适合优先查看。')}</p>
                     <div class="featured-reason-list">
                         ${featuredReasons.map(reason => `<span class="featured-reason-chip">${escapeHtml(reason)}</span>`).join('')}
                     </div>
                     <div class="featured-actions">
                         <button class="featured-link primary" type="button" onclick="goToQuestion(${topItem.question.question_id})">先看这条推荐</button>
-                        <button class="featured-link secondary" type="button" onclick="setRecommendationSort('time')">切到按时间排序</button>
                     </div>
                 </div>
                 <div class="recommendation-insights">
@@ -3034,22 +2992,14 @@
                         <div class="subvalue">当前筛选为“${escapeHtml(getRecommendationStatusLabel(recommendationUiState.status))}”。</div>
                     </div>
                     <div class="insight-card">
-                        <span class="label">最高混合分值</span>
-                        <div class="value">${topScore.toFixed(2)}</div>
-                        <div class="subvalue">后端会综合画像匹配、讨论热度和内容新鲜度。</div>
-                    </div>
-                    <div class="insight-card">
-                        <span class="label">平均推荐分值</span>
-                        <div class="value">${averageScore.toFixed(2)}</div>
-                        <div class="subvalue">可以快速感知本轮推荐整体质量是否稳定。</div>
+                        <span class="label">推荐依据</span>
+                        <div class="value">自动更新</div>
+                        <div class="subvalue">系统会综合近期浏览、搜索、回答和社区热度。</div>
                     </div>
                 </div>
             </div>
             <div class="item-list">
                 ${items.map(item => {
-                    const relativeWidth = topScore > 0
-                        ? Math.max(12, Math.min(100, (Number(item.rec_score || 0) / topScore) * 100))
-                        : 0;
                     const reasons = getRecommendationReasons(item);
                     const status = getQuestionStatusMeta(item.question.status);
                     const authorName = getUserDisplayName(item.question, '社区用户');
@@ -3062,21 +3012,14 @@
                                     <span class="pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">${escapeHtml(getRecommendationTypeLabel(item.rec_type))}</span>
                                 </div>
                             </div>
-                            <p>${escapeHtml(item.rec_reason || '系统根据你的兴趣画像和历史行为进行了推荐。')}</p>
+                            <p>${escapeHtml(item.rec_reason || '系统根据你的近期行为和社区热度进行了推荐。')}</p>
                             ${buildTagHtml(item.question.tags)}
                             ${reasons.length ? `
                                 <div class="reason-chip-list">
                                     ${reasons.map(reason => `<span class="reason-chip">${escapeHtml(reason)}</span>`).join('')}
                                 </div>
                             ` : ''}
-                            <div class="recommendation-score-bar">
-                                <div class="recommendation-score-fill" style="width:${relativeWidth}%;"></div>
-                            </div>
                             <div class="recommendation-meta-grid">
-                                <div class="recommendation-meta-card">
-                                    <span class="label">推荐分值</span>
-                                    <div class="value">🎯 ${Number(item.rec_score || 0).toFixed(2)}</div>
-                                </div>
                                 <div class="recommendation-meta-card">
                                     <span class="label">推荐类型</span>
                                     <div class="value">${escapeHtml(getRecommendationTypeLabel(item.rec_type))}</div>
@@ -3160,66 +3103,16 @@
         `;
     }
 
-    function renderProfileTags(items) {
-        const container = document.getElementById('profile-tags-panel');
-        setTabCount('tags', Array.isArray(items) ? items.length : 0);
-
-        if (!Array.isArray(items) || items.length === 0) {
-            container.innerHTML = '<div class="empty-state">画像已重建，但暂时没有形成可展示的标签偏好。</div>';
-            return;
-        }
-
-        container.innerHTML = `
-            <div class="item-list">
-                ${items.map(item => {
-                    const weight = Math.max(0, Math.min(1, Number(item.weight || 0)));
-                    return `
-                    <div class="item-card">
-                        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
-                            <h3 style="margin:0;">${escapeHtml(item.tag_name)}</h3>
-                            <span class="pill" style="background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;">权重 ${Number(item.weight || 0).toFixed(2)}</span>
-                        </div>
-                        <div class="recommendation-score-bar" style="margin-top:14px;">
-                            <div class="recommendation-score-fill" style="width:${weight > 0 ? Math.max(8, weight * 100) : 0}%;"></div>
-                        </div>
-                        <div class="meta-row">
-                            <span>画像信号：回答、评论、搜索、浏览等行为综合生成</span>
-                            <span>最近更新时间：${formatDate(item.update_time)}</span>
-                        </div>
-                    </div>
-                `;
-                }).join('')}
-            </div>
-        `;
-    }
-
-    async function rebuildProfile() {
-        const userId = getCurrentUserId();
-        recommendationUiState.rebuilding = true;
-        updateRecommendationControls();
-        try {
-            const data = await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
-                method: 'POST',
-                body: JSON.stringify({})
-            });
-            renderProfileTags(data.items || []);
-            setActiveTab('tags');
-            showMessage(`画像重建完成，当前命中 ${data.item_count} 个兴趣标签。`, true);
-        } catch (error) {
-            console.error('重建画像失败:', error);
-            showMessage(error.message || '重建画像失败，请稍后重试。', false);
-        } finally {
-            recommendationUiState.rebuilding = false;
-            updateRecommendationControls();
-        }
-    }
-
     async function generateRecommendations() {
         const userId = getCurrentUserId();
         recommendationUiState.generating = true;
         recommendationUiState.requestedLimit = recommendationUiState.limit;
         updateRecommendationControls();
         try {
+            await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
             const data = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: recommendationUiState.limit }, {
                 method: 'POST',
                 body: JSON.stringify({})
@@ -3233,44 +3126,6 @@
             console.error('刷新推荐失败:', error);
             showMessage(error.message || '刷新推荐失败，请稍后重试。', false);
         } finally {
-            recommendationUiState.generating = false;
-            updateRecommendationControls();
-        }
-    }
-
-    async function rebuildProfileAndGenerate() {
-        const userId = getCurrentUserId();
-        recommendationUiState.rebuilding = true;
-        updateRecommendationControls();
-
-        try {
-            const profileData = await fetchJson(`/api/users/${userId}/profile/rebuild`, {}, {
-                method: 'POST',
-                body: JSON.stringify({})
-            });
-            renderProfileTags(profileData.items || []);
-            recommendationUiState.rebuilding = false;
-            recommendationUiState.generating = true;
-            recommendationUiState.requestedLimit = recommendationUiState.limit;
-            recommendationUiState.status = 'ACTIVE';
-            updateRecommendationControls();
-
-            const recommendationData = await fetchJson(`/api/users/${userId}/recommendations/generate`, { limit: recommendationUiState.limit }, {
-                method: 'POST',
-                body: JSON.stringify({})
-            });
-            recommendationUiState.activeCount = recommendationData.active_count ?? recommendationUiState.activeCount;
-            await loadRecommendations();
-            setActiveTab('recommendations');
-            showMessage(
-                `画像已重建，推荐也已刷新完成，当前共有 ${recommendationData.active_count} 条活跃推荐。`,
-                true
-            );
-        } catch (error) {
-            console.error('重建画像并刷新推荐失败:', error);
-            showMessage(error.message || '推荐刷新失败，请稍后重试。', false);
-        } finally {
-            recommendationUiState.rebuilding = false;
             recommendationUiState.generating = false;
             updateRecommendationControls();
         }

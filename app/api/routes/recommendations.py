@@ -66,6 +66,7 @@ def generate_recommendations(
 def list_recommendations(
     user_id: int,
     status_filter: str = Query(default="ACTIVE", alias="status"),
+    limit: int | None = Query(default=None, ge=1, le=100),
     current_user_id: int = Depends(get_current_user_id),
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationListResponse:
@@ -76,6 +77,7 @@ def list_recommendations(
                 current_user_id=current_user_id,
             ),
             status=status_filter,
+            limit=limit,
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

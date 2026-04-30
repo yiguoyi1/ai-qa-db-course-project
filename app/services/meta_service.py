@@ -19,9 +19,12 @@ class MetaService:
 
         return CategoryListResponse(items=items)
 
-    def list_tags(self) -> TagListResponse:
+    def list_tags(self, *, limit: int | None = None) -> TagListResponse:
+        if limit is not None and (limit <= 0 or limit > 200):
+            raise ValidationError("limit must be between 1 and 200.")
+
         with get_connection() as connection:
-            items = self._meta_repository.list_tags(connection)
+            items = self._meta_repository.list_tags(connection, limit=limit)
 
         return TagListResponse(items=items)
 

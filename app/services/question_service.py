@@ -152,6 +152,7 @@ class QuestionService:
         category_id: int | None = None,
         tag_id: int | None = None,
         status: str | None = "OPEN",
+        include_total: bool = True,
         current_user_id: int | None = None,
     ) -> QuestionListResponse:
         if page <= 0:
@@ -185,12 +186,15 @@ class QuestionService:
                 status=normalized_status,
                 current_user_id=current_user_id,
             )
-            total = self._question_repository.count_questions(
-                connection=connection,
-                category_id=category_id,
-                tag_id=tag_id,
-                status=normalized_status,
-            )
+            if include_total:
+                total = self._question_repository.count_questions(
+                    connection=connection,
+                    category_id=category_id,
+                    tag_id=tag_id,
+                    status=normalized_status,
+                )
+            else:
+                total = (page - 1) * page_size + len(items)
 
         return QuestionListResponse(
             items=items,

@@ -55,6 +55,7 @@ def list_questions(
     category_id: int | None = Query(default=None, gt=0),
     tag_id: int | None = Query(default=None, gt=0),
     status_filter: str | None = Query(default=None, alias="status"),
+    include_total: bool = Query(default=True),
     current_user_id: int | None = Depends(get_optional_current_user_id),
     service: QuestionService = Depends(get_question_service),
 ) -> QuestionListResponse:
@@ -65,6 +66,7 @@ def list_questions(
             category_id=category_id,
             tag_id=tag_id,
             status=status_filter,
+            include_total=include_total,
             current_user_id=current_user_id,
         )
     except AppError as exc:

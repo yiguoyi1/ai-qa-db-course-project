@@ -933,6 +933,7 @@
                                             </select>
                                         </div>
                                         <button class="btn btn-primary" onclick="updateQuestionStatus('quick')">更新问题</button>
+                                        <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('quick')">删除问题</button>
                                     </div>
                                 </div>
                             </div>
@@ -1150,6 +1151,7 @@
                                     </select>
                                 </div>
                                 <button class="btn btn-primary" onclick="updateQuestionStatus('content')">更新</button>
+                                <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('content')">删除问题</button>
                             </div>
                         </div>
                     </div>
@@ -1298,6 +1300,7 @@
             ADMIN_UPDATE_USER_ROLE: '修改用户角色',
             ADMIN_UPDATE_QUESTION_STATUS: '修改问题状态',
             ADMIN_UPDATE_COMMENT_STATUS: '修改评论状态',
+            ADMIN_DELETE_QUESTION: '删除问题',
         };
 
         function friendlyLabel(value) {
@@ -1920,6 +1923,7 @@
                         <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
                         <button class="btn btn-outline" onclick="inspectQuestionContent(${question.question_id})">查看回答/评论 ID</button>
                         <button class="btn btn-outline" onclick="window.open('/questions/${question.question_id}', '_blank')">打开详情页</button>
+                        <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('list', ${question.question_id})">删除问题</button>
                     </div>
                 </div>
             `).join('');
@@ -1955,6 +1959,10 @@
         }
 
         function renderQuestionInspector(question) {
+            const detailPanel = document.getElementById('content-detail-panel');
+            if (detailPanel) {
+                detailPanel.dataset.questionId = String(question.question_id);
+            }
             const answers = question.answers || [];
             const answerListHtml = answers.length
                 ? answers.map(answer => {
@@ -1991,7 +1999,10 @@
                             <h3>问题 #${question.question_id} 的回答与评论</h3>
                             <p>${escapeHtml(question.title)} · ${answers.length} 个回答</p>
                         </div>
-                        <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                        <div class="lookup-actions">
+                            <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                            <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('inspector', ${question.question_id})">删除问题</button>
+                        </div>
                     </div>
                     <div class="panel-body">
                         <div class="lookup-list">${answerListHtml}</div>
@@ -2062,6 +2073,48 @@
                 await loadOperationLogs();
             } catch (error) {
                 showToast(error.message, true);
+            }
+        }
+
+        function resolveQuestionIdForDelete(source, explicitQuestionId = null) {
+            if (explicitQuestionId !== null && explicitQuestionId !== undefined) {
+                return Number(explicitQuestionId);
+            }
+            const idPrefix = source === 'quick' ? 'quick' : 'content';
+            return Number(document.getElementById(`${idPrefix}-question-id`)?.value);
+        }
+
+        async function deleteQuestionAsAdmin(source, explicitQuestionId = null) {
+            const questionId = resolveQuestionIdForDelete(source, explicitQuestionId);
+            if (!Number.isInteger(questionId) || questionId <= 0) {
+                showToast('请输入有效的问题 ID。', true);
+                return;
+            }
+
+            const confirmed = window.confirm(`确定要删除问题 #${questionId} 吗？删除后普通用户将无法继续浏览或操作。`);
+            if (!confirmed) {
+                return;
+            }
+
+            const reason = window.prompt('请输入删除原因（可选，最多 200 字）：', '');
+            if (reason === null) {
+                return;
+            }
+
+            try {
+                await adminFetch(`/api/admin/questions/${questionId}`, {
+                    method: 'DELETE',
+                    params: { reason: reason.trim().slice(0, 200) },
+                });
+                showToast(`问题 #${questionId} 已删除。`);
+                const detailPanel = document.getElementById('content-detail-panel');
+                if (detailPanel?.dataset.questionId === String(questionId)) {
+                    detailPanel.innerHTML = '<div class="empty">该问题已删除。</div>';
+                    delete detailPanel.dataset.questionId;
+                }
+                await Promise.allSettled([loadContentQuestions(), loadOperationLogs(), loadOverview()]);
+            } catch (error) {
+                showToast(error.message || '删除问题失败。', true);
             }
         }
 

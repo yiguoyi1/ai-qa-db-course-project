@@ -29,10 +29,11 @@ def list_categories(
     status_code=status.HTTP_200_OK,
 )
 def list_tags(
+    limit: int | None = Query(default=None, ge=1, le=200),
     service: MetaService = Depends(get_meta_service),
 ) -> TagListResponse:
     try:
-        return service.list_tags()
+        return service.list_tags(limit=limit)
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 

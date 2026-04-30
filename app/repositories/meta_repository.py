@@ -35,18 +35,39 @@ class MetaRepository:
     def list_tags(
         self,
         connection: oracledb.Connection,
+        *,
+        limit: int | None = None,
     ) -> list[dict[str, Any]]:
         cursor = connection.cursor()
-        cursor.execute(
-            """
-            SELECT
-                tag_id,
-                tag_name
-            FROM tags
-            WHERE status = 'ACTIVE'
-            ORDER BY tag_name
-            """
-        )
+        if limit is None:
+            cursor.execute(
+                """
+                SELECT
+                    tag_id,
+                    tag_name
+                FROM tags
+                WHERE status = 'ACTIVE'
+                ORDER BY tag_name
+                """
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT
+                    tag_id,
+                    tag_name
+                FROM (
+                    SELECT
+                        tag_id,
+                        tag_name
+                    FROM tags
+                    WHERE status = 'ACTIVE'
+                    ORDER BY tag_name
+                )
+                WHERE ROWNUM <= :limit_rows
+                """,
+                {"limit_rows": limit},
+            )
 
         return [
             {

@@ -116,10 +116,23 @@ class RecommendationRepository:
         *,
         user_id: int,
         status: str,
+        limit: int | None = None,
     ) -> list[dict[str, Any]]:
         cursor = connection.cursor()
+        limit_prefix = ""
+        limit_suffix = ""
+        binds: dict[str, Any] = {
+            "user_id": user_id,
+            "status": status,
+        }
+        if limit is not None:
+            limit_prefix = "SELECT * FROM ("
+            limit_suffix = ") WHERE ROWNUM <= :limit_rows"
+            binds["limit_rows"] = limit
+
         cursor.execute(
-            """
+            f"""
+            {limit_prefix}
             SELECT
                 r.rec_id,
                 r.rec_type,
@@ -152,11 +165,9 @@ class RecommendationRepository:
               AND r.status = :status
               AND q.status <> 'DELETED'
             ORDER BY r.rec_score DESC, r.rec_id DESC
+            {limit_suffix}
             """,
-            {
-                "user_id": user_id,
-                "status": status,
-            },
+            binds,
         )
         rows = cursor.fetchall()
         if not rows:
