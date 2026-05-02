@@ -61,19 +61,23 @@
 如果是在旧数据库上继续测试，请确认已按缺失情况导入当前迁移脚本：
 
 ```powershell
-.\scripts\load-oracle-schema.ps1 -SqlFiles `
-  sql/migrations/20260405_add_answers_user_id.sql `
-  sql/migrations/20260405_add_answer_comments.sql `
-  sql/migrations/20260422_add_media_assets.sql `
-  sql/migrations/20260422_add_question_acceptance.sql `
-  sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql `
-  sql/migrations/20260428_add_question_oracle_text_indexes.sql `
-  sql/migrations/20260429_add_deleted_question_status.sql `
-  sql/migrations/20260429_limit_media_asset_file_size.sql
+$migrations = @(
+  "sql/migrations/20260405_add_answers_user_id.sql",
+  "sql/migrations/20260405_add_answer_comments.sql",
+  "sql/migrations/20260422_add_media_assets.sql",
+  "sql/migrations/20260422_add_question_acceptance.sql",
+  "sql/migrations/20260425_extend_chat_session_for_follow_up.sql",
+  "sql/migrations/20260427_extend_tag_metadata.sql",
+  "sql/migrations/20260428_add_question_oracle_text_indexes.sql",
+  "sql/migrations/20260429_add_deleted_question_status.sql",
+  "sql/migrations/20260429_limit_media_asset_file_size.sql",
+  "sql/migrations/20260502_improve_recommendation_scoring.sql",
+  "sql/migrations/20260503_refresh_reporting_views.sql"
+)
+.\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
 
-macOS 或 PowerShell 7 可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。
+传多个 SQL 文件时建议先放进数组再传给 `-SqlFiles`；如果只验证某一次迁移，也可以只传单个 `.sql` 文件。
 
 如果已导入 `20260428_add_question_oracle_text_indexes.sql`，可以在 `.env` 中设置 `SEARCH_USE_ORACLE_TEXT=true` 启用 Oracle Text 全文搜索；未导入时保持默认 `false`。
 
@@ -956,7 +960,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 
 1. 推荐生成成功。
 2. 推荐列表刷新。
-3. 推荐原因展示画像分、热度分、新鲜度等信息时应可读。
+3. 推荐原因展示画像分、相似兴趣分、热度分、新鲜度和惩罚分等信息时应可读。
 
 #### TC-REC-03 推荐状态筛选与排序 ✅
 

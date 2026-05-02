@@ -67,19 +67,23 @@ Copy-Item .env.example .env
 如果你接到的不是全新数据库，而是之前已经跑过的老库，需要按缺失情况补跑迁移脚本。当前仓库已有迁移包括：
 
 ```powershell
-.\scripts\load-oracle-schema.ps1 -SqlFiles `
-  sql/migrations/20260405_add_answers_user_id.sql `
-  sql/migrations/20260405_add_answer_comments.sql `
-  sql/migrations/20260422_add_media_assets.sql `
-  sql/migrations/20260422_add_question_acceptance.sql `
-  sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql `
-  sql/migrations/20260428_add_question_oracle_text_indexes.sql `
-  sql/migrations/20260429_add_deleted_question_status.sql `
-  sql/migrations/20260429_limit_media_asset_file_size.sql
+$migrations = @(
+  "sql/migrations/20260405_add_answers_user_id.sql",
+  "sql/migrations/20260405_add_answer_comments.sql",
+  "sql/migrations/20260422_add_media_assets.sql",
+  "sql/migrations/20260422_add_question_acceptance.sql",
+  "sql/migrations/20260425_extend_chat_session_for_follow_up.sql",
+  "sql/migrations/20260427_extend_tag_metadata.sql",
+  "sql/migrations/20260428_add_question_oracle_text_indexes.sql",
+  "sql/migrations/20260429_add_deleted_question_status.sql",
+  "sql/migrations/20260429_limit_media_asset_file_size.sql",
+  "sql/migrations/20260502_improve_recommendation_scoring.sql",
+  "sql/migrations/20260503_refresh_reporting_views.sql"
+)
+.\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
 
-macOS 或 PowerShell 7 下可以使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个 SQL 文件之间用空格分隔。
+传多个 SQL 文件时建议先放进数组再传给 `-SqlFiles`；如果只缺某一次迁移，也可以只传单个 `.sql` 文件。
 
 `20260428_add_question_oracle_text_indexes.sql` 是搜索性能优化迁移。导入后可把 `.env` 里的 `SEARCH_USE_ORACLE_TEXT` 改成 `true`，未导入时保持默认 `false`。
 
@@ -232,6 +236,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 - 评论删除采用软删除
 - 删除评论不会级联删除子回复
 - 推荐逻辑优先复用数据库过程，不在 Python 里重写
+- 当前推荐 API 保持不变，画像权重和推荐评分增强集中在 `qa_app_pkg`
 
 ## 7. 改代码前先看哪些文件
 

@@ -184,8 +184,8 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 当前推荐实现采用可解释的混合规则：
 
 - 结构上支持 `TAG_BASED`、`POPULARITY`、`HYBRID`、`MANUAL`
-- 实现上当前主要落地的是 `HYBRID + USER_TAG_PROFILE + POPULARITY`
-- 推荐得分由画像分、热度分和新鲜度分组成
+- 实现上当前主要落地的是 `HYBRID + USER_TAG_PROFILE + USER_ACTION + POPULARITY`
+- 推荐得分由画像分、相似兴趣分、热度分、新鲜度分和惩罚分组成
 
 ## 6. 页面与信息架构设计
 

@@ -520,6 +520,10 @@
 3. `V_ANSWER_QUALITY_SUMMARY`：回答质量概览，整合点赞、点踩、评分、采纳状态、评论数和反馈数
 4. `V_USER_TAG_PROFILE_DETAIL`：用户兴趣画像明细，展示用户、标签、权重和画像排名
 5. `V_ACTIVE_RECOMMENDATION_DETAIL`：当前有效推荐明细，整合推荐结果、目标用户、问题作者和分类信息
+6. `V_QUESTION_TAG_DETAIL`：问题标签明细，展示标签来源、绑定来源和置信度
+7. `V_USER_ACTIVITY_SUMMARY`：用户行为汇总，统计提问、回答、评论、收藏、浏览、搜索、画像和推荐数量
+8. `V_MEDIA_ASSET_DETAIL`：媒体资源明细，整合上传者、归属对象、文件类型、大小和访问地址
+9. `V_CHAT_FOLLOWUP_SUMMARY`：AI 追问会话汇总，统计会话消息数、用户消息数、AI 消息数和最后消息时间
 
 这些视图不替代业务表和过程，而是用于课程答辩、后台查询、报表展示和后续页面开发。
 
@@ -549,7 +553,7 @@
 4. `get_recommendation_score`：计算单个问题对指定用户的推荐分数
 5. `generate_recommendations`：为指定用户生成推荐结果并更新推荐状态
 
-当前实际落地的推荐逻辑以 `HYBRID + USER_TAG_PROFILE + POPULARITY` 为主，推荐分数由画像分、热度分和新鲜度分组成。
+当前实际落地的推荐逻辑以 `HYBRID + USER_TAG_PROFILE + USER_ACTION + POPULARITY` 为主，推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚组成。
 
 ---
 

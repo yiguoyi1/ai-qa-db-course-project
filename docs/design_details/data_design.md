@@ -149,7 +149,7 @@
    表结构中保留了 `TAG_BASED`、`POPULARITY`、`HYBRID`、`MANUAL` 等类型，方便后续扩展。
 
 2. 实现层落地混合推荐
-   当前存储过程实际实现的是 `HYBRID + USER_TAG_PROFILE + POPULARITY` 路线，推荐理由会说明画像分、热度分和新鲜度分。
+   当前存储过程实际实现的是 `HYBRID + USER_TAG_PROFILE + USER_ACTION + POPULARITY` 路线，推荐理由会说明画像分、相似兴趣分、热度分、新鲜度分和惩罚分。
 
 ### 5.5 AI 扩展模块
 

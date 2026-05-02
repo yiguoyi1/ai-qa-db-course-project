@@ -34,7 +34,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - `sql/create_tables.sql`：建表、主外键、唯一约束、检查约束、索引
 - `sql/procedures.sql`：统计同步、画像重建、推荐生成
 - `sql/triggers.sql`：自动维护统计字段与登录时间
-- `sql/views.sql`：问题概览、热门问题、回答质量、用户画像和推荐明细视图
+- `sql/views.sql`：问题概览、热门问题、回答质量、用户画像、推荐明细、标签明细、用户行为、媒体和 AI 追问汇总视图
 - `sql/seed_data.sql`：固定演示数据
 - `scripts/validate-oracle-schema.ps1`：结构和业务规则校验
 
@@ -283,18 +283,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-oracle26ai.ps1
 如果你的数据库不是刚初始化的新库，而是基于之前版本继续开发，需要按缺失情况补跑对应迁移：
 
 ```powershell
-.\scripts\load-oracle-schema.ps1 -SqlFiles `
-  sql/migrations/20260405_add_answers_user_id.sql `
-  sql/migrations/20260405_add_answer_comments.sql `
-  sql/migrations/20260422_add_media_assets.sql `
-  sql/migrations/20260422_add_question_acceptance.sql `
-  sql/migrations/20260425_extend_chat_session_for_follow_up.sql `
-  sql/migrations/20260427_extend_tag_metadata.sql `
-  sql/migrations/20260429_add_deleted_question_status.sql `
-  sql/migrations/20260429_limit_media_asset_file_size.sql
+$migrations = @(
+  "sql/migrations/20260405_add_answers_user_id.sql",
+  "sql/migrations/20260405_add_answer_comments.sql",
+  "sql/migrations/20260422_add_media_assets.sql",
+  "sql/migrations/20260422_add_question_acceptance.sql",
+  "sql/migrations/20260425_extend_chat_session_for_follow_up.sql",
+  "sql/migrations/20260427_extend_tag_metadata.sql",
+  "sql/migrations/20260429_add_deleted_question_status.sql",
+  "sql/migrations/20260429_limit_media_asset_file_size.sql",
+  "sql/migrations/20260502_improve_recommendation_scoring.sql",
+  "sql/migrations/20260503_refresh_reporting_views.sql"
+)
+.\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
 
-如果你只缺某一次迁移，也可以只传对应的 `.sql` 文件。macOS / PowerShell 7 下使用 `pwsh -File ./scripts/load-oracle-schema.ps1 -SqlFiles 文件1 文件2`，多个文件之间用空格分隔。
+如果你只缺某一次迁移，也可以只传对应的 `.sql` 文件。Windows PowerShell 下传多个文件时建议先放进数组再传给 `-SqlFiles`，避免第二个文件被误解析成其它位置参数。
 
 5. 导入固定演示数据：
 

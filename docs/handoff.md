@@ -37,6 +37,8 @@ backup-local-before-collab-integration
 - Oracle 对象无编译错误
 - 触发器统计校验通过
 - 推荐过程幂等性校验通过
+- 增强推荐包体已在本地 Oracle 编译为 `VALID`
+- 增强推荐冒烟测试已覆盖画像重建、推荐生成、自有问题过滤、已收藏过滤和非 `OPEN` 问题过滤
 - 采纳答案跨问题引用已被数据库约束拒绝
 - Python 源码编译检查通过
 - `app.main` 和 `frontend_cli.main` 导入通过
@@ -140,7 +142,8 @@ python -m frontend_cli.main menu
 - 评论删除是软删除，不级联删除子回复。
 - 图片元数据统一保存在 `MEDIA_ASSETS`。
 - 统计字段优先由数据库触发器维护，不应在 Python 里重复加减。
-- 推荐逻辑优先调用数据库包 `qa_app_pkg`。
+- 推荐逻辑优先调用数据库包 `qa_app_pkg`，不要在 Python 服务层复制一套推荐算法。
+- 当前推荐 API 入参和出参保持不变，画像和推荐评分增强集中在数据库包体内部。
 
 ## 6. 数据库交接重点
 
@@ -165,7 +168,13 @@ sql/migrations/20260425_extend_chat_session_for_follow_up.sql
 sql/migrations/20260427_extend_tag_metadata.sql
 sql/migrations/20260429_add_deleted_question_status.sql
 sql/migrations/20260429_limit_media_asset_file_size.sql
+sql/migrations/20260502_improve_recommendation_scoring.sql
+sql/migrations/20260503_refresh_reporting_views.sql
 ```
+
+推荐增强迁移 `20260502_improve_recommendation_scoring.sql` 只替换 `qa_app_pkg` 包体，不修改表结构和现有 API。当前推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚共同组成。
+
+视图刷新迁移 `20260503_refresh_reporting_views.sql` 用于把报表和展示视图落到已有数据库中，覆盖问题概览、热榜、标签明细、用户行为汇总、媒体明细和 AI 追问会话汇总等查询口径。
 
 采纳答案相关约束要点：
 

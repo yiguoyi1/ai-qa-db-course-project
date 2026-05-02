@@ -1,32 +1,6 @@
--- procedures.sql
--- Business procedures and functions for the AI QA system
-
 SET DEFINE OFF
 
-CREATE OR REPLACE PACKAGE qa_app_pkg AS
-    PROCEDURE sync_question_statistics(
-        p_question_id IN questions.question_id%TYPE
-    );
-
-    PROCEDURE refresh_answer_feedback_stats(
-        p_answer_id IN answers.answer_id%TYPE
-    );
-
-    PROCEDURE rebuild_user_tag_profile(
-        p_user_id IN users.user_id%TYPE
-    );
-
-    FUNCTION get_recommendation_score(
-        p_user_id     IN users.user_id%TYPE,
-        p_question_id IN questions.question_id%TYPE
-    ) RETURN NUMBER;
-
-    PROCEDURE generate_recommendations(
-        p_user_id IN users.user_id%TYPE,
-        p_limit   IN PLS_INTEGER DEFAULT 10
-    );
-END qa_app_pkg;
-/
+PROMPT Applying migration: improve recommendation scoring...
 
 CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
     PROCEDURE sync_question_statistics(
@@ -588,3 +562,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
     END generate_recommendations;
 END qa_app_pkg;
 /
+
+COMMIT;
+
+PROMPT Migration completed successfully.
