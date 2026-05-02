@@ -26,7 +26,8 @@
 13. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
 14. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
 15. [qa_ai_answer_skill.md](design_details/qa_ai_answer_skill.md)
-16. [public_demo_data_seeding.md](public_demo_data_seeding.md)
+16. [reporting-views-setup.md](setup/reporting-views-setup.md)
+17. [public_demo_data_seeding.md](public_demo_data_seeding.md)
 
 ## 2. 项目当前定位
 
