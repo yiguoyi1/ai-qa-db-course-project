@@ -24,10 +24,11 @@
 11. [community_platform_design.md](design_details/community_platform_design.md)
 12. [business_code_architecture.md](design_details/business_code_architecture.md)
 13. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
-14. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
-15. [qa_ai_answer_skill.md](design_details/qa_ai_answer_skill.md)
-16. [reporting-views-setup.md](setup/reporting-views-setup.md)
-17. [public_demo_data_seeding.md](public_demo_data_seeding.md)
+14. [er_diagram.md](design_details/er_diagram.md)
+15. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
+16. [qa_ai_answer_skill.md](design_details/qa_ai_answer_skill.md)
+17. [reporting-views-setup.md](setup/reporting-views-setup.md)
+18. [public_demo_data_seeding.md](public_demo_data_seeding.md)
 
 ## 2. 项目当前定位
 
