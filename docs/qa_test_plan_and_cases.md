@@ -179,10 +179,10 @@
 | TC-SEARCH-001 | 搜索 | 游客搜索 | 未登录且有问题数据 | 在首页搜索框输入关键词 | GET `/api/search/questions?q=...` 返回结果；游客可查看结果和详情 | P0 |
 | TC-SEARCH-002 | 搜索 | 搜索历史 | 用户 A 已登录 | 搜索 2 个关键词；刷新页面；打开搜索历史下拉 | `/api/search/history` 返回本人历史；不同用户之间历史隔离 | P1 |
 | TC-SEARCH-003 | 搜索 | 搜索参数边界 | 无 | q 为空、超过 100 字、page=0、page_size=51 | API 返回 422 或业务校验错误；服务不崩溃 | P1 |
-| TC-Q-001 | 问题 | 纯社区发帖成功 | 用户 A 登录；至少一个 ACTIVE 分类 | 打开提问弹窗；填写分类、标题、正文、标签；提交纯社区发帖 | POST `/api/questions` 成功；生成 question_id；详情页可查看问题 | P0 |
-| TC-Q-002 | 问题 | AI 首答发帖成功 | 用户 A 登录；DeepSeek 可用 | 选择 AI 首答发帖；填写标题正文；提交 | POST `/api/questions/ask` 返回 201；问题创建；至少生成 1 条 AI 回答；写入 prompt 日志 | P0 |
+| TC-Q-001 | 问题 | 纯社区发帖成功 | 用户 A 登录；至少一个 ACTIVE 分类 | 打开提问弹窗；可手动选择分类或使用 AI 自动分类；填写标题、正文、标签；提交纯社区发帖 | POST `/api/questions` 成功；生成 question_id；详情页可查看问题 | P0 |
+| TC-Q-002 | 问题 | AI 首答发帖成功 | 用户 A 登录；DeepSeek 可用 | 选择 AI 首答发帖；填写标题正文；可不手动选择分类；提交 | POST `/api/questions/ask` 返回 201；问题创建；至少生成 1 条 AI 回答；写入 prompt 日志 | P0 |
 | TC-Q-003 | 问题 | 发帖必填校验 | 用户 A 登录 | 标题为空、正文为空、category_id 非法分别提交 | 前端阻止或 API 返回 422/400；数据库不得新增问题 | P0 |
-| TC-Q-004 | 问题 | 默认分类 | 用户 A 登录；存在 ACTIVE 分类 | POST `/api/questions` 不传 category_id | 使用第一个 ACTIVE 分类发帖成功 | P1 |
+| TC-Q-004 | 问题 | AI 自动分类与兜底 | 用户 A 登录；存在 ACTIVE 分类 | POST `/api/questions` 不传 category_id 且 auto_category=true；再模拟 AI 分类失败 | 成功时使用 AI 选择的 ACTIVE 分类；失败时回落到 `其他问题` | P1 |
 | TC-Q-005 | 问题 | 标签上限 | 用户 A 登录 | 提交超过 10 个 tag_ids/custom_tags | API 返回错误“A question can have at most 10 tags”；不得部分绑定异常标签 | P1 |
 | TC-Q-006 | 问题 | 非 ACTIVE 标签 | 存在 DISABLED/PENDING 标签 | 发帖时选择该标签 ID | API 返回不可用标签错误；问题和标签绑定回滚 | P1 |
 | TC-Q-007 | 问题 | 自定义标签规范化 | 用户 A 登录 | 输入 `#  Data   Science  ` 等自定义标签 | 标签转为小写、空格转连字符、去重；重复标签不重复绑定 | P2 |

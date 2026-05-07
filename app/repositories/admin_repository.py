@@ -2,6 +2,8 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import category_order_case_sql
+
 
 class AdminRepository:
     @staticmethod
@@ -234,6 +236,7 @@ class AdminRepository:
         )
 
         cursor = connection.cursor()
+        category_order_sql = category_order_case_sql()
         cursor.execute(
             f"""
             SELECT
@@ -243,7 +246,10 @@ class AdminRepository:
                 status
             FROM categories
             WHERE {' AND '.join(where_clauses)}
-            ORDER BY category_name, category_id
+            ORDER BY
+                {category_order_sql},
+                category_name,
+                category_id
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
             binds,
@@ -303,7 +309,7 @@ class AdminRepository:
                 description,
                 status
             FROM categories
-            WHERE category_name = :category_name
+            WHERE LOWER(category_name) = LOWER(:category_name)
             """,
             {"category_name": category_name},
         )

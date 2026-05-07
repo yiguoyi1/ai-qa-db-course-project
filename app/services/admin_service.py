@@ -715,7 +715,7 @@ class AdminService:
     def _require_category_name(self, value: str | None) -> str:
         if value is None:
             raise ValidationError("category_name is required.")
-        normalized = value.strip()
+        normalized = " ".join(value.strip().split())
         if not normalized:
             raise ValidationError("category_name must not be blank.")
         if len(normalized) > 50:

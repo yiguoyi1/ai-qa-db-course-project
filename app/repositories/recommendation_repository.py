@@ -98,9 +98,15 @@ class RecommendationRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM recommendations
-            WHERE user_id = :user_id
-              AND status = :status
+            FROM recommendations r
+            JOIN questions q
+              ON q.question_id = r.question_id
+            JOIN categories c
+              ON c.category_id = q.category_id
+             AND c.status = 'ACTIVE'
+            WHERE r.user_id = :user_id
+              AND r.status = :status
+              AND q.status <> 'DELETED'
             """,
             {
                 "user_id": user_id,
@@ -140,13 +146,13 @@ class RecommendationRepository:
                 r.rec_reason,
                 r.rec_score,
                 r.rec_time,
-                r.status,
+                r.status AS rec_status,
                 q.question_id,
                 q.user_id,
                 q.category_id,
                 q.title,
                 q.ask_time,
-                q.status,
+                q.status AS question_status,
                 q.view_count,
                 q.favorite_count,
                 q.answer_count,
@@ -156,6 +162,9 @@ class RecommendationRepository:
             FROM recommendations r
             JOIN questions q
               ON q.question_id = r.question_id
+            JOIN categories c
+              ON c.category_id = q.category_id
+             AND c.status = 'ACTIVE'
             LEFT JOIN users u
               ON u.user_id = q.user_id
             LEFT JOIN media_assets m

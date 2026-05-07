@@ -72,7 +72,8 @@ $migrations = @(
   "sql/migrations/20260429_add_deleted_question_status.sql",
   "sql/migrations/20260429_limit_media_asset_file_size.sql",
   "sql/migrations/20260502_improve_recommendation_scoring.sql",
-  "sql/migrations/20260503_refresh_reporting_views.sql"
+  "sql/migrations/20260503_refresh_reporting_views.sql",
+  "sql/migrations/20260507_standardize_question_categories.sql"
 )
 .\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
@@ -174,7 +175,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 | SMOKE-01 | 打开 `/` | 产品介绍首页正常显示，点击“立即体验”进入社区首页 | 待测 |
 | SMOKE-02 | 登录普通用户 | 成功进入 `/home`，右上角显示昵称或用户名 | ✅ |
 | SMOKE-03 | 首页热榜 | 问题列表、热门标签、筛选条、提问按钮正常展示 | 待测 |
-| SMOKE-04 | 发布问题 | 选择分类、填写标题正文、可选标签和图片后发布成功 | 待测 |
+| SMOKE-04 | 发布问题 | 手动选择分类或使用 AI 自动分类，填写标题正文、可选标签和图片后发布成功 | 待测 |
 | SMOKE-05 | 进入详情 | 问题、回答、图片、评论入口正常显示 | ✅ |
 | SMOKE-06 | 发布回答 | 回答成功，回答列表刷新 | ✅ |
 | SMOKE-07 | 收藏与取消收藏 | 状态和数量实时变化 | ✅ |
@@ -493,7 +494,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 3. 热榜按回答数、收藏数、浏览量和新鲜度综合排序。
 4. `section=recommend`、`section=hot` 参数生效。
 
-#### TC-HOME-03 分类、状态、标签筛选 待测
+#### TC-HOME-03 分类、状态、标签筛选 ✅
 
 测试步骤：
 
@@ -508,6 +509,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 2. 筛选摘要文案正确。
 3. URL 中同步 `category_id`、`tag_id`、`status` 参数。
 4. 清除筛选后恢复全部问题。
+5. “全部问题”和分类下拉使用同一套启用分类口径，停用分类的问题不会混入公共列表。
 
 #### TC-HOME-04 搜索问题 ✅
 
@@ -528,7 +530,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 测试步骤：
 
 1. 点击“提问”。
-2. 选择问题分类。
+2. 选择问题分类，或保留“AI 自动分类”。
 3. 关闭 AI 首答开关。
 4. 输入标题和正文。
 5. 可选已有标签、自定义标签或自动识别标签。
@@ -538,7 +540,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 
 1. 发帖成功。
 2. 新问题进入首页或详情页。
-3. 问题带有所选分类和标签。
+3. 问题带有所选分类，或带有 AI 自动判断后的分类和标签。
 
 #### TC-HOME-06 AI 发帖 待测
 
@@ -547,7 +549,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 测试步骤：
 
 1. 点击“提问”。
-2. 选择问题分类。
+2. 选择问题分类，或保留“AI 自动分类”。
 3. 保持 AI 首答开关开启。
 4. 输入标题和正文。
 5. 提交。
@@ -563,12 +565,12 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 测试步骤：
 
 1. 只填标题，不填正文。
-2. 不选择问题分类。
+2. 不选择问题分类，保留“AI 自动分类”。
 3. 分别尝试纯社区发帖和 AI 发帖。
 
 预期结果：
 
-1. 标题、正文、分类缺失时前端阻止提交并提示。
+1. 标题、正文缺失时前端阻止提交并提示；分类缺失时不阻止，交给 AI 自动分类或后端兜底。
 2. 不应创建脏数据。
 
 #### TC-HOME-08 发帖弹窗滚动 待测
@@ -1144,7 +1146,7 @@ pwsh -File ./scripts/grant-admin.ps1 -Username <your_username>
 
 1. `POST /api/questions/ask` 会创建问题并触发 AI 首答。
 2. `POST /api/questions` 是纯社区发帖。
-3. 两类发帖都要求标题、正文和分类有效。
+3. 两类发帖都要求标题和正文有效；分类可以手动选择，也可以由 AI 自动分类。
 4. 用户可选已有标签、自定义标签；未提供标签时可由 AI 自动识别。
 5. 评论挂在回答下，不直接挂在问题下。
 6. 评论删除是软删除，显示占位文案是符合预期的。

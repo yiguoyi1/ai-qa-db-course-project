@@ -54,12 +54,13 @@
 - 用户登录：`POST /api/auth/login`
 - AI 首答提问：`POST /api/questions/ask`
 - 纯社区式发帖：`POST /api/questions`
-- 发帖标签增强：`tag_ids` 绑定已有标签，`custom_tags` 创建或复用自定义标签，`auto_tag` 支持无标签时 AI 自动补标签
+- 发帖分类与标签增强：`auto_category` 支持未选分类时 AI 自动分类；`tag_ids` 绑定已有标签，`custom_tags` 创建或复用自定义标签，`auto_tag` 支持无标签时 AI 自动补标签
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 作者删帖：`DELETE /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/tags/suggestions`、`GET /api/search/questions`
+- 分类字典已标准化为面向通用问答社区的多领域分类，历史 `oracle`、`ai` 演示分类通过迁移收敛到新的技术/AI 分类
 - 搜索历史：`GET /api/search/history`
 - 浏览、收藏：`POST /api/questions/{question_id}/browse`、`POST /api/questions/{question_id}/favorite`、`DELETE /api/questions/{question_id}/favorite`
 - 回答反馈与状态回显：`POST /api/answers/{answer_id}/feedback`、`GET /api/questions/{question_id}/feedbacks`
@@ -136,7 +137,7 @@
 - [app/web/admin.html](../app/web/admin.html)
   - 管理员后台总览
   - 用户治理：筛选用户，修改角色和状态
-  - 分类管理：创建分类，修改名称、描述和启用状态
+  - 分类管理：创建分类，修改名称、描述和启用状态，公共分类列表按标准分类顺序展示
   - 标签治理：查看标签元数据，修改标签状态和描述
   - 内容治理：查看最近问题，展开回答和评论 ID，并一键填入状态治理表单
   - 审计日志：查询登录日志和操作日志
@@ -360,6 +361,19 @@
 6. 后端推荐查询仅返回 `ACTIVE` 标签，避免禁用标签继续出现在画像和推荐解释中
 7. 推荐增强通过 `sql/migrations/20260502_improve_recommendation_scoring.sql` 落地，不改变现有推荐 API 的入参、出参和路由
 8. Oracle 本地验证已覆盖 `QA_APP_PKG` 编译、画像重建、推荐生成和核心过滤规则
+
+### 3.12A 已完成阶段：问题分类标准化
+
+这一阶段已经完成到“分类字典、后端排序、演示数据和交接文档一致”的状态，主要包括：
+
+1. 标准分类覆盖通用问答社区主要领域，不再只依赖 `oracle`、`ai` 两个技术演示分类
+2. 历史 `oracle`、`ai` 分类通过 `20260507_standardize_question_categories.sql` 收敛到新的技术开发和人工智能分类
+3. `GET /api/categories` 和管理员分类列表按标准分类顺序返回，避免按名称或 ID 导致展示顺序漂移
+4. 兼容入口缺省分类时优先落到 `其他问题`，避免自动落入最小 `CATEGORY_ID` 对应的具体领域
+5. 公网演示造数脚本按兴趣领域匹配分类，不再机械轮换分类数组
+6. 发帖接口支持 `auto_category`，未手动选择分类时由 AI 从当前启用分类中选择，失败时回落到 `其他问题`
+7. 公共问题列表、搜索结果和推荐结果已统一过滤启用分类，避免停用历史分类混入首页筛选
+8. 历史停用分类问题可通过 `scripts/reclassify_question_categories.py` 调用真实 DeepSeek API 批量迁移到标准启用分类；本地库已完成原 `公网快照标签治理` 问题重分类
 
 ### 3.13 已完成阶段：网页端产品化与企业级 UI/UX 优化
 

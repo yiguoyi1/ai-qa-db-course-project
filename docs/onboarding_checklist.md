@@ -78,7 +78,8 @@ $migrations = @(
   "sql/migrations/20260429_add_deleted_question_status.sql",
   "sql/migrations/20260429_limit_media_asset_file_size.sql",
   "sql/migrations/20260502_improve_recommendation_scoring.sql",
-  "sql/migrations/20260503_refresh_reporting_views.sql"
+  "sql/migrations/20260503_refresh_reporting_views.sql",
+  "sql/migrations/20260507_standardize_question_categories.sql"
 )
 .\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```

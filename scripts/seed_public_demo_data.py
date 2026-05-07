@@ -100,6 +100,86 @@ LOCAL_INTEREST_LABELS = [
     "茶与冲泡",
 ]
 
+FALLBACK_CATEGORY_NAMES = [
+    "生活方式",
+    "学习教育",
+    "技术开发",
+    "其他问题",
+]
+
+CATEGORY_INTEREST_KEYWORDS = {
+    "技术开发": [
+        "效率工具",
+        "DIY 维修",
+        "数码产品",
+    ],
+    "人工智能": [
+        "智能家居",
+        "效率工具",
+    ],
+    "学习教育": [
+        "语言学习",
+        "阅读写作",
+        "乐器练习",
+        "播客收听",
+    ],
+    "职场发展": [
+        "效率工具",
+        "社区团购",
+        "二手交易",
+    ],
+    "生活方式": [
+        "咖啡探店",
+        "宠物日常",
+        "城市漫步",
+        "通勤穿搭",
+        "家庭收纳",
+        "家居清洁",
+    ],
+    "健康运动": [
+        "健身塑形",
+        "跑步训练",
+    ],
+    "旅行户外": [
+        "城市骑行",
+        "周末徒步",
+        "周末短途旅行",
+        "露营装备",
+    ],
+    "美食烹饪": [
+        "家常料理",
+        "美食烘焙",
+        "茶与冲泡",
+    ],
+    "家居数码": [
+        "智能家居",
+        "老房改造",
+        "家庭收纳",
+        "家居清洁",
+        "数码产品",
+        "游戏设备",
+    ],
+    "财经理财": [
+        "个人理财",
+        "二手交易",
+        "社区团购",
+    ],
+    "文化娱乐": [
+        "观影记录",
+        "播客收听",
+        "桌游聚会",
+        "乐器练习",
+        "游戏设备",
+    ],
+    "创作设计": [
+        "二手相机",
+        "摄影修图",
+        "阅读写作",
+        "插画临摹",
+        "手作收纳",
+    ],
+}
+
 USER_TOPIC_CODES = [
     "city",
     "home",
@@ -405,6 +485,31 @@ def get_categories(base_url: str) -> list[dict[str, Any]]:
     if not items:
         raise RuntimeError("No active categories returned by /api/categories.")
     return items
+
+
+def pick_category_for_interest(
+    interest: str,
+    categories: list[dict[str, Any]],
+    rng: random.Random,
+) -> dict[str, Any]:
+    category_by_name = {
+        str(category.get("category_name", "")).strip(): category
+        for category in categories
+    }
+
+    for category_name, keywords in CATEGORY_INTEREST_KEYWORDS.items():
+        category = category_by_name.get(category_name)
+        if category is None:
+            continue
+        if any(keyword in interest for keyword in keywords):
+            return category
+
+    for category_name in FALLBACK_CATEGORY_NAMES:
+        category = category_by_name.get(category_name)
+        if category is not None:
+            return category
+
+    return rng.choice(categories)
 
 
 def safe_slug(value: str) -> str:
@@ -792,7 +897,7 @@ def build_question(
     title = QUESTION_PATTERNS[(user.index + question_index - 2) % len(QUESTION_PATTERNS)].format(
         interest=interest,
     )
-    category = categories[(user.index + question_index - 2) % len(categories)]
+    category = pick_category_for_interest(interest, categories, rng)
     angle = rng.choice(DETAIL_FRAGMENTS)
     content = (
         f"我最近主要在关注「{interest}」。{title}\n\n"

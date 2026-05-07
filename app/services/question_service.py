@@ -2,6 +2,7 @@ import re
 
 import oracledb
 
+from app.core.category_catalog import DEFAULT_CATEGORY_NAME
 from app.core.errors import AppError, NotFoundError, ValidationError
 from app.db.connection import get_connection
 from app.repositories.answer_repository import AnswerRepository
@@ -18,6 +19,7 @@ from app.schemas.question import (
     QuestionListResponse,
 )
 from app.services.ai_answer_service import AIAnswerService
+from app.services.ai_category_service import AICategoryService, GeneratedCategory
 from app.services.ai_tagging_service import AITaggingService, GeneratedTags
 
 
@@ -34,6 +36,7 @@ class QuestionService:
         media_repository: MediaRepository | None = None,
         tag_repository: TagRepository | None = None,
         ai_answer_service: AIAnswerService | None = None,
+        ai_category_service: AICategoryService | None = None,
         ai_tagging_service: AITaggingService | None = None,
     ) -> None:
         self._question_repository = question_repository or QuestionRepository()
@@ -43,6 +46,7 @@ class QuestionService:
         self._media_repository = media_repository or MediaRepository()
         self._tag_repository = tag_repository or TagRepository()
         self._ai_answer_service = ai_answer_service
+        self._ai_category_service = ai_category_service
         self._ai_tagging_service = ai_tagging_service
 
     def ask_question(self, payload: AskQuestionRequest) -> QuestionDetailResponse:
@@ -51,12 +55,24 @@ class QuestionService:
 
         with get_connection() as connection:
             try:
+                category_id, generated_category = self._resolve_category_id(
+                    connection=connection,
+                    requested_category_id=payload.category_id,
+                    auto_category=payload.auto_category,
+                    title=payload.title,
+                    content=payload.content,
+                )
                 question_id = self._question_repository.create_question(
                     connection=connection,
                     user_id=payload.user_id,
-                    category_id=payload.category_id,
+                    category_id=category_id,
                     title=payload.title,
                     content=payload.content,
+                )
+                self._log_ai_category_result(
+                    connection=connection,
+                    question_id=question_id,
+                    generated_category=generated_category,
                 )
                 self._attach_question_tags(
                     connection=connection,
@@ -436,10 +452,105 @@ class QuestionService:
         except Exception:
             return None
 
+    def _resolve_category_id(
+        self,
+        *,
+        connection: oracledb.Connection,
+        requested_category_id: int | None,
+        auto_category: bool,
+        title: str,
+        content: str,
+    ) -> tuple[int, GeneratedCategory | None]:
+        active_categories = self._question_repository.list_active_categories(connection)
+        if not active_categories:
+            raise ValidationError("No ACTIVE category is available for publishing questions.")
+
+        default_category_id = self._get_default_category_id(active_categories)
+        if requested_category_id is not None:
+            requested_category = self._question_repository.get_active_category_context(
+                connection,
+                requested_category_id,
+            )
+            if requested_category is None:
+                raise ValidationError("category_id is not active or does not exist.")
+
+        should_ai_classify = auto_category and (
+            requested_category_id is None
+            or requested_category_id == default_category_id
+        )
+        if not should_ai_classify:
+            return requested_category_id or default_category_id, None
+
+        generated_category = self._generate_ai_category(
+            title=title,
+            content=content,
+            active_categories=active_categories,
+        )
+        if generated_category is None:
+            return requested_category_id or default_category_id, None
+
+        return generated_category.category_id, generated_category
+
+    def _generate_ai_category(
+        self,
+        *,
+        title: str,
+        content: str,
+        active_categories: list[dict],
+    ) -> GeneratedCategory | None:
+        try:
+            return self._get_ai_category_service().classify_question(
+                title=title,
+                content=content,
+                active_categories=active_categories,
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    def _get_default_category_id(active_categories: list[dict]) -> int:
+        for category in active_categories:
+            if category["category_name"] == DEFAULT_CATEGORY_NAME:
+                return int(category["category_id"])
+        return int(active_categories[0]["category_id"])
+
+    def _log_ai_category_result(
+        self,
+        *,
+        connection: oracledb.Connection,
+        question_id: int,
+        generated_category: GeneratedCategory | None,
+    ) -> None:
+        if generated_category is None or not generated_category.prompt_text:
+            return
+
+        response_text = generated_category.response_text
+        if generated_category.reason:
+            response_text = (
+                f"{response_text}\n\n"
+                f"selected_category={generated_category.category_name}, "
+                f"confidence={generated_category.confidence_score}, "
+                f"reason={generated_category.reason}"
+            )
+
+        self._log_repository.create_prompt_log(
+            connection=connection,
+            question_id=question_id,
+            prompt_text=generated_category.prompt_text,
+            response_text=response_text,
+            token_usage=generated_category.token_usage,
+            model_name=generated_category.model_name,
+        )
+
     def _get_ai_answer_service(self) -> AIAnswerService:
         if self._ai_answer_service is None:
             self._ai_answer_service = AIAnswerService()
         return self._ai_answer_service
+
+    def _get_ai_category_service(self) -> AICategoryService:
+        if self._ai_category_service is None:
+            self._ai_category_service = AICategoryService()
+        return self._ai_category_service
 
     def _get_ai_tagging_service(self) -> AITaggingService:
         if self._ai_tagging_service is None:
@@ -508,11 +619,13 @@ class QuestionService:
     def publish_question(self, user_id: int, payload: QuestionCreate) -> dict:
         with get_connection() as connection:
             try:
-                category_id = payload.category_id
-                if category_id is None:
-                    category_id = self._question_repository.get_first_active_category_id(connection)
-                if category_id is None:
-                    raise ValidationError("No ACTIVE category is available for publishing questions.")
+                category_id, generated_category = self._resolve_category_id(
+                    connection=connection,
+                    requested_category_id=payload.category_id,
+                    auto_category=payload.auto_category,
+                    title=payload.title,
+                    content=payload.content,
+                )
 
                 question_id = self._question_repository.create_question(
                     connection=connection,
@@ -520,6 +633,11 @@ class QuestionService:
                     category_id=category_id,
                     title=payload.title,
                     content=payload.content,
+                )
+                self._log_ai_category_result(
+                    connection=connection,
+                    question_id=question_id,
+                    generated_category=generated_category,
                 )
                 self._attach_question_tags(
                     connection=connection,

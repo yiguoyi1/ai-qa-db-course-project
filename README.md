@@ -90,7 +90,7 @@ AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
 - 首页推荐 / 热榜问题流
 - 分类、状态、标签筛选
 - 全站搜索与搜索历史下拉
-- 发布问题，支持分类、已有标签、自定义标签、标签建议、AI 自动标签和问题配图
+- 发布问题，支持手动分类或 AI 自动分类、已有标签、自定义标签、标签建议、AI 自动标签和问题配图
 - 首页发帖正文统一必填
 - 切换“纯社区发帖”与“AI 首答发帖”
 - 首页热门标签动态加载
@@ -293,7 +293,8 @@ $migrations = @(
   "sql/migrations/20260429_add_deleted_question_status.sql",
   "sql/migrations/20260429_limit_media_asset_file_size.sql",
   "sql/migrations/20260502_improve_recommendation_scoring.sql",
-  "sql/migrations/20260503_refresh_reporting_views.sql"
+  "sql/migrations/20260503_refresh_reporting_views.sql",
+  "sql/migrations/20260507_standardize_question_categories.sql"
 )
 .\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```

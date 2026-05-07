@@ -203,6 +203,18 @@ def ensure_import_category(connection: oracledb.Connection) -> int:
     )
     row = cursor.fetchone()
     if row is not None:
+        cursor.execute(
+            """
+            UPDATE categories
+            SET status = 'INACTIVE',
+                description = :description
+            WHERE category_id = :category_id
+            """,
+            {
+                "category_id": int(row[0]),
+                "description": "本地标签治理测试使用的公网只读快照分类，不进入公共发帖分类。",
+            },
+        )
         return int(row[0])
 
     category_id_var = cursor.var(oracledb.NUMBER)
@@ -215,13 +227,13 @@ def ensure_import_category(connection: oracledb.Connection) -> int:
         ) VALUES (
             :category_name,
             :description,
-            'ACTIVE'
+            'INACTIVE'
         )
         RETURNING category_id INTO :category_id
         """,
         {
             "category_name": IMPORT_CATEGORY_NAME,
-            "description": "本地标签治理测试使用的公网只读快照分类。",
+            "description": "本地标签治理测试使用的公网只读快照分类，不进入公共发帖分类。",
             "category_id": category_id_var,
         },
     )

@@ -51,15 +51,26 @@
 
 ### 3.2 数据流步骤
 
-1. 用户提交问题标题、正文、分类，以及可选的 `tag_ids`、`custom_tags`、`auto_tag`
-2. 系统写入 `QUESTIONS`
-3. 如果用户选择已有标签，系统写入 `QUESTION_TAGS.SOURCE = 'USER_SELECTED'`
-4. 如果用户输入自定义标签，系统创建或复用 `TAGS`，并写入 `QUESTION_TAGS.SOURCE = 'USER_CREATED'`
-5. 如果用户没有提供标签且 `auto_tag=true`，系统调用 AI 分析标签，匹配已有标签或创建新标签
-6. AI 自动标签的 Prompt 与响应复用 `AI_PROMPT_LOG` 记录
-7. 若为 AI 回答，写入 `ANSWERS`，同时记录回答生成的 `AI_PROMPT_LOG`
-8. 若为人工补充，也写入 `ANSWERS`
-9. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
+1. 用户提交问题标题、正文、可选分类，以及可选的 `auto_category`、`tag_ids`、`custom_tags`、`auto_tag`
+2. 如果用户未选择分类且 `auto_category=true`，系统调用 AI 从当前 `ACTIVE` 分类中选择最合适分类
+3. 如果用户手动选择分类，系统校验该分类必须为 `ACTIVE`
+4. AI 分类失败、置信度不足或返回非法分类时，系统回落到 `其他问题`
+5. 系统写入 `QUESTIONS`
+6. 如果用户选择已有标签，系统写入 `QUESTION_TAGS.SOURCE = 'USER_SELECTED'`
+7. 如果用户输入自定义标签，系统创建或复用 `TAGS`，并写入 `QUESTION_TAGS.SOURCE = 'USER_CREATED'`
+8. 如果用户没有提供标签且 `auto_tag=true`，系统调用 AI 分析标签，匹配已有标签或创建新标签
+9. AI 自动分类、AI 自动标签的 Prompt 与响应复用 `AI_PROMPT_LOG` 记录
+10. 若为 AI 回答，写入 `ANSWERS`，同时记录回答生成的 `AI_PROMPT_LOG`
+11. 若为人工补充，也写入 `ANSWERS`
+12. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
+
+分类处理补充：
+
+- 公共分类列表只返回 `ACTIVE` 分类，并按标准分类顺序展示。
+- 标准分类覆盖通用问答社区的主要内容领域，不再只使用技术演示类分类。
+- AI 自动分类只允许选择已有 `ACTIVE` 分类，不允许自动创建分类。
+- 测试造数或批量发帖应按问题兴趣领域选择分类，不能简单轮换分类数组。
+- 兼容入口如果缺失分类，只能落到 `其他问题` 这类兜底分类。
 
 ### 3.3 涉及数据表
 

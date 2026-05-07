@@ -1233,10 +1233,11 @@
         </div>
 
         <div class="form-field">
-            <label>问题分类 <span class="required">*</span></label>
+            <label>问题分类</label>
             <select id="post-category" class="form-control">
                 <option value="">正在加载分类...</option>
             </select>
+            <p class="form-hint">不手动选择时，系统会调用 AI 从现有分类中自动判断。</p>
         </div>
 
         <div class="tag-picker">
@@ -1524,11 +1525,8 @@
         }
         if (postSelect) {
             postSelect.innerHTML = availableCategories.length > 0
-                ? `<option value="">请选择分类</option>${categoryOptions}`
+                ? `<option value="">AI 自动分类</option>${categoryOptions}`
                 : '<option value="">暂无可用分类</option>';
-            if (!postSelect.value && availableCategories.length > 0) {
-                postSelect.value = String(availableCategories[0].category_id);
-            }
         }
         updateFilterSummary();
     }
@@ -2503,11 +2501,8 @@
         }
 
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
-        const categoryId = Number(document.getElementById('post-category')?.value || 0);
-        if (!categoryId) {
-            alert("❌ 请选择问题分类。");
-            return;
-        }
+        const categoryId = normalizePositiveId(document.getElementById('post-category')?.value);
+        const autoCategory = !categoryId;
         const imagesToUpload = [...selectedPostImages];
         const tagPayload = getPostTagPayload();
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
@@ -2516,7 +2511,13 @@
         try {
             // 🌟 核心分流逻辑 🌟
             let apiUrl = buildApiUrl('/api/questions');
-            let requestBody = { category_id: categoryId, title: titleInput, content: contentInput, ...tagPayload };
+            let requestBody = {
+                category_id: categoryId || undefined,
+                auto_category: autoCategory,
+                title: titleInput,
+                content: contentInput,
+                ...tagPayload
+            };
 
             const generateAiAfterImageUpload = useAi && imagesToUpload.length > 0;
 
@@ -2525,7 +2526,8 @@
                 apiUrl = buildApiUrl('/api/questions/ask');
                 // 这个通道的标准比较严格，需要补齐参数
                 requestBody = {
-                    category_id: categoryId,
+                    category_id: categoryId || undefined,
+                    auto_category: autoCategory,
                     title: titleInput,
                     content: contentInput,
                     ...tagPayload

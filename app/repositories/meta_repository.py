@@ -2,6 +2,8 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import category_order_case_sql
+
 
 class MetaRepository:
     def list_categories(
@@ -9,8 +11,9 @@ class MetaRepository:
         connection: oracledb.Connection,
     ) -> list[dict[str, Any]]:
         cursor = connection.cursor()
+        category_order_sql = category_order_case_sql()
         cursor.execute(
-            """
+            f"""
             SELECT
                 category_id,
                 category_name,
@@ -18,7 +21,10 @@ class MetaRepository:
                 status
             FROM categories
             WHERE status = 'ACTIVE'
-            ORDER BY category_name
+            ORDER BY
+                {category_order_sql},
+                category_name,
+                category_id
             """
         )
 

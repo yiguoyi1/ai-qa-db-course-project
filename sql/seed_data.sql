@@ -8,7 +8,7 @@ PROMPT Loading persistent demo data...
 DECLARE
     l_owner_user_id     NUMBER;
     l_reader_user_id    NUMBER;
-    l_oracle_category   NUMBER;
+    l_tech_category     NUMBER;
     l_ai_category       NUMBER;
     l_oracle_tag        NUMBER;
     l_docker_tag        NUMBER;
@@ -293,15 +293,19 @@ BEGIN
         p_email         => 'demo_reader@example.com'
     );
 
-    ensure_category(
-        p_category_name => 'oracle',
-        p_description   => 'Oracle database related questions'
-    );
-
-    ensure_category(
-        p_category_name => 'ai',
-        p_description   => 'AI API and prompt engineering questions'
-    );
+    ensure_category(UNISTR('\6280\672F\5F00\53D1'), 'Programming, databases, development tools, and engineering practice.');
+    ensure_category(UNISTR('\4EBA\5DE5\667A\80FD'), 'AI tools, model usage, prompts, and automation scenarios.');
+    ensure_category(UNISTR('\5B66\4E60\6559\80B2'), 'Learning methods, exams, courses, languages, and education planning.');
+    ensure_category(UNISTR('\804C\573A\53D1\5C55'), 'Career growth, workplace communication, job search, and productivity.');
+    ensure_category(UNISTR('\751F\6D3B\65B9\5F0F'), 'Daily life, habits, relationships, and practical experience sharing.');
+    ensure_category(UNISTR('\5065\5EB7\8FD0\52A8'), 'Fitness, exercise, sleep, nutrition, and health management.');
+    ensure_category(UNISTR('\65C5\884C\6237\5916'), 'Travel planning, outdoor activities, city walks, and equipment.');
+    ensure_category(UNISTR('\7F8E\98DF\70F9\996A'), 'Cooking, baking, drinks, restaurants, and food choices.');
+    ensure_category(UNISTR('\5BB6\5C45\6570\7801'), 'Home improvement, digital devices, smart home, and maintenance.');
+    ensure_category(UNISTR('\8D22\7ECF\7406\8D22'), 'Personal finance, budgeting, saving, and consumption decisions.');
+    ensure_category(UNISTR('\6587\5316\5A31\4E50'), 'Movies, music, reading, games, and leisure activities.');
+    ensure_category(UNISTR('\521B\4F5C\8BBE\8BA1'), 'Writing, photography, illustration, design, and handmade creation.');
+    ensure_category(UNISTR('\5176\4ED6\95EE\9898'), 'Questions that do not clearly belong to another category.');
 
     ensure_tag('oracle');
     ensure_tag('docker');
@@ -310,8 +314,8 @@ BEGIN
 
     l_owner_user_id   := get_user_id('demo_owner');
     l_reader_user_id  := get_user_id('demo_reader');
-    l_oracle_category := get_category_id('oracle');
-    l_ai_category     := get_category_id('ai');
+    l_tech_category   := get_category_id(UNISTR('\6280\672F\5F00\53D1'));
+    l_ai_category     := get_category_id(UNISTR('\4EBA\5DE5\667A\80FD'));
     l_oracle_tag      := get_tag_id('oracle');
     l_docker_tag      := get_tag_id('docker');
     l_deepseek_tag    := get_tag_id('deepseek');
@@ -326,7 +330,7 @@ BEGIN
     )
     SELECT
         l_owner_user_id,
-        l_oracle_category,
+        l_tech_category,
         l_question_1_title,
         l_question_1_body,
         'OPEN'

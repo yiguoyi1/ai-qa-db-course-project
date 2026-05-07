@@ -3,6 +3,8 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import active_category_exists_sql
+
 
 class SearchRepository:
     @staticmethod
@@ -91,6 +93,8 @@ class SearchRepository:
                 "keyword": keyword,
                 "keyword_like": f"%{keyword.lower()}%",
             }
+
+        clauses.append(active_category_exists_sql())
 
         if category_id is not None:
             clauses.append("q.category_id = :category_id")

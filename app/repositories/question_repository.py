@@ -2,6 +2,12 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import (
+    DEFAULT_CATEGORY_NAME,
+    active_category_exists_sql,
+    category_order_case_sql,
+)
+
 
 def _normalize_returning_value(value: Any) -> int:
     if isinstance(value, list):
@@ -59,7 +65,7 @@ class QuestionRepository:
         tag_id: int | None,
         status: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
-        clauses = ["1 = 1"]
+        clauses = [active_category_exists_sql()]
         binds: dict[str, Any] = {}
 
         if category_id is not None:
@@ -139,12 +145,78 @@ class QuestionRepository:
             SELECT category_id
             FROM categories
             WHERE status = 'ACTIVE'
-            ORDER BY category_id
+            ORDER BY
+                CASE
+                    WHEN category_name = :default_category_name THEN 0
+                    ELSE 1
+                END,
+                category_id
             FETCH FIRST 1 ROWS ONLY
-            """
+            """,
+            {"default_category_name": DEFAULT_CATEGORY_NAME},
         )
         row = cursor.fetchone()
         return int(row[0]) if row is not None else None
+
+    def list_active_categories(
+        self,
+        connection: oracledb.Connection,
+    ) -> list[dict[str, Any]]:
+        cursor = connection.cursor()
+        category_order_sql = category_order_case_sql()
+        cursor.execute(
+            f"""
+            SELECT
+                category_id,
+                category_name,
+                description,
+                status
+            FROM categories
+            WHERE status = 'ACTIVE'
+            ORDER BY
+                {category_order_sql},
+                category_name,
+                category_id
+            """
+        )
+        return [
+            {
+                "category_id": int(row[0]),
+                "category_name": row[1],
+                "description": row[2],
+                "status": row[3],
+            }
+            for row in cursor.fetchall()
+        ]
+
+    def get_active_category_context(
+        self,
+        connection: oracledb.Connection,
+        category_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                category_id,
+                category_name,
+                description,
+                status
+            FROM categories
+            WHERE category_id = :category_id
+              AND status = 'ACTIVE'
+            """,
+            {"category_id": category_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return {
+            "category_id": int(row[0]),
+            "category_name": row[1],
+            "description": row[2],
+            "status": row[3],
+        }
 
     def add_tags(
         self,

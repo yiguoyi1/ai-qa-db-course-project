@@ -43,6 +43,9 @@ backup-local-before-collab-integration
 - Python 源码编译检查通过
 - `app.main` 和 `frontend_cli.main` 导入通过
 - CLI `questions` 命令已包含 `accept` 和图片相关命令
+- 2026-05-07 分类筛选链路已重新验证：`/api/categories` 仅返回启用分类，`/api/questions`、`/api/search/questions` 和推荐结果均按启用分类口径返回
+- 2026-05-07 本地数据库已用真实 DeepSeek API 对历史停用分类问题完成批量重分类，原 `公网快照标签治理` 下 60 条问题已迁入标准启用分类
+- 2026-05-07 验证结果：非 `DELETED` 问题不存在停用分类残留，首页问题总数恢复为 81 条，分类筛选与“全部问题”口径一致
 
 推荐重新验证命令：
 
@@ -50,6 +53,7 @@ backup-local-before-collab-integration
 powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 python -B -c "import app.main; import frontend_cli.main; print('imports ok')"
 python -B -m frontend_cli.main questions --help
+python .\scripts\reclassify_question_categories.py --scope inactive --limit 5
 ```
 
 ## 3. 环境启动顺序
@@ -87,7 +91,7 @@ API 启动后检查：
 - 产品介绍首页
 - 纯社区发帖
 - AI 首答提问
-- 发帖分类、已有标签、自定义标签、标签建议和 AI 自动标签
+- 发帖分类、AI 自动分类、已有标签、自定义标签、标签建议和 AI 自动标签
 - 人工回答
 - 采纳答案
 - 问题收藏
@@ -144,6 +148,9 @@ python -m frontend_cli.main menu
 - 统计字段优先由数据库触发器维护，不应在 Python 里重复加减。
 - 推荐逻辑优先调用数据库包 `qa_app_pkg`，不要在 Python 服务层复制一套推荐算法。
 - 当前推荐 API 入参和出参保持不变，画像和推荐评分增强集中在数据库包体内部。
+- 公共分类列表只展示 `ACTIVE` 分类。
+- 公共问题列表、搜索结果和推荐结果也必须只返回启用分类下的问题，避免停用分类出现在首页但无法被筛选。
+- 历史停用分类问题不应直接隐藏或删除，优先使用 `scripts/reclassify_question_categories.py` 迁移到标准启用分类。
 
 ## 6. 数据库交接重点
 
@@ -170,11 +177,26 @@ sql/migrations/20260429_add_deleted_question_status.sql
 sql/migrations/20260429_limit_media_asset_file_size.sql
 sql/migrations/20260502_improve_recommendation_scoring.sql
 sql/migrations/20260503_refresh_reporting_views.sql
+sql/migrations/20260507_standardize_question_categories.sql
 ```
 
 推荐增强迁移 `20260502_improve_recommendation_scoring.sql` 只替换 `qa_app_pkg` 包体，不修改表结构和现有 API。当前推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚共同组成。
 
 视图刷新迁移 `20260503_refresh_reporting_views.sql` 用于把报表和展示视图落到已有数据库中，覆盖问题概览、热榜、标签明细、用户行为汇总、媒体明细和 AI 追问会话汇总等查询口径。
+
+分类标准化迁移 `20260507_standardize_question_categories.sql` 用于把历史 `oracle`、`ai` 演示分类收敛到通用问答社区分类，并补齐技术开发、人工智能、学习教育、职场发展、生活方式、健康运动、旅行户外、美食烹饪、家居数码、财经理财、文化娱乐、创作设计和其他问题等标准分类。
+
+历史问题 AI 重分类脚本：
+
+```powershell
+# 只预览停用/缺失分类的问题，不写库
+python .\scripts\reclassify_question_categories.py --scope inactive --limit 10
+
+# 调用真实 DeepSeek API 并写回本地数据库
+python .\scripts\reclassify_question_categories.py --scope inactive --apply
+```
+
+脚本默认 dry-run，只有加 `--apply` 才会更新 `QUESTIONS.CATEGORY_ID`。建议先处理 `--scope inactive`，不要轻易对全部问题使用 `--scope all`，除非明确需要重新校准所有历史分类。
 
 采纳答案相关约束要点：
 
