@@ -25,7 +25,7 @@ class SearchService:
         user_id: int | None = None,
         category_id: int | None = None,
         tag_id: int | None = None,
-        status: str | None = "OPEN",
+        status: str | None = None,
     ) -> QuestionListResponse:
         keyword = q.strip()
         if not keyword:

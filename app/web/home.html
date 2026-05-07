@@ -748,6 +748,46 @@
             border-top: 1px solid #e2e8f0;
         }
 
+        .category-mode-card {
+            padding: 14px 16px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: #f8fbff;
+        }
+
+        .category-mode-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .category-mode-title {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 800;
+        }
+
+        .category-mode-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.55;
+        }
+
+        .form-hint {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .form-hint.warning {
+            color: #b45309;
+            font-weight: 700;
+        }
+
         .tag-picker-empty {
             color: #94a3b8;
             font-size: 13px;
@@ -1234,10 +1274,22 @@
 
         <div class="form-field">
             <label>问题分类</label>
-            <select id="post-category" class="form-control">
-                <option value="">正在加载分类...</option>
-            </select>
-            <p class="form-hint">不手动选择时，系统会调用 AI 从现有分类中自动判断。</p>
+            <div class="category-mode-card">
+                <div class="category-mode-row">
+                    <div>
+                        <div class="category-mode-title">AI 自动分类</div>
+                        <div class="category-mode-desc">开启后，系统会从当前启用分类中自动判断最合适的一项。</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="post-auto-category" checked onchange="togglePostCategoryMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <select id="post-category" class="form-control" disabled onchange="updatePostCategoryPreview()">
+                    <option value="">正在加载分类...</option>
+                </select>
+                <p id="post-category-preview" class="form-hint">正在读取可用分类...</p>
+            </div>
         </div>
 
         <div class="tag-picker">
@@ -1454,6 +1506,11 @@
         return category?.category_name || '';
     }
 
+    function getCategoryById(categoryId) {
+        const id = Number(categoryId);
+        return availableCategories.find(item => Number(item.category_id) === id) || null;
+    }
+
     function getTagName(tagId) {
         const id = Number(tagId);
         const tag = availablePostTags.find(item => Number(item.tag_id) === id)
@@ -1515,20 +1572,68 @@
         const postSelect = document.getElementById('post-category');
         const categoryOptions = availableCategories
             .map(category => `
-                <option value="${Number(category.category_id)}">${escapeHtml(category.category_name)}</option>
+                <option value="${Number(category.category_id)}" title="${escapeHtml(category.description || category.category_name)}">${escapeHtml(category.category_name)}</option>
             `)
             .join('');
 
         if (filterSelect) {
             filterSelect.innerHTML = `<option value="">全部分类</option>${categoryOptions}`;
             filterSelect.value = currentCategoryFilter || '';
+            filterSelect.disabled = availableCategories.length === 0;
         }
         if (postSelect) {
             postSelect.innerHTML = availableCategories.length > 0
-                ? `<option value="">AI 自动分类</option>${categoryOptions}`
+                ? `<option value="">请选择分类</option>${categoryOptions}`
                 : '<option value="">暂无可用分类</option>';
         }
+        togglePostCategoryMode();
         updateFilterSummary();
+    }
+
+    function togglePostCategoryMode() {
+        const autoCheckbox = document.getElementById('post-auto-category');
+        const postSelect = document.getElementById('post-category');
+        if (!autoCheckbox || !postSelect) {
+            return;
+        }
+        const autoCategory = autoCheckbox.checked;
+        postSelect.disabled = autoCategory || availableCategories.length === 0;
+        if (autoCategory) {
+            postSelect.value = '';
+        }
+        updatePostCategoryPreview();
+    }
+
+    function updatePostCategoryPreview() {
+        const autoCheckbox = document.getElementById('post-auto-category');
+        const postSelect = document.getElementById('post-category');
+        const preview = document.getElementById('post-category-preview');
+        if (!preview) {
+            return;
+        }
+
+        preview.classList.remove('warning');
+        if (availableCategories.length === 0) {
+            preview.textContent = '当前没有启用分类，请联系管理员先启用或创建分类。';
+            preview.classList.add('warning');
+            return;
+        }
+
+        if (autoCheckbox?.checked) {
+            preview.textContent = `AI 将从 ${availableCategories.length} 个启用分类中自动判断。`;
+            return;
+        }
+
+        const category = getCategoryById(postSelect?.value);
+        if (!category) {
+            preview.textContent = '请选择一个分类，或重新开启 AI 自动分类。';
+            preview.classList.add('warning');
+            return;
+        }
+
+        preview.textContent = category.description
+            ? `已选择：${category.category_name}。${category.description}`
+            : `已选择：${category.category_name}。`;
     }
 
     async function loadCategories() {
@@ -2103,6 +2208,9 @@
         }
         loadPostTagOptions();
         updatePostContentCounter();
+        const autoCategory = document.getElementById('post-auto-category');
+        if (autoCategory) autoCategory.checked = true;
+        togglePostCategoryMode();
         setTimeout(() => document.getElementById('post-title')?.focus(), 0);
     }
 
@@ -2112,6 +2220,11 @@
         // 关闭时清空输入框
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
+        const autoCategory = document.getElementById('post-auto-category');
+        if (autoCategory) autoCategory.checked = true;
+        const categorySelect = document.getElementById('post-category');
+        if (categorySelect) categorySelect.value = '';
+        togglePostCategoryMode();
         updatePostContentCounter();
         resetPostTagSelection();
         resetPostImageSelection();
@@ -2501,8 +2614,16 @@
         }
 
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
+        const autoCategory = Boolean(document.getElementById('post-auto-category')?.checked);
         const categoryId = normalizePositiveId(document.getElementById('post-category')?.value);
-        const autoCategory = !categoryId;
+        if (availableCategories.length === 0) {
+            alert("❌ 当前没有可用分类，请联系管理员先启用或创建分类。");
+            return;
+        }
+        if (!autoCategory && !categoryId) {
+            alert("❌ 请选择问题分类，或开启 AI 自动分类。");
+            return;
+        }
         const imagesToUpload = [...selectedPostImages];
         const tagPayload = getPostTagPayload();
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');

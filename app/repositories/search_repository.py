@@ -3,9 +3,6 @@ from typing import Any
 
 import oracledb
 
-from app.core.category_catalog import active_category_exists_sql
-
-
 class SearchRepository:
     @staticmethod
     def _build_oracle_text_query(keyword: str) -> str | None:
@@ -65,6 +62,7 @@ class SearchRepository:
         status: str | None,
         use_oracle_text: bool = False,
     ) -> tuple[list[str], dict[str, Any]]:
+        keyword_lower = keyword.casefold()
         oracle_text_query = (
             SearchRepository._build_oracle_text_query(keyword)
             if use_oracle_text
@@ -76,25 +74,29 @@ class SearchRepository:
                 (
                     CONTAINS(q.title, :keyword_text_query, 1) > 0
                     OR CONTAINS(q.content, :keyword_text_query, 2) > 0
+                    OR LOWER(q.title) LIKE :keyword_like
+                    OR DBMS_LOB.INSTR(LOWER(q.content), :keyword_lower) > 0
                 )
                 """
             ]
-            binds: dict[str, Any] = {"keyword_text_query": oracle_text_query}
+            binds: dict[str, Any] = {
+                "keyword_text_query": oracle_text_query,
+                "keyword_like": f"%{keyword_lower}%",
+                "keyword_lower": keyword_lower,
+            }
         else:
             clauses = [
                 """
                 (
                     LOWER(q.title) LIKE :keyword_like
-                    OR DBMS_LOB.INSTR(LOWER(q.content), LOWER(:keyword)) > 0
+                    OR DBMS_LOB.INSTR(LOWER(q.content), :keyword_lower) > 0
                 )
                 """
             ]
             binds = {
-                "keyword": keyword,
-                "keyword_like": f"%{keyword.lower()}%",
+                "keyword_like": f"%{keyword_lower}%",
+                "keyword_lower": keyword_lower,
             }
-
-        clauses.append(active_category_exists_sql())
 
         if category_id is not None:
             clauses.append("q.category_id = :category_id")

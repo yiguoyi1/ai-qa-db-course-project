@@ -323,6 +323,11 @@
             white-space: nowrap;
         }
 
+        .btn:disabled {
+            opacity: 0.58;
+            cursor: not-allowed;
+        }
+
         .btn-primary {
             background: var(--primary);
             color: white;
@@ -399,6 +404,45 @@
 
         .muted {
             color: var(--text-muted);
+        }
+
+        .field-hint,
+        .char-counter {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .field-hint {
+            margin-top: 6px;
+        }
+
+        .char-counter {
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: var(--warning);
+        }
+
+        .char-counter.error {
+            color: var(--danger);
+            font-weight: 800;
+        }
+
+        tr.row-dirty td {
+            background: #f8fbff;
+        }
+
+        .dirty-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--warning);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 6px;
         }
 
         .empty,
@@ -1015,7 +1059,8 @@
                             <div class="form-row">
                                 <div class="field">
                                     <label for="new-category-name">分类名称</label>
-                                    <input id="new-category-name" maxlength="50" placeholder="例如 数据库">
+                                    <input id="new-category-name" maxlength="50" placeholder="例如 数据库" oninput="updateCategoryCreateCounters()">
+                                    <div id="new-category-name-counter" class="char-counter">0 / 50</div>
                                 </div>
                                 <div class="field small">
                                     <label for="new-category-status">状态</label>
@@ -1027,9 +1072,11 @@
                             </div>
                             <div style="margin-top:12px;">
                                 <label for="new-category-desc">描述</label>
-                                <textarea id="new-category-desc" maxlength="200" placeholder="可选，说明该分类适合哪些问题"></textarea>
+                                <textarea id="new-category-desc" maxlength="200" placeholder="可选，说明该分类适合哪些问题" oninput="updateCategoryCreateCounters()"></textarea>
+                                <div id="new-category-desc-counter" class="char-counter">0 / 200</div>
+                                <div class="field-hint">停用后的分类不会出现在首页筛选和普通用户发帖分类里。</div>
                             </div>
-                            <button class="btn btn-primary" style="margin-top:14px;" onclick="createCategory()">创建分类</button>
+                            <button id="create-category-btn" class="btn btn-primary" style="margin-top:14px;" onclick="createCategory()">创建分类</button>
                         </div>
                     </div>
                     <div class="panel">
@@ -1278,6 +1325,7 @@
             loginLogs: { page: 1, pageSize: 10, username: '', result: '' },
             operationLogs: { page: 1, pageSize: 10, username: '', opType: '' },
         };
+        const categoryOriginalById = {};
 
         const friendlyLabels = {
             USER: '普通用户',
@@ -1429,6 +1477,45 @@
             showToast.timer = setTimeout(() => {
                 toast.className = 'toast';
             }, 2800);
+        }
+
+        function updateCharCounter(counter, length, maxLength) {
+            if (!counter) return;
+            counter.classList.remove('warning', 'error');
+            if (length >= maxLength) {
+                counter.classList.add('error');
+            } else if (length >= Math.floor(maxLength * 0.9)) {
+                counter.classList.add('warning');
+            }
+            counter.textContent = `${length} / ${maxLength}`;
+        }
+
+        function updateCategoryCreateCounters() {
+            const nameInput = document.getElementById('new-category-name');
+            const descInput = document.getElementById('new-category-desc');
+            updateCharCounter(
+                document.getElementById('new-category-name-counter'),
+                nameInput?.value.length || 0,
+                50,
+            );
+            updateCharCounter(
+                document.getElementById('new-category-desc-counter'),
+                descInput?.value.length || 0,
+                200,
+            );
+        }
+
+        function setButtonBusy(button, isBusy, busyText) {
+            if (!button) return;
+            if (isBusy) {
+                button.dataset.originalText = button.textContent;
+                button.textContent = busyText;
+                button.disabled = true;
+                return;
+            }
+            button.textContent = button.dataset.originalText || button.textContent;
+            button.disabled = false;
+            delete button.dataset.originalText;
         }
 
         function getFriendlyAdminError(message) {
@@ -1678,11 +1765,18 @@
             const categoryName = document.getElementById('new-category-name').value.trim();
             const description = document.getElementById('new-category-desc').value.trim();
             const statusValue = document.getElementById('new-category-status').value;
+            const createButton = document.getElementById('create-category-btn');
+            updateCategoryCreateCounters();
             if (!categoryName) {
                 showToast('分类名称不能为空。', true);
                 return;
             }
+            if (categoryName.length > 50 || description.length > 200) {
+                showToast('分类名称或描述超过长度限制，请精简后再提交。', true);
+                return;
+            }
             try {
+                setButtonBusy(createButton, true, '创建中...');
                 await adminFetch('/api/admin/categories', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1694,10 +1788,13 @@
                 });
                 document.getElementById('new-category-name').value = '';
                 document.getElementById('new-category-desc').value = '';
+                updateCategoryCreateCounters();
                 showToast('分类已创建。');
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
                 showToast(getFriendlyAdminError(error.message), true);
+            } finally {
+                setButtonBusy(createButton, false);
             }
         }
 
@@ -1716,10 +1813,18 @@
 
         function renderCategories(data) {
             const items = data.items || [];
+            Object.keys(categoryOriginalById).forEach(key => delete categoryOriginalById[key]);
             if (items.length === 0) {
                 document.getElementById('categories-table').innerHTML = '<div class="empty">暂无分类数据</div>';
                 return;
             }
+            items.forEach(category => {
+                categoryOriginalById[category.category_id] = {
+                    name: category.category_name || '',
+                    description: category.description || '',
+                    status: category.status || 'ACTIVE',
+                };
+            });
             document.getElementById('categories-table').innerHTML = `
                 <div class="table-wrap">
                     <table style="min-width: 640px;">
@@ -1734,24 +1839,54 @@
                         </thead>
                         <tbody>
                             ${items.map(category => `
-                                <tr>
+                                <tr id="category-row-${category.category_id}">
                                     <td>${category.category_id}</td>
-                                    <td><input class="inline-input" id="category-name-${category.category_id}" value="${escapeHtml(category.category_name)}"></td>
-                                    <td><input class="inline-input" id="category-desc-${category.category_id}" value="${escapeHtml(category.description || '')}"></td>
+                                    <td>
+                                        <input class="inline-input" id="category-name-${category.category_id}" maxlength="50" value="${escapeHtml(category.category_name)}" oninput="markCategoryDirty(${category.category_id})">
+                                        <div id="category-dirty-${category.category_id}" class="dirty-dot" style="display:none;">有未保存修改</div>
+                                    </td>
+                                    <td><input class="inline-input" id="category-desc-${category.category_id}" maxlength="200" value="${escapeHtml(category.description || '')}" oninput="markCategoryDirty(${category.category_id})"></td>
                                     <td>
                                         ${badge(category.status, { ACTIVE: '启用', INACTIVE: '停用' })}
-                                        <select class="inline-select" id="category-status-${category.category_id}">
+                                        <select class="inline-select" id="category-status-${category.category_id}" onchange="markCategoryDirty(${category.category_id})">
                                             <option value="ACTIVE" ${category.status === 'ACTIVE' ? 'selected' : ''}>启用</option>
                                             <option value="INACTIVE" ${category.status === 'INACTIVE' ? 'selected' : ''}>停用</option>
                                         </select>
                                     </td>
-                                    <td><button class="btn btn-primary" onclick="updateCategory(${category.category_id})">保存</button></td>
+                                    <td><button id="category-save-${category.category_id}" class="btn btn-primary" onclick="updateCategory(${category.category_id})" disabled>保存</button></td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
+        }
+
+        function getCategoryDraft(categoryId) {
+            return {
+                name: document.getElementById(`category-name-${categoryId}`)?.value.trim() || '',
+                description: document.getElementById(`category-desc-${categoryId}`)?.value.trim() || '',
+                status: document.getElementById(`category-status-${categoryId}`)?.value || '',
+            };
+        }
+
+        function isCategoryDirty(categoryId) {
+            const original = categoryOriginalById[categoryId];
+            if (!original) return false;
+            const draft = getCategoryDraft(categoryId);
+            return draft.name !== original.name
+                || draft.description !== original.description
+                || draft.status !== original.status;
+        }
+
+        function markCategoryDirty(categoryId) {
+            const isDirty = isCategoryDirty(categoryId);
+            const row = document.getElementById(`category-row-${categoryId}`);
+            const dirtyHint = document.getElementById(`category-dirty-${categoryId}`);
+            const saveButton = document.getElementById(`category-save-${categoryId}`);
+            if (row) row.classList.toggle('row-dirty', isDirty);
+            if (dirtyHint) dirtyHint.style.display = isDirty ? 'inline-flex' : 'none';
+            if (saveButton) saveButton.disabled = !isDirty;
         }
 
         function applyCategoryFilters() {
@@ -1771,14 +1906,22 @@
         }
 
         async function updateCategory(categoryId) {
-            const name = document.getElementById(`category-name-${categoryId}`).value.trim();
-            const description = document.getElementById(`category-desc-${categoryId}`).value.trim();
-            const statusValue = document.getElementById(`category-status-${categoryId}`).value;
+            const { name, description, status: statusValue } = getCategoryDraft(categoryId);
+            const saveButton = document.getElementById(`category-save-${categoryId}`);
             if (!name) {
                 showToast('分类名称不能为空。', true);
                 return;
             }
+            if (!isCategoryDirty(categoryId)) {
+                showToast('分类信息没有变化，无需保存。');
+                return;
+            }
+            if (name.length > 50 || description.length > 200) {
+                showToast('分类名称或描述超过长度限制，请精简后再保存。', true);
+                return;
+            }
             try {
+                setButtonBusy(saveButton, true, '保存中...');
                 await adminFetch(`/api/admin/categories/${categoryId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -1792,6 +1935,8 @@
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
                 showToast(getFriendlyAdminError(error.message), true);
+                setButtonBusy(saveButton, false);
+                markCategoryDirty(categoryId);
             }
         }
 
