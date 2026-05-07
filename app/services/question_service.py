@@ -113,6 +113,80 @@ class QuestionService:
             self._attach_answer_images(connection, question["answers"])
             return QuestionDetailResponse(**question)
 
+    def generate_ai_answer_for_question(
+        self,
+        *,
+        question_id: int,
+        current_user_id: int,
+    ) -> QuestionDetailResponse:
+        if question_id <= 0:
+            raise ValidationError("question_id must be greater than 0.")
+
+        with get_connection() as connection:
+            try:
+                question = self._question_repository.get_question_detail(
+                    connection,
+                    question_id,
+                    current_user_id=current_user_id,
+                )
+                if question is None or question["status"] == "DELETED":
+                    raise NotFoundError(f"Question {question_id} was not found.")
+                if int(question["user_id"]) != int(current_user_id):
+                    raise ValidationError("只有问题作者可以为该问题生成 AI 首答。")
+
+                images = self._media_repository.list_active_media_by_owner(
+                    connection,
+                    owner_type="QUESTION",
+                    owner_id=question_id,
+                )
+                generated_answer = self._get_ai_answer_service().generate_single_answer(
+                    title=question["title"],
+                    content=question["content"],
+                    image_contexts=self._build_question_image_contexts(images),
+                )
+                self._answer_repository.create_ai_answer(
+                    connection=connection,
+                    question_id=question_id,
+                    provider_name=generated_answer.provider_name,
+                    content=generated_answer.content,
+                    model_name=generated_answer.model_name,
+                )
+                self._log_repository.create_prompt_log(
+                    connection=connection,
+                    question_id=question_id,
+                    prompt_text=generated_answer.prompt_text,
+                    response_text=generated_answer.content,
+                    token_usage=generated_answer.token_usage,
+                    model_name=generated_answer.model_name,
+                )
+                connection.commit()
+            except oracledb.DatabaseError as exc:
+                connection.rollback()
+                raise self._translate_database_error(exc) from exc
+            except Exception:
+                connection.rollback()
+                raise
+
+            refreshed_question = self._question_repository.get_question_detail(
+                connection,
+                question_id,
+                current_user_id=current_user_id,
+            )
+            if refreshed_question is None:
+                raise NotFoundError("AI answer was created but the question could not be reloaded.")
+
+            refreshed_question["images"] = self._media_repository.list_active_media_by_owner(
+                connection,
+                owner_type="QUESTION",
+                owner_id=question_id,
+            )
+            refreshed_question["answers"] = self._answer_repository.list_answers_by_question(
+                connection,
+                question_id,
+            )
+            self._attach_answer_images(connection, refreshed_question["answers"])
+            return QuestionDetailResponse(**refreshed_question)
+
     def get_question_detail(
         self,
         question_id: int,
@@ -214,6 +288,19 @@ class QuestionService:
                 owner_type="ANSWER",
                 owner_id=answer["answer_id"],
             )
+
+    @staticmethod
+    def _build_question_image_contexts(images: list[dict]) -> list[str]:
+        contexts: list[str] = []
+        for index, image in enumerate(images, start=1):
+            name = image.get("original_file_name") or image.get("file_name") or f"图片 {index}"
+            mime_type = image.get("mime_type") or "未知格式"
+            public_url = image.get("public_url") or ""
+            size = image.get("file_size")
+            size_text = f"，大小 {int(size)} 字节" if size is not None else ""
+            url_text = f"，链接：{public_url}" if public_url else ""
+            contexts.append(f"第 {index} 张：文件名 {name}，格式 {mime_type}{size_text}{url_text}")
+        return contexts
 
     def _attach_question_tags(
         self,

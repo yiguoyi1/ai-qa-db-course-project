@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.router import api_router
 from app.api.routes import auth
@@ -38,6 +40,16 @@ async def add_security_headers(request, call_next):
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("X-Frame-Options", "DENY")
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):  # noqa: ARG001
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "提交字段不符合要求，请检查必填项、长度和格式后再试。"
+        },
+    )
 
 
 @app.get("/health")

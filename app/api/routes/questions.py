@@ -132,6 +132,25 @@ def accept_answer(
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
+@router.post(
+    "/{question_id}/ai-answer",
+    response_model=QuestionDetailResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def generate_ai_answer_for_question(
+    question_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    service: QuestionService = Depends(get_question_service),
+) -> QuestionDetailResponse:
+    try:
+        return service.generate_ai_answer_for_question(
+            question_id=question_id,
+            current_user_id=current_user_id,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
 @router.post("")
 def create_community_question(
     payload: QuestionCreate,

@@ -153,6 +153,7 @@ def list_users(
     page_size: int = Query(default=20, ge=1, le=100),
     role: str | None = Query(default=None),
     status_filter: str | None = Query(default=None, alias="status"),
+    username: str | None = Query(default=None, max_length=50),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
 ) -> AdminUserListResponse:
@@ -162,6 +163,7 @@ def list_users(
             page_size=page_size,
             role=role,
             status=status_filter,
+            username=username,
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
@@ -176,6 +178,7 @@ def list_login_logs(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     user_id: int | None = Query(default=None, gt=0),
+    username: str | None = Query(default=None, max_length=50),
     result: str | None = Query(default=None),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
@@ -185,6 +188,7 @@ def list_login_logs(
             page=page,
             page_size=page_size,
             user_id=user_id,
+            username=username,
             result=result,
         )
     except AppError as exc:
@@ -200,6 +204,7 @@ def list_operation_logs(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     user_id: int | None = Query(default=None, gt=0),
+    username: str | None = Query(default=None, max_length=50),
     op_type: str | None = Query(default=None),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
@@ -209,6 +214,7 @@ def list_operation_logs(
             page=page,
             page_size=page_size,
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
     except AppError as exc:

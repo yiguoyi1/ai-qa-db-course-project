@@ -56,7 +56,19 @@ COMMUNITY_QA_FOLLOW_UP_SYSTEM_PROMPT = """
 """.strip()
 
 
-def build_question_answer_messages(title: str, content: str) -> list[dict[str, str]]:
+def build_question_answer_messages(
+    title: str,
+    content: str,
+    image_contexts: list[str] | None = None,
+) -> list[dict[str, str]]:
+    image_block = ""
+    if image_contexts:
+        image_block = (
+            "\n问题配图信息：\n"
+            + "\n".join(f"- {item}" for item in image_contexts)
+            + "\n请结合问题文字和配图信息作答；如果当前模型无法直接识别图片细节，请明确说明不能确认图片内容，并基于已知文字和图片文件信息给出有用建议。\n"
+        )
+
     return [
         {
             "role": "system",
@@ -67,6 +79,7 @@ def build_question_answer_messages(title: str, content: str) -> list[dict[str, s
             "content": (
                 f"问题标题：{title}\n"
                 f"问题内容：{content}\n"
+                f"{image_block}"
                 "请为这个问答社区问题生成一条首答。"
             ),
         },

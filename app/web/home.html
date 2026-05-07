@@ -629,6 +629,23 @@
 
         textarea.form-control { resize: vertical; line-height: 1.65; }
 
+        .char-counter {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: #b45309;
+        }
+
+        .char-counter.error {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
         .tag-picker {
             margin-bottom: 22px;
             padding: 16px;
@@ -1211,7 +1228,8 @@
 
         <div class="form-field">
             <label>详细描述 <span class="required">*</span></label>
-            <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control"></textarea>
+            <textarea id="post-content" rows="5" maxlength="10000" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control" oninput="updatePostContentCounter()"></textarea>
+            <div id="post-content-counter" class="char-counter">0 / 10000</div>
         </div>
 
         <div class="form-field">
@@ -2086,6 +2104,7 @@
             renderCategoryControls();
         }
         loadPostTagOptions();
+        updatePostContentCounter();
         setTimeout(() => document.getElementById('post-title')?.focus(), 0);
     }
 
@@ -2095,8 +2114,29 @@
         // 关闭时清空输入框
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
+        updatePostContentCounter();
         resetPostTagSelection();
         resetPostImageSelection();
+    }
+
+    function updateCharCounter(counter, length, maxLength, label) {
+        if (!counter) return;
+        counter.classList.remove('warning', 'error');
+        if (length >= maxLength) {
+            counter.classList.add('error');
+        } else if (length >= Math.floor(maxLength * 0.9)) {
+            counter.classList.add('warning');
+        }
+        const extra = length >= maxLength
+            ? `，${label}已到上限，不能继续输入。`
+            : '';
+        counter.textContent = `${length} / ${maxLength}${extra}`;
+    }
+
+    function updatePostContentCounter() {
+        const textarea = document.getElementById('post-content');
+        const counter = document.getElementById('post-content-counter');
+        updateCharCounter(counter, textarea?.value.length || 0, 10000, '详细描述');
     }
 
     function getPostTagTotal() {
@@ -2411,6 +2451,32 @@
         }
     }
 
+    async function readErrorDetail(response) {
+        const data = await response.json().catch(() => ({}));
+        if (typeof data.detail === 'string') return data.detail;
+        if (Array.isArray(data.detail)) {
+            return data.detail
+                .map(item => item?.msg || item?.message || '')
+                .filter(Boolean)
+                .join('；');
+        }
+        return data.message || '';
+    }
+
+    function getFriendlyQuestionError(response, detail) {
+        const text = String(detail || '');
+        if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
+            return '发布字段不符合要求：标题、正文、分类和标签请按页面提示填写，正文最多 10000 字。';
+        }
+        if (text.includes('content') && text.includes('10000')) {
+            return '详细描述不能超过 10000 字，请精简后再发布。';
+        }
+        if (response.status >= 500) {
+            return '服务暂时异常，请稍后重试或联系管理员。';
+        }
+        return text || `请求失败（${response.status}）`;
+    }
+
     // 🌟 核心：提交帖子到后端
     async function submitQuestion() {
         const token = sessionStorage.getItem('access_token');
@@ -2421,6 +2487,7 @@
 
         const titleInput = document.getElementById('post-title').value.trim();
         const contentInput = document.getElementById('post-content').value.trim();
+        updatePostContentCounter();
 
         if (!titleInput) {
             alert("❌ 标题不能为空哦！");
@@ -2428,6 +2495,10 @@
         }
         if (!contentInput) {
             alert("❌ 详细描述不能为空哦！");
+            return;
+        }
+        if (contentInput.length > 10000) {
+            alert("❌ 详细描述不能超过 10000 字，请精简后再发布。");
             return;
         }
 
@@ -2447,7 +2518,9 @@
             let apiUrl = buildApiUrl('/api/questions');
             let requestBody = { category_id: categoryId, title: titleInput, content: contentInput, ...tagPayload };
 
-            if (useAi) {
+            const generateAiAfterImageUpload = useAi && imagesToUpload.length > 0;
+
+            if (useAi && !generateAiAfterImageUpload) {
                 // 如果开启了 AI，走原作者带 AI 生成的专属通道
                 apiUrl = buildApiUrl('/api/questions/ask');
                 // 这个通道的标准比较严格，需要补齐参数
@@ -2460,7 +2533,7 @@
             }
 
             // UI 提示变成加载中，因为 AI 生成需要几秒钟
-            submitBtn.innerText = useAi ? '🤖 AI 正在思考中...' : '发布中...';
+            submitBtn.innerText = useAi && !generateAiAfterImageUpload ? '🤖 AI 正在思考中...' : '发布中...';
             submitBtn.disabled = true;
 
             const response = await fetch(apiUrl, {
@@ -2488,6 +2561,25 @@
                     }
                 }
 
+                if (questionId && generateAiAfterImageUpload) {
+                    submitBtn.innerText = '🤖 AI 正在结合配图生成回答...';
+                    try {
+                        const aiResponse = await fetch(buildApiUrl(`/api/questions/${questionId}/ai-answer`), {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (!aiResponse.ok) {
+                            const detail = await readErrorDetail(aiResponse);
+                            throw new Error(getFriendlyQuestionError(aiResponse, detail));
+                        }
+                    } catch (aiError) {
+                        console.error(aiError);
+                        alert(`问题和图片已发布，但 AI 首答生成失败：${aiError.message}`);
+                    }
+                }
+
                 closePostModal();
                 if (questionId && imagesToUpload.length > 0) {
                     window.location.href = `${DETAIL_PAGE_BASE}/${questionId}`;
@@ -2497,8 +2589,8 @@
             } else if (response.status === 401) {
                 redirectToLogin('登录状态已失效，请重新登录。');
             } else {
-                const errorData = await response.json();
-                alert("❌ 发布失败: " + JSON.stringify(errorData));
+                const detail = await readErrorDetail(response);
+                alert("❌ 发布失败: " + getFriendlyQuestionError(response, detail));
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
             }

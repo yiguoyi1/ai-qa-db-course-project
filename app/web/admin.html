@@ -989,6 +989,10 @@
                                     <option value="DISABLED">已停用</option>
                                 </select>
                             </div>
+                            <div class="field">
+                                <label for="user-keyword-filter">用户名</label>
+                                <input id="user-keyword-filter" type="text" maxlength="50" placeholder="输入用户名快速定位">
+                            </div>
                             <button class="btn btn-primary" onclick="applyUserFilters()">筛选</button>
                             <button class="btn btn-outline" onclick="resetUserFilters()">重置</button>
                         </div>
@@ -1194,8 +1198,8 @@
                         <div class="panel-body">
                             <div class="filters">
                                 <div class="field small">
-                                    <label for="login-log-user-id">用户 ID</label>
-                                    <input id="login-log-user-id" type="number" min="1" placeholder="可选">
+                                    <label for="login-log-username">用户名</label>
+                                    <input id="login-log-username" type="text" maxlength="50" placeholder="可选">
                                 </div>
                                 <div class="field small">
                                     <label for="login-log-result">结果</label>
@@ -1224,8 +1228,8 @@
                         <div class="panel-body">
                             <div class="filters">
                                 <div class="field small">
-                                    <label for="operation-log-user-id">管理员 ID</label>
-                                    <input id="operation-log-user-id" type="number" min="1" placeholder="可选">
+                                    <label for="operation-log-username">管理员用户名</label>
+                                    <input id="operation-log-username" type="text" maxlength="50" placeholder="可选">
                                 </div>
                                 <div class="field">
                                     <label for="operation-log-type">操作类型</label>
@@ -1267,12 +1271,12 @@
 
         const state = {
             currentSection: 'overview',
-            users: { page: 1, pageSize: 10, role: '', status: '' },
+            users: { page: 1, pageSize: 10, role: '', status: '', username: '' },
             categories: { page: 1, pageSize: 8, status: '' },
             tags: { page: 1, pageSize: 10, source: '', status: '', keyword: '' },
             contentQuestions: { page: 1, pageSize: 6, status: '' },
-            loginLogs: { page: 1, pageSize: 10, userId: '', result: '' },
-            operationLogs: { page: 1, pageSize: 10, userId: '', opType: '' },
+            loginLogs: { page: 1, pageSize: 10, username: '', result: '' },
+            operationLogs: { page: 1, pageSize: 10, username: '', opType: '' },
         };
 
         const friendlyLabels = {
@@ -1427,6 +1431,27 @@
             }, 2800);
         }
 
+        function getFriendlyAdminError(message) {
+            const detail = String(message || '').trim();
+            const mappings = [
+                ['You cannot remove your own ADMIN role', '不能把自己的管理员角色改为普通用户。'],
+                ['The last ADMIN account cannot be demoted', '最后一个有效管理员不能被改为普通用户。'],
+                ['An admin cannot deactivate their own current account', '不能停用或锁定自己的当前管理员账号。'],
+                ['The last ADMIN account must remain ACTIVE', '最后一个有效管理员必须保持正常状态。'],
+                ['User role is already set to the requested value', '用户角色已经是所选值，无需重复修改。'],
+                ['User status is already set to the requested value', '用户状态已经是所选值，无需重复修改。'],
+                ['Comment status is already set to the requested value', '评论状态已经是所选值，无需重复修改。'],
+                ['Category name already exists', '分类名称已存在，请换一个名称。'],
+                ['No category fields changed', '分类信息没有变化，无需重复保存。'],
+                ['status must be ACTIVE or HIDDEN', '评论状态只能选择正常展示或已隐藏。'],
+                ['请求失败：422', '提交字段不符合要求，请检查后再试。'],
+            ];
+            for (const [needle, replacement] of mappings) {
+                if (detail.includes(needle)) return replacement;
+            }
+            return detail || '操作失败，请稍后重试。';
+        }
+
         function setLoading(targetId, message) {
             document.getElementById(targetId).innerHTML = `<div class="loading">${message}</div>`;
         }
@@ -1462,7 +1487,7 @@
 
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                throw new Error(err.detail || `请求失败：${response.status}`);
+                throw new Error(getFriendlyAdminError(err.detail || `请求失败：${response.status}`));
             }
 
             return response.json();
@@ -1534,6 +1559,7 @@
                     page_size: state.users.pageSize,
                     role: state.users.role,
                     status: state.users.status,
+                    username: state.users.username,
                 },
             });
             renderUsers(data);
@@ -1602,12 +1628,14 @@
             state.users.page = 1;
             state.users.role = document.getElementById('user-role-filter').value;
             state.users.status = document.getElementById('user-status-filter').value;
+            state.users.username = document.getElementById('user-keyword-filter').value.trim();
             loadUsers();
         }
 
         function resetUserFilters() {
             document.getElementById('user-role-filter').value = '';
             document.getElementById('user-status-filter').value = '';
+            document.getElementById('user-keyword-filter').value = '';
             applyUserFilters();
         }
 
@@ -1627,7 +1655,7 @@
                 showToast('用户状态已更新。');
                 await Promise.all([loadUsers(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1642,7 +1670,7 @@
                 showToast('用户角色已更新。');
                 await Promise.all([loadUsers(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1669,7 +1697,7 @@
                 showToast('分类已创建。');
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1763,7 +1791,7 @@
                 showToast('分类已更新。');
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1875,7 +1903,7 @@
                 showToast('标签已更新，普通用户发帖可见范围会同步变化。');
                 await loadTags();
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -2072,7 +2100,7 @@
                 showToast('问题状态已更新。');
                 await loadOperationLogs();
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -2114,7 +2142,7 @@
                 }
                 await Promise.allSettled([loadContentQuestions(), loadOperationLogs(), loadOverview()]);
             } catch (error) {
-                showToast(error.message || '删除问题失败。', true);
+                showToast(getFriendlyAdminError(error.message || '删除问题失败。'), true);
             }
         }
 
@@ -2135,7 +2163,7 @@
                 showToast('评论状态已更新。');
                 await loadOperationLogs();
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -2145,7 +2173,7 @@
                 params: {
                     page: state.loginLogs.page,
                     page_size: state.loginLogs.pageSize,
-                    user_id: state.loginLogs.userId,
+                    username: state.loginLogs.username,
                     result: state.loginLogs.result,
                 },
             });
@@ -2181,13 +2209,13 @@
 
         function applyLoginLogFilters() {
             state.loginLogs.page = 1;
-            state.loginLogs.userId = document.getElementById('login-log-user-id').value;
+            state.loginLogs.username = document.getElementById('login-log-username').value.trim();
             state.loginLogs.result = document.getElementById('login-log-result').value;
             loadLoginLogs();
         }
 
         function resetLoginLogFilters() {
-            document.getElementById('login-log-user-id').value = '';
+            document.getElementById('login-log-username').value = '';
             document.getElementById('login-log-result').value = '';
             applyLoginLogFilters();
         }
@@ -2203,7 +2231,7 @@
                 params: {
                     page: state.operationLogs.page,
                     page_size: state.operationLogs.pageSize,
-                    user_id: state.operationLogs.userId,
+                    username: state.operationLogs.username,
                     op_type: state.operationLogs.opType,
                 },
             });
@@ -2239,13 +2267,13 @@
 
         function applyOperationLogFilters() {
             state.operationLogs.page = 1;
-            state.operationLogs.userId = document.getElementById('operation-log-user-id').value;
+            state.operationLogs.username = document.getElementById('operation-log-username').value.trim();
             state.operationLogs.opType = document.getElementById('operation-log-type').value;
             loadOperationLogs();
         }
 
         function resetOperationLogFilters() {
-            document.getElementById('operation-log-user-id').value = '';
+            document.getElementById('operation-log-username').value = '';
             document.getElementById('operation-log-type').value = '';
             applyOperationLogFilters();
         }
@@ -2270,7 +2298,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
                 if (String(error.message).includes('管理员') || String(error.message).includes('无权访问')) {
                     setTimeout(() => {
                         window.location.href = HOME_PAGE_URL;

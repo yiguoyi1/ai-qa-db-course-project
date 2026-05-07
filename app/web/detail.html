@@ -783,6 +783,22 @@
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
+        .char-counter {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: #b45309;
+        }
+
+        .char-counter.error {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
         .comment-composer-footer {
             margin-top: 10px;
             display: flex;
@@ -1708,7 +1724,8 @@
                 <h3 class="answer-composer-title">💡 撰写你的回答</h3>
                 <p id="answer-composer-hint" class="answer-composer-hint">当前问题开放回答中，可以继续补充你的思路。</p>
 
-                <textarea id="my-answer-content" rows="6" placeholder="分享你的知识和见解..." class="answer-textarea"></textarea>
+                <textarea id="my-answer-content" rows="6" maxlength="10000" placeholder="分享你的知识和见解..." class="answer-textarea" oninput="updateAnswerContentCounter()"></textarea>
+                <div id="answer-content-counter" class="char-counter" style="margin-top:-10px; margin-bottom:14px;">0 / 10000</div>
 
                 <div class="media-uploader">
                     <div class="media-uploader-title">
@@ -1746,6 +1763,64 @@
                 }
             });
             return url.toString();
+        }
+
+        function extractErrorDetail(data) {
+            if (!data) return '';
+            if (typeof data.detail === 'string') return data.detail.trim();
+            if (typeof data.message === 'string') return data.message.trim();
+            if (Array.isArray(data.detail)) {
+                return data.detail
+                    .map(item => item?.msg || item?.message || '')
+                    .filter(Boolean)
+                    .join('；');
+            }
+            return '';
+        }
+
+        async function readErrorDetail(response) {
+            const data = await response.json().catch(() => ({}));
+            return extractErrorDetail(data);
+        }
+
+        function getFriendlyDetailError(response, detail, targetName) {
+            const text = String(detail || '');
+            const limit = targetName === '评论' ? '2000' : '10000';
+            if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
+                return `${targetName}内容不符合要求，请确认不为空且不超过 ${limit} 字。`;
+            }
+            if (text.includes('max_length') || text.includes(limit)) {
+                return `${targetName}内容不能超过 ${limit} 字，请精简后再发布。`;
+            }
+            if (response.status >= 500) {
+                return '服务暂时异常，请稍后重试或联系管理员。';
+            }
+            return text || `请求失败（${response.status}）`;
+        }
+
+        function updateCharCounter(counter, length, maxLength, label) {
+            if (!counter) return;
+            counter.classList.remove('warning', 'error');
+            if (length >= maxLength) {
+                counter.classList.add('error');
+            } else if (length >= Math.floor(maxLength * 0.9)) {
+                counter.classList.add('warning');
+            }
+            const extra = length >= maxLength
+                ? `，${label}已到上限，不能继续输入。`
+                : '';
+            counter.textContent = `${length} / ${maxLength}${extra}`;
+        }
+
+        function updateAnswerContentCounter() {
+            const textarea = document.getElementById('my-answer-content');
+            const counter = document.getElementById('answer-content-counter');
+            updateCharCounter(counter, textarea?.value.length || 0, 10000, '回答内容');
+        }
+
+        function updateCommentContentCounter(textareaId, value) {
+            const counter = document.getElementById(`${textareaId}-counter`);
+            updateCharCounter(counter, String(value || '').length, 2000, '评论内容');
         }
 
         function clearSession() {
@@ -2095,6 +2170,7 @@
                 submitButton.innerText = loggedIn ? '发 布 回 答' : '登录后回答';
                 submitButton.style.opacity = '1';
                 submitButton.style.cursor = 'pointer';
+                updateAnswerContentCounter();
                 return;
             }
 
@@ -2104,6 +2180,7 @@
             hint.innerText = lockedMessage;
             textarea.placeholder = lockedMessage;
             textarea.value = '';
+            updateAnswerContentCounter();
             submitButton.innerText = '当前不可回答';
             submitButton.style.opacity = '0.65';
             submitButton.style.cursor = 'not-allowed';
@@ -2604,11 +2681,13 @@
         function updateCommentDraft(answerId, value) {
             const state = getCommentState(answerId);
             state.draft = value;
+            updateCommentContentCounter(`comment-textarea-${answerId}`, value);
         }
 
         function updateReplyDraft(answerId, commentId, value) {
             const state = getCommentState(answerId);
             state.replyDrafts[commentId] = value;
+            updateCommentContentCounter(`reply-textarea-${answerId}-${commentId}`, value);
         }
 
         function toggleReplyThread(answerId, commentId) {
@@ -2672,6 +2751,11 @@
             const textareaId = parentCommentId === null
                 ? `comment-textarea-${answerId}`
                 : `reply-textarea-${answerId}-${parentCommentId}`;
+            const draftLength = draft.length;
+            const counterClass = draftLength >= 2000
+                ? 'char-counter error'
+                : (draftLength >= 1800 ? 'char-counter warning' : 'char-counter');
+            const counterText = `${draftLength} / 2000${draftLength >= 2000 ? '，评论内容已到上限，不能继续输入。' : ''}`;
             const onInputCall = parentCommentId === null
                 ? `updateCommentDraft(${answerId}, this.value)`
                 : `updateReplyDraft(${answerId}, ${parentCommentId}, this.value)`;
@@ -2685,7 +2769,8 @@
             return `
                 <div class="comment-composer">
                     <p class="comment-composer-title">${escapeHtml(title)}</p>
-                    <textarea id="${textareaId}" class="comment-textarea" placeholder="${escapeAttr(placeholder)}" oninput="${onInputCall}">${escapeHtml(draft)}</textarea>
+                    <textarea id="${textareaId}" class="comment-textarea" maxlength="2000" placeholder="${escapeAttr(placeholder)}" oninput="${onInputCall}">${escapeHtml(draft)}</textarea>
+                    <div id="${textareaId}-counter" class="${counterClass}">${counterText}</div>
                     <div class="comment-composer-footer">
                         <span class="comment-composer-hint">支持换行，发布后会立即出现在当前回答下。</span>
                         <div class="comment-composer-actions">
@@ -2972,6 +3057,10 @@
                 alert('评论内容不能为空。');
                 return;
             }
+            if (content.length > 2000) {
+                alert('评论内容不能超过 2000 字，请精简后再发布。');
+                return;
+            }
 
             if (!currentUserId || !token) {
                 redirectToLogin('请先登录后再发表评论。');
@@ -3017,7 +3106,7 @@
                     return;
                 } else {
                     const err = await response.json().catch(() => ({}));
-                    alert(`❌ 发布评论失败: ${err.detail || response.status}`);
+                    alert(`❌ 发布评论失败: ${getFriendlyDetailError(response, extractErrorDetail(err), '评论')}`);
                 }
             } catch (error) {
                 console.error('发布评论失败:', error);
@@ -3863,7 +3952,7 @@
                 if (response.ok) {
                     localStorage.setItem('user_center_active_tab', 'questions');
                     alert('帖子已删除。');
-                    window.location.href = '/profile';
+                    window.location.href = '/home';
                     return;
                 }
 
@@ -3979,6 +4068,10 @@
                 alert("❌ 还没有填写回答内容哦！");
                 return;
             }
+            if (content.length > 10000) {
+                alert("❌ 回答内容不能超过 10000 字，请精简后再发布。");
+                return;
+            }
 
             const questionId = getCurrentQuestionId();
             const imagesToUpload = [...selectedAnswerImages];
@@ -4023,13 +4116,14 @@
                     }
 
                     document.getElementById('my-answer-content').value = '';
+                    updateAnswerContentCounter();
                     resetAnswerImageSelection();
                     await loadQuestionDetail(false);
                 } else if (response.status === 401) {
                     redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
-                    const errorData = await response.json();
-                    alert("❌ 发布失败: " + JSON.stringify(errorData));
+                    const detail = await readErrorDetail(response);
+                    alert("❌ 发布失败: " + getFriendlyDetailError(response, detail, '回答'));
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }

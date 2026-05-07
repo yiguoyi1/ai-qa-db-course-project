@@ -41,6 +41,7 @@ class AdminService:
         page_size: int = 20,
         role: str | None = None,
         status: str | None = None,
+        username: str | None = None,
     ) -> AdminUserListResponse:
         if page <= 0:
             raise ValidationError("page must be greater than 0.")
@@ -49,6 +50,7 @@ class AdminService:
 
         normalized_role = self._normalize_enum(role)
         normalized_status = self._normalize_enum(status)
+        normalized_username = self._normalize_keyword(username)
 
         if normalized_role is not None and normalized_role not in self.VALID_USER_ROLES:
             raise ValidationError("role must be USER or ADMIN.")
@@ -62,11 +64,13 @@ class AdminService:
                 page_size=page_size,
                 role=normalized_role,
                 status=normalized_status,
+                username=normalized_username,
             )
             total = self._admin_repository.count_users(
                 connection,
                 role=normalized_role,
                 status=normalized_status,
+                username=normalized_username,
             )
 
         return AdminUserListResponse(
@@ -132,7 +136,7 @@ class AdminService:
                 normalized_name,
             )
             if existing_category is not None:
-                raise ValidationError("Category name already exists.")
+                raise ValidationError("分类名称已存在，请换一个名称。")
 
             category_id = self._admin_repository.create_category(
                 connection,
@@ -201,7 +205,7 @@ class AdminService:
                 duplicate_category is not None
                 and duplicate_category["category_id"] != category_id
             ):
-                raise ValidationError("Category name already exists.")
+                raise ValidationError("分类名称已存在，请换一个名称。")
 
             if (
                 current_category["category_name"] == next_name
@@ -373,6 +377,7 @@ class AdminService:
         page: int = 1,
         page_size: int = 20,
         user_id: int | None = None,
+        username: str | None = None,
         result: str | None = None,
     ) -> AdminLoginLogListResponse:
         if page <= 0:
@@ -381,6 +386,7 @@ class AdminService:
             raise ValidationError("page_size must be between 1 and 100.")
         if user_id is not None and user_id <= 0:
             raise ValidationError("user_id must be greater than 0.")
+        normalized_username = self._normalize_keyword(username)
 
         normalized_result = self._normalize_enum(result)
         if normalized_result is not None and normalized_result not in self.VALID_LOGIN_RESULTS:
@@ -392,11 +398,13 @@ class AdminService:
                 page=page,
                 page_size=page_size,
                 user_id=user_id,
+                username=normalized_username,
                 result=normalized_result,
             )
             total = self._admin_repository.count_login_logs(
                 connection,
                 user_id=user_id,
+                username=normalized_username,
                 result=normalized_result,
             )
 
@@ -413,6 +421,7 @@ class AdminService:
         page: int = 1,
         page_size: int = 20,
         user_id: int | None = None,
+        username: str | None = None,
         op_type: str | None = None,
     ) -> AdminOperationLogListResponse:
         if page <= 0:
@@ -421,6 +430,7 @@ class AdminService:
             raise ValidationError("page_size must be between 1 and 100.")
         if user_id is not None and user_id <= 0:
             raise ValidationError("user_id must be greater than 0.")
+        normalized_username = self._normalize_keyword(username)
 
         normalized_op_type = self._normalize_enum(op_type)
 
@@ -430,11 +440,13 @@ class AdminService:
                 page=page,
                 page_size=page_size,
                 user_id=user_id,
+                username=normalized_username,
                 op_type=normalized_op_type,
             )
             total = self._admin_repository.count_operation_logs(
                 connection,
                 user_id=user_id,
+                username=normalized_username,
                 op_type=normalized_op_type,
             )
 
@@ -518,11 +530,11 @@ class AdminService:
                 raise NotFoundError(f"User {target_user_id} was not found.")
 
             if target_user["role"] == normalized_role:
-                raise ValidationError("User role is already set to the requested value.")
+                raise ValidationError("用户角色已经是所选值，无需重复修改。")
 
             active_admin_count = self._admin_repository.count_active_admin_users(connection)
             if target_user_id == admin_user_id and normalized_role != "ADMIN":
-                raise ValidationError("You cannot remove your own ADMIN role.")
+                raise ValidationError("不能把自己的管理员角色改为普通用户。")
             if (
                 target_user["role"] == "ADMIN"
                 and target_user["status"] == "ACTIVE"
@@ -660,7 +672,7 @@ class AdminService:
             if comment is None:
                 raise NotFoundError(f"Comment {comment_id} was not found.")
             if comment["status"] == normalized_status:
-                raise ValidationError("Comment status is already set to the requested value.")
+                raise ValidationError("评论状态已经是所选值，无需重复修改。")
 
             updated_count = self._admin_repository.update_comment_status(
                 connection,

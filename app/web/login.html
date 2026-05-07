@@ -333,16 +333,16 @@
 
   <div id="register-section" class="hidden">
     <div class="input-group">
-      <label>设置用户名</label>
-      <input type="text" id="reg-username" placeholder="建议使用英文字母和数字" required>
+      <label>设置用户名（不得少于 3 位）</label>
+      <input type="text" id="reg-username" minlength="3" maxlength="50" placeholder="3-50 位，建议使用英文字母和数字" required>
     </div>
     <div class="input-group">
-      <label>设置密码</label>
-      <input type="password" id="reg-password" placeholder="至少 6 位字符" required>
+      <label>设置密码（不得少于 6 位）</label>
+      <input type="password" id="reg-password" minlength="6" maxlength="128" placeholder="6-128 位字符" required>
     </div>
     <div class="input-group">
-      <label>社区昵称 (可选)</label>
-      <input type="text" id="reg-nickname" placeholder="让大家怎么称呼你？">
+      <label>社区昵称（可选，最多 50 字）</label>
+      <input type="text" id="reg-nickname" maxlength="50" placeholder="让大家怎么称呼你？">
     </div>
     <button class="btn-primary" onclick="handleRegister()">注 册</button>
     <div class="action-links">
@@ -454,6 +454,30 @@
       return detail ? `❌ ${detail}` : '❌ 登录没有成功，请检查用户名和密码后重试。';
   }
 
+  function getRegisterValidationMessage(user, pass, nick) {
+      if (!user || !pass) {
+          return '❌ 注册字段不符合要求：用户名和密码不能为空。';
+      }
+      if (user.length < 3 || user.length > 50 || pass.length < 6 || pass.length > 128 || nick.length > 50) {
+          return '❌ 注册字段不符合要求：用户名需为 3-50 位，密码需为 6-128 位，昵称不能超过 50 字。';
+      }
+      return '';
+  }
+
+  function getFriendlyRegisterError(response, data) {
+      const detail = extractErrorDetail(data);
+      if (response.status === 422 || detail.includes('String should') || detail.includes('field required')) {
+          return '❌ 注册字段不符合要求：用户名需为 3-50 位，密码需为 6-128 位，昵称不能超过 50 字。';
+      }
+      if (detail.includes('已被注册')) {
+          return `❌ ${detail}`;
+      }
+      if (response.status >= 500) {
+          return '❌ 服务暂时异常，请稍后重试或联系管理员。';
+      }
+      return detail ? `❌ ${detail}` : '❌ 注册没有成功，请检查用户名、密码和昵称后重试。';
+  }
+
   function showNetworkError() {
       showMessage('❌ 暂时无法连接到服务，请确认后端已经启动后再试。', false);
   }
@@ -499,11 +523,15 @@
 
   // 处理注册请求 (对接后端 API)
   async function handleRegister() {
-      const user = document.getElementById('reg-username').value;
+      const user = document.getElementById('reg-username').value.trim();
       const pass = document.getElementById('reg-password').value;
-      const nick = document.getElementById('reg-nickname').value;
+      const nick = document.getElementById('reg-nickname').value.trim();
 
-      if (!user || !pass) return showMessage('❌ 用户名和密码不能为空', false);
+      const validationMessage = getRegisterValidationMessage(user, pass, nick);
+      if (validationMessage) {
+          showMessage(validationMessage, false);
+          return;
+      }
       showMessage('⏳ 正在为您创建账号...', true);
 
       try {
@@ -517,8 +545,7 @@
           if (response.ok) {
               showMessage(`✅ 注册成功！请点击下方“返回登录”进行登录。`, true);
           } else {
-              const detail = extractErrorDetail(data);
-              showMessage(`❌ ${detail || '注册没有成功，请检查用户名和密码后重试。'}`, false);
+              showMessage(getFriendlyRegisterError(response, data), false);
           }
       } catch (error) {
           showNetworkError();

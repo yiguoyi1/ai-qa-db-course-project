@@ -9,6 +9,7 @@ class AdminRepository:
         *,
         role: str | None,
         status: str | None,
+        username: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
         binds: dict[str, Any] = {}
@@ -20,6 +21,10 @@ class AdminRepository:
         if status is not None:
             clauses.append("status = :status")
             binds["status"] = status
+
+        if username is not None:
+            clauses.append("LOWER(username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         return clauses, binds
 
@@ -65,6 +70,7 @@ class AdminRepository:
     def _build_login_log_filters(
         *,
         user_id: int | None,
+        username: str | None,
         result: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
@@ -73,6 +79,10 @@ class AdminRepository:
         if user_id is not None:
             clauses.append("ll.user_id = :user_id")
             binds["user_id"] = user_id
+
+        if username is not None:
+            clauses.append("LOWER(u.username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         if result is not None:
             clauses.append("ll.result = :result")
@@ -84,6 +94,7 @@ class AdminRepository:
     def _build_operation_log_filters(
         *,
         user_id: int | None,
+        username: str | None,
         op_type: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
@@ -92,6 +103,10 @@ class AdminRepository:
         if user_id is not None:
             clauses.append("ol.user_id = :user_id")
             binds["user_id"] = user_id
+
+        if username is not None:
+            clauses.append("LOWER(u.username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         if op_type is not None:
             clauses.append("ol.op_type = :op_type")
@@ -105,8 +120,13 @@ class AdminRepository:
         *,
         role: str | None = None,
         status: str | None = None,
+        username: str | None = None,
     ) -> int:
-        where_clauses, binds = self._build_user_filters(role=role, status=status)
+        where_clauses, binds = self._build_user_filters(
+            role=role,
+            status=status,
+            username=username,
+        )
         cursor = connection.cursor()
         cursor.execute(
             f"""
@@ -127,8 +147,13 @@ class AdminRepository:
         page_size: int,
         role: str | None = None,
         status: str | None = None,
+        username: str | None = None,
     ) -> list[dict[str, Any]]:
-        where_clauses, binds = self._build_user_filters(role=role, status=status)
+        where_clauses, binds = self._build_user_filters(
+            role=role,
+            status=status,
+            username=username,
+        )
         binds.update(
             {
                 "offset_rows": (page - 1) * page_size,
@@ -569,10 +594,12 @@ class AdminRepository:
         connection: oracledb.Connection,
         *,
         user_id: int | None = None,
+        username: str | None = None,
         result: str | None = None,
     ) -> int:
         where_clauses, binds = self._build_login_log_filters(
             user_id=user_id,
+            username=username,
             result=result,
         )
         cursor = connection.cursor()
@@ -580,6 +607,8 @@ class AdminRepository:
             f"""
             SELECT COUNT(*)
             FROM login_log ll
+            LEFT JOIN users u
+              ON u.user_id = ll.user_id
             WHERE {' AND '.join(where_clauses)}
             """,
             binds,
@@ -594,10 +623,12 @@ class AdminRepository:
         page: int,
         page_size: int,
         user_id: int | None = None,
+        username: str | None = None,
         result: str | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_login_log_filters(
             user_id=user_id,
+            username=username,
             result=result,
         )
         binds.update(
@@ -643,10 +674,12 @@ class AdminRepository:
         connection: oracledb.Connection,
         *,
         user_id: int | None = None,
+        username: str | None = None,
         op_type: str | None = None,
     ) -> int:
         where_clauses, binds = self._build_operation_log_filters(
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
         cursor = connection.cursor()
@@ -654,6 +687,8 @@ class AdminRepository:
             f"""
             SELECT COUNT(*)
             FROM operation_log ol
+            LEFT JOIN users u
+              ON u.user_id = ol.user_id
             WHERE {' AND '.join(where_clauses)}
             """,
             binds,
@@ -668,10 +703,12 @@ class AdminRepository:
         page: int,
         page_size: int,
         user_id: int | None = None,
+        username: str | None = None,
         op_type: str | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_operation_log_filters(
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
         binds.update(
