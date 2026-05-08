@@ -2,6 +2,8 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import category_order_case_sql
+
 
 class AdminRepository:
     @staticmethod
@@ -9,6 +11,7 @@ class AdminRepository:
         *,
         role: str | None,
         status: str | None,
+        username: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
         binds: dict[str, Any] = {}
@@ -20,6 +23,10 @@ class AdminRepository:
         if status is not None:
             clauses.append("status = :status")
             binds["status"] = status
+
+        if username is not None:
+            clauses.append("LOWER(username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         return clauses, binds
 
@@ -38,9 +45,34 @@ class AdminRepository:
         return clauses, binds
 
     @staticmethod
+    def _build_tag_filters(
+        *,
+        source: str | None,
+        status: str | None,
+        keyword: str | None,
+    ) -> tuple[list[str], dict[str, Any]]:
+        clauses = ["1 = 1"]
+        binds: dict[str, Any] = {}
+
+        if source is not None:
+            clauses.append("t.source = :source")
+            binds["source"] = source
+
+        if status is not None:
+            clauses.append("t.status = :status")
+            binds["status"] = status
+
+        if keyword is not None:
+            clauses.append("LOWER(t.tag_name) LIKE :keyword")
+            binds["keyword"] = f"%{keyword.lower()}%"
+
+        return clauses, binds
+
+    @staticmethod
     def _build_login_log_filters(
         *,
         user_id: int | None,
+        username: str | None,
         result: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
@@ -49,6 +81,10 @@ class AdminRepository:
         if user_id is not None:
             clauses.append("ll.user_id = :user_id")
             binds["user_id"] = user_id
+
+        if username is not None:
+            clauses.append("LOWER(u.username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         if result is not None:
             clauses.append("ll.result = :result")
@@ -60,6 +96,7 @@ class AdminRepository:
     def _build_operation_log_filters(
         *,
         user_id: int | None,
+        username: str | None,
         op_type: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
         clauses = ["1 = 1"]
@@ -68,6 +105,10 @@ class AdminRepository:
         if user_id is not None:
             clauses.append("ol.user_id = :user_id")
             binds["user_id"] = user_id
+
+        if username is not None:
+            clauses.append("LOWER(u.username) LIKE :username")
+            binds["username"] = f"%{username.lower()}%"
 
         if op_type is not None:
             clauses.append("ol.op_type = :op_type")
@@ -81,8 +122,13 @@ class AdminRepository:
         *,
         role: str | None = None,
         status: str | None = None,
+        username: str | None = None,
     ) -> int:
-        where_clauses, binds = self._build_user_filters(role=role, status=status)
+        where_clauses, binds = self._build_user_filters(
+            role=role,
+            status=status,
+            username=username,
+        )
         cursor = connection.cursor()
         cursor.execute(
             f"""
@@ -103,8 +149,13 @@ class AdminRepository:
         page_size: int,
         role: str | None = None,
         status: str | None = None,
+        username: str | None = None,
     ) -> list[dict[str, Any]]:
-        where_clauses, binds = self._build_user_filters(role=role, status=status)
+        where_clauses, binds = self._build_user_filters(
+            role=role,
+            status=status,
+            username=username,
+        )
         binds.update(
             {
                 "offset_rows": (page - 1) * page_size,
@@ -185,6 +236,7 @@ class AdminRepository:
         )
 
         cursor = connection.cursor()
+        category_order_sql = category_order_case_sql()
         cursor.execute(
             f"""
             SELECT
@@ -194,7 +246,10 @@ class AdminRepository:
                 status
             FROM categories
             WHERE {' AND '.join(where_clauses)}
-            ORDER BY category_name, category_id
+            ORDER BY
+                {category_order_sql},
+                category_name,
+                category_id
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
             binds,
@@ -254,7 +309,7 @@ class AdminRepository:
                 description,
                 status
             FROM categories
-            WHERE category_name = :category_name
+            WHERE LOWER(category_name) = LOWER(:category_name)
             """,
             {"category_name": category_name},
         )
@@ -329,6 +384,188 @@ class AdminRepository:
         )
         return int(cursor.rowcount or 0)
 
+    def count_tags(
+        self,
+        connection: oracledb.Connection,
+        *,
+        source: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> int:
+        where_clauses, binds = self._build_tag_filters(
+            source=source,
+            status=status,
+            keyword=keyword,
+        )
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT COUNT(*)
+            FROM tags t
+            WHERE {' AND '.join(where_clauses)}
+            """,
+            binds,
+        )
+        row = cursor.fetchone()
+        return int(row[0]) if row is not None else 0
+
+    def list_tags(
+        self,
+        connection: oracledb.Connection,
+        *,
+        page: int,
+        page_size: int,
+        source: str | None = None,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> list[dict[str, Any]]:
+        where_clauses, binds = self._build_tag_filters(
+            source=source,
+            status=status,
+            keyword=keyword,
+        )
+        binds.update(
+            {
+                "offset_rows": (page - 1) * page_size,
+                "fetch_rows": page_size,
+            }
+        )
+
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT
+                t.tag_id,
+                t.tag_name,
+                t.source,
+                t.status,
+                t.description,
+                t.create_user_id,
+                u.username,
+                t.create_time,
+                COUNT(qt.qt_id) AS question_count
+            FROM tags t
+            LEFT JOIN users u
+              ON u.user_id = t.create_user_id
+            LEFT JOIN question_tags qt
+              ON qt.tag_id = t.tag_id
+            WHERE {' AND '.join(where_clauses)}
+            GROUP BY
+                t.tag_id,
+                t.tag_name,
+                t.source,
+                t.status,
+                t.description,
+                t.create_user_id,
+                u.username,
+                t.create_time
+            ORDER BY t.create_time DESC, t.tag_id DESC
+            OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
+            """,
+            binds,
+        )
+
+        rows = cursor.fetchall()
+        return [
+            {
+                "tag_id": int(row[0]),
+                "tag_name": row[1],
+                "source": row[2],
+                "status": row[3],
+                "description": row[4],
+                "create_user_id": int(row[5]) if row[5] is not None else None,
+                "create_username": row[6],
+                "create_time": row[7],
+                "question_count": int(row[8]),
+            }
+            for row in rows
+        ]
+
+    def get_tag_context(
+        self,
+        connection: oracledb.Connection,
+        tag_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                tag_id,
+                tag_name,
+                source,
+                status,
+                description
+            FROM tags
+            WHERE tag_id = :tag_id
+            """,
+            {"tag_id": tag_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "tag_id": int(row[0]),
+            "tag_name": row[1],
+            "source": row[2],
+            "status": row[3],
+            "description": row[4],
+        }
+
+    def get_tag_by_name(
+        self,
+        connection: oracledb.Connection,
+        tag_name: str,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT tag_id, tag_name, source, status, description
+            FROM tags
+            WHERE LOWER(tag_name) = LOWER(:tag_name)
+            FETCH FIRST 1 ROWS ONLY
+            """,
+            {"tag_name": tag_name},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "tag_id": int(row[0]),
+            "tag_name": row[1],
+            "source": row[2],
+            "status": row[3],
+            "description": row[4],
+        }
+
+    def update_tag(
+        self,
+        connection: oracledb.Connection,
+        *,
+        tag_id: int,
+        tag_name: str,
+        description: str | None,
+        status: str,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE tags
+            SET tag_name = :tag_name,
+                description = :description,
+                status = :status
+            WHERE tag_id = :tag_id
+            """,
+            {
+                "tag_id": tag_id,
+                "tag_name": tag_name,
+                "description": description,
+                "status": status,
+            },
+        )
+        return int(cursor.rowcount or 0)
+
     def get_user_context(
         self,
         connection: oracledb.Connection,
@@ -363,10 +600,12 @@ class AdminRepository:
         connection: oracledb.Connection,
         *,
         user_id: int | None = None,
+        username: str | None = None,
         result: str | None = None,
     ) -> int:
         where_clauses, binds = self._build_login_log_filters(
             user_id=user_id,
+            username=username,
             result=result,
         )
         cursor = connection.cursor()
@@ -374,6 +613,8 @@ class AdminRepository:
             f"""
             SELECT COUNT(*)
             FROM login_log ll
+            LEFT JOIN users u
+              ON u.user_id = ll.user_id
             WHERE {' AND '.join(where_clauses)}
             """,
             binds,
@@ -388,10 +629,12 @@ class AdminRepository:
         page: int,
         page_size: int,
         user_id: int | None = None,
+        username: str | None = None,
         result: str | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_login_log_filters(
             user_id=user_id,
+            username=username,
             result=result,
         )
         binds.update(
@@ -437,10 +680,12 @@ class AdminRepository:
         connection: oracledb.Connection,
         *,
         user_id: int | None = None,
+        username: str | None = None,
         op_type: str | None = None,
     ) -> int:
         where_clauses, binds = self._build_operation_log_filters(
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
         cursor = connection.cursor()
@@ -448,6 +693,8 @@ class AdminRepository:
             f"""
             SELECT COUNT(*)
             FROM operation_log ol
+            LEFT JOIN users u
+              ON u.user_id = ol.user_id
             WHERE {' AND '.join(where_clauses)}
             """,
             binds,
@@ -462,10 +709,12 @@ class AdminRepository:
         page: int,
         page_size: int,
         user_id: int | None = None,
+        username: str | None = None,
         op_type: str | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses, binds = self._build_operation_log_filters(
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
         binds.update(

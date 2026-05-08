@@ -16,8 +16,9 @@
 2. [handoff.md](handoff.md)
 3. [current_status.md](current_status.md)
 4. [docs/README.md](README.md)
-5. [community_platform_design.md](design_details/community_platform_design.md)
-6. [admin_governance_guide.md](admin_governance_guide.md)
+5. [desktop_client_setup.md](desktop_client_setup.md)
+6. [community_platform_design.md](design_details/community_platform_design.md)
+7. [admin_governance_guide.md](admin_governance_guide.md)
 
 读完后你应该能回答这几个问题：
 
@@ -63,11 +64,30 @@ Copy-Item .env.example .env
 .\scripts\load-seed-data.ps1
 ```
 
-如果你接到的不是全新数据库，而是之前已经跑过的老库，还需要补跑一次采纳答案迁移：
+如果你接到的不是全新数据库，而是之前已经跑过的老库，需要按缺失情况补跑迁移脚本。当前仓库已有迁移包括：
 
-```sql
-@sql/migrations/20260422_add_question_acceptance.sql
+```powershell
+$migrations = @(
+  "sql/migrations/20260405_add_answers_user_id.sql",
+  "sql/migrations/20260405_add_answer_comments.sql",
+  "sql/migrations/20260422_add_media_assets.sql",
+  "sql/migrations/20260422_add_question_acceptance.sql",
+  "sql/migrations/20260425_extend_chat_session_for_follow_up.sql",
+  "sql/migrations/20260427_extend_tag_metadata.sql",
+  "sql/migrations/20260428_add_question_oracle_text_indexes.sql",
+  "sql/migrations/20260429_add_deleted_question_status.sql",
+  "sql/migrations/20260429_limit_media_asset_file_size.sql",
+  "sql/migrations/20260502_improve_recommendation_scoring.sql",
+  "sql/migrations/20260503_refresh_reporting_views.sql",
+  "sql/migrations/20260507_standardize_question_categories.sql",
+  "sql/migrations/20260508_add_answer_soft_delete.sql"
+)
+.\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
+
+传多个 SQL 文件时建议先放进数组再传给 `-SqlFiles`；如果只缺某一次迁移，也可以只传单个 `.sql` 文件。
+
+`20260428_add_question_oracle_text_indexes.sql` 是搜索性能优化迁移。导入后可把 `.env` 里的 `SEARCH_USE_ORACLE_TEXT` 改成 `true`，未导入时保持默认 `false`。
 
 如果是第一次接手，建议再执行一次结构验证：
 
@@ -157,7 +177,30 @@ python -m frontend_cli.main --access-token your_token comments add --answer-id 8
 python -m frontend_cli.main comments list --answer-id 82
 ```
 
-### 5.3 管理员链路验证
+### 5.3 桌面客户端验证
+
+如果你需要接手客户端开发或下载安装包，请先看：
+
+- [desktop_client_setup.md](desktop_client_setup.md)
+
+macOS 常用命令：
+
+```bash
+cd desktop
+npm install
+npm run dev:full
+```
+
+Windows PowerShell 常用命令：
+
+```powershell
+cd desktop
+npm install
+npm run dev:full:windows
+npm run build:windows
+```
+
+### 5.4 管理员链路验证
 
 如果你本次接手需要改后台治理相关能力，建议额外做一遍管理员验证：
 
@@ -195,6 +238,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 - 评论删除采用软删除
 - 删除评论不会级联删除子回复
 - 推荐逻辑优先复用数据库过程，不在 Python 里重写
+- 当前推荐 API 保持不变，画像权重和推荐评分增强集中在 `qa_app_pkg`
 
 ## 7. 改代码前先看哪些文件
 
@@ -230,6 +274,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 - [create_tables.sql](../sql/create_tables.sql)
 - [procedures.sql](../sql/procedures.sql)
 - [triggers.sql](../sql/triggers.sql)
+- [views.sql](../sql/views.sql)
 - [constraints_and_rules.md](design_details/constraints_and_rules.md)
 - `sql/migrations/`
 
@@ -261,8 +306,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\test-admin-api.ps1 -Username 
 
 1. 评论图片与媒体审核、清理后台
 2. 推荐规则人工干预入口
-3. 多轮对话前端入口与页面交互
-4. 少量写接口兼容字段的继续清理
+3. 采纳答案取消、采纳历史和更细的答案治理
+4. 标签合并、批量审核和标签质量治理
+5. 少量写接口兼容字段的继续清理
 
 如果你只想先熟悉系统，不建议一上来就碰：
 

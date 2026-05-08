@@ -21,6 +21,14 @@ Thumbs.db
 # Logs
 *.log
 uploads/
+seed_outputs/
+
+# Desktop client
+/desktop/node_modules/
+/desktop/src-tauri/target/
+/desktop/src-tauri/gen/
+/desktop/src-tauri/icons/android/
+/desktop/src-tauri/icons/ios/
 
 # SQL build artifacts
 *.sqlite

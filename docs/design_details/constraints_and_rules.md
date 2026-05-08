@@ -20,6 +20,7 @@
 
 - `USERS.AVATAR_MEDIA_ID -> MEDIA_ASSETS.MEDIA_ID`
 - `MEDIA_ASSETS.UPLOADER_USER_ID -> USERS.USER_ID`
+- `TAGS.CREATE_USER_ID -> USERS.USER_ID`
 - `QUESTIONS.USER_ID -> USERS.USER_ID`
 - `QUESTIONS.CATEGORY_ID -> CATEGORIES.CATEGORY_ID`
 - `QUESTIONS (QUESTION_ID, ACCEPTED_ANSWER_ID) -> ANSWERS (QUESTION_ID, ANSWER_ID)`
@@ -54,8 +55,13 @@
 - `USERS.ROLE` in `('USER', 'ADMIN')`
 - `USERS.STATUS` in `('ACTIVE', 'INACTIVE', 'LOCKED', 'DISABLED')`
 - `CATEGORIES.STATUS` in `('ACTIVE', 'INACTIVE')`
-- `QUESTIONS.STATUS` in `('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED')`
+- `TAGS.SOURCE` in `('SYSTEM', 'USER', 'AI', 'ADMIN')`
+- `TAGS.STATUS` in `('ACTIVE', 'PENDING', 'DISABLED')`
+- `QUESTIONS.STATUS` in `('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED', 'DELETED')`
+- `QUESTION_TAGS.SOURCE` in `('USER_SELECTED', 'USER_CREATED', 'AI_MATCHED', 'AI_CREATED', 'ADMIN_ADJUSTED')`
 - `ANSWERS.ANSWER_TYPE` in `('AI', 'MANUAL', 'SYSTEM')`
+- `ANSWERS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
+- `ANSWERS.DELETE_TIME` is `NULL` or not earlier than `ANSWERS.GENERATE_TIME`
 - `MEDIA_ASSETS.OWNER_TYPE` in `('USER_AVATAR', 'QUESTION', 'ANSWER')`
 - `MEDIA_ASSETS.STATUS` in `('ACTIVE', 'DELETED')`
 - `ANSWER_COMMENTS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
@@ -73,10 +79,11 @@
 - `QUESTIONS.FAVORITE_COUNT >= 0`
 - `QUESTIONS.ANSWER_COUNT >= 0`
 - `ANSWERS.CONFIDENCE_SCORE` is `NULL` or between `0` and `100`
+- `QUESTION_TAGS.CONFIDENCE_SCORE` is `NULL` or between `0` and `100`
 - `ANSWERS.LIKE_COUNT >= 0`
 - `ANSWERS.DISLIKE_COUNT >= 0`
 - `ANSWERS.AVG_RATING` is `NULL` or between `0` and `5`
-- `MEDIA_ASSETS.FILE_SIZE >= 0`
+- `MEDIA_ASSETS.FILE_SIZE` is between `0` and `52428800` bytes (`50MB`)
 - `MEDIA_ASSETS.SORT_ORDER >= 1`
 - `ANSWER_COMMENTS.COMMENT_LEVEL >= 1`
 - `ANSWER_COMMENTS.REPLY_COUNT >= 0`
@@ -106,6 +113,16 @@
 - `MANUAL` answers must carry a real `USER_ID`.
 - `AI` and `SYSTEM` answers must keep `USER_ID = NULL`.
 - `MANUAL` answers currently represent community user replies.
+- Answer deletion uses soft delete by setting `ANSWERS.STATUS = 'DELETED'`; normal answer lists, answer counts, feedback, comments, images, and AI follow-up only operate on `ACTIVE` answers.
+- Accepted answers cannot be deleted before changing the accepted answer, to avoid hiding the answer referenced by `QUESTIONS.ACCEPTED_ANSWER_ID`.
+
+## Tag Source Rules
+
+- User-selected existing tags are recorded as `QUESTION_TAGS.SOURCE = 'USER_SELECTED'`.
+- User-created or user-entered custom tags are recorded as `TAGS.SOURCE = 'USER'` and `QUESTION_TAGS.SOURCE = 'USER_CREATED'`.
+- AI-matched existing tags are recorded as `QUESTION_TAGS.SOURCE = 'AI_MATCHED'`.
+- AI-created tags are recorded as `TAGS.SOURCE = 'AI'` and `QUESTION_TAGS.SOURCE = 'AI_CREATED'`.
+- Disabled tags must not be returned by public tag listing APIs or attached to new questions.
 
 ## Comment and Reply Rules
 

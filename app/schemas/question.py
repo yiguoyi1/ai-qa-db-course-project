@@ -9,10 +9,13 @@ from app.schemas.media import MediaAssetItem
 
 class AskQuestionRequest(APIModel):
     user_id: int | None = Field(default=None, gt=0)
-    category_id: int = Field(gt=0)
+    category_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=1, max_length=200)
-    content: str = Field(min_length=1)
+    content: str = Field(min_length=1, max_length=10000)
+    auto_category: bool = True
     tag_ids: list[int] = Field(default_factory=list)
+    custom_tags: list[str] = Field(default_factory=list)
+    auto_tag: bool = True
 
 
 class TagItem(APIModel):
@@ -30,6 +33,8 @@ class AnswerItem(APIModel):
     author_avatar_url: str | None = None
     content: str
     generate_time: datetime
+    status: str = "ACTIVE"
+    delete_time: datetime | None = None
     model_name: str | None = None
     confidence_score: float | None = None
     like_count: int
@@ -84,6 +89,17 @@ class QuestionDetailResponse(APIModel):
     author_avatar_url: str | None = None
 
 
+class QuestionDeleteResponse(APIModel):
+    question_id: int
+    status: str
+    message: str
+
+
 class QuestionCreate(APIModel):
+    category_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=1, max_length=200)
-    content: str = Field(min_length=1)
+    content: str = Field(min_length=1, max_length=10000)
+    auto_category: bool = True
+    tag_ids: list[int] = Field(default_factory=list)
+    custom_tags: list[str] = Field(default_factory=list)
+    auto_tag: bool = True

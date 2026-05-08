@@ -153,10 +153,24 @@ def get_admin_user_id(
 def get_optional_current_user_id(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> int | None:
-    user_id = _decode_current_user_id(credentials, required=False)
+    try:
+        user_id = _decode_current_user_id(credentials, required=False)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
     if user_id is None:
         return None
-    return _ensure_current_user_is_active(_load_current_user(user_id)).user_id
+    try:
+        return _ensure_current_user_is_active(_load_current_user(user_id)).user_id
+    except HTTPException as exc:
+        if exc.status_code in {
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_423_LOCKED,
+        }:
+            return None
+        raise
 
 
 def resolve_authenticated_user_id(

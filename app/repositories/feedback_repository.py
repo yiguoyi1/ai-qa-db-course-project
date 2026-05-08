@@ -10,6 +10,23 @@ def _normalize_returning_value(value: Any) -> int:
 
 
 class FeedbackRepository:
+    def get_answer_status(
+        self,
+        connection: oracledb.Connection,
+        answer_id: int,
+    ) -> str | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT status
+            FROM answers
+            WHERE answer_id = :answer_id
+            """,
+            {"answer_id": answer_id},
+        )
+        row = cursor.fetchone()
+        return row[0] if row is not None else None
+
     def find_feedback_id(
         self,
         connection: oracledb.Connection,
@@ -166,6 +183,7 @@ class FeedbackRepository:
                 avg_rating
             FROM answers
             WHERE answer_id = :answer_id
+              AND status = 'ACTIVE'
             """,
             {"answer_id": answer_id},
         )
@@ -196,6 +214,7 @@ class FeedbackRepository:
             JOIN answers a
               ON a.answer_id = f.answer_id
             WHERE a.question_id = :question_id
+              AND a.status = 'ACTIVE'
               AND f.user_id = :user_id
             """,
             {

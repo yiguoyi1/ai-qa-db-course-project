@@ -15,11 +15,24 @@
 2. [handoff.md](handoff.md)
 3. [current_status.md](current_status.md)
 4. [testing_guide.md](testing_guide.md)
-5. [onboarding_checklist.md](onboarding_checklist.md)
-6. [admin_governance_guide.md](admin_governance_guide.md)
-7. [community_platform_design.md](design_details/community_platform_design.md)
-8. [business_code_architecture.md](design_details/business_code_architecture.md)
-9. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+5. [security_update_configuration.md](security_update_configuration.md)
+6. [问知社区AskWise答辩问答速记版.md](问知社区AskWise答辩问答速记版.md)
+7. [问知社区AskWise技术说明与答辩手册.md](问知社区AskWise技术说明与答辩手册.md)
+8. [oracle_cloud_free_deployment.md](oracle_cloud_free_deployment.md)
+9. [aliyun_ecs_deployment.md](aliyun_ecs_deployment.md)
+10. [desktop_client_setup.md](desktop_client_setup.md)
+11. [onboarding_checklist.md](onboarding_checklist.md)
+12. [admin_governance_guide.md](admin_governance_guide.md)
+13. [community_platform_design.md](design_details/community_platform_design.md)
+14. [business_code_architecture.md](design_details/business_code_architecture.md)
+15. [media_and_avatar_design.md](design_details/media_and_avatar_design.md)
+16. [function_module_diagram.md](design_details/function_module_diagram.md)
+17. [business_relationship_diagram.md](design_details/business_relationship_diagram.md)
+18. [er_diagram.md](design_details/er_diagram.md)
+19. [tag_profile_recommendation_work_plan.md](design_details/tag_profile_recommendation_work_plan.md)
+20. [qa_ai_answer_skill.md](design_details/qa_ai_answer_skill.md)
+21. [reporting-views-setup.md](setup/reporting-views-setup.md)
+22. [public_demo_data_seeding.md](public_demo_data_seeding.md)
 
 ## 2. 项目当前定位
 
@@ -29,18 +42,24 @@
 - 数据库：`Oracle AI Database 26ai Free`
 - AI 提供商：`DeepSeek`
 - 网页前端：`app/web/` 下的静态页面
+- 桌面客户端：`desktop/` 下的 Tauri 客户端
 - 测试前端：`frontend_cli/` 下的独立 CLI
 
 业务定位上，它是“问答社区 + AI 首答 + 行为记录 + 推荐”。
 
 也就是说：
 
+- 用户可以先通过产品介绍首页了解系统能力
 - 用户可以注册、登录
-- 用户可以提问
+- 游客可以浏览首页、搜索、筛选、问题详情、回答、图片和公开评论
+- 用户可以按推荐、热榜、分类、状态和标签浏览问题
+- 用户可以提问，并选择分类、已有标签、自定义标签和图片
 - 系统可以生成 AI 首答
 - 用户之间可以继续人工回答
-- 用户可以搜索、浏览、收藏、点赞、点踩
+- 用户可以围绕 AI 首答继续多轮追问
+- 用户可以搜索、浏览、收藏、点赞、点踩、评论和楼中楼回复
 - 系统可以根据行为数据生成推荐
+- 管理员可以治理用户、分类、标签、内容和审计日志
 
 ## 3. 当前实现状态
 
@@ -63,15 +82,22 @@
 - 用户中心聚合接口与最近浏览 / 搜索历史
 - 用户头像、问题配图、回答配图
 - Oracle BLOB 媒体存储与 `/api/media/files/{file_name}` 读取入口
-- 基于 AI 首答的多轮追问后端接口与自检脚本
-- 由 FastAPI 提供入口的网页登录页、首页、详情页、用户中心页、管理员后台页
+- 基于 AI 首答的多轮追问前后端交互与自检脚本
+- 首页推荐 / 热榜、分类 / 状态 / 标签筛选、发帖标签增强和全站搜索历史
+- 管理员标签治理与中文友好的管理员后台
+- 企业级蓝白视觉 UI/UX 优化
+- 游客浏览模式：未登录可看公开内容，操作类功能引导登录
+- 由 FastAPI 提供入口的产品首页、网页登录页、首页、详情页、用户中心页、管理员后台页
 - 独立 CLI 业务测试入口
+- Tauri 桌面客户端入口和 macOS / Windows 打包配置
 
 ### 3.2 当前仍未完全收口
 
 - 评论图片与媒体治理后台
 - 鉴权过渡接口与历史兼容参数的进一步清理
-- 多轮对话前端入口与页面交互
+- 推荐规则人工干预入口
+- 采纳答案取消、采纳历史和更细的答案治理
+- 标签合并、批量审核和标签质量治理
 
 ## 4. 当前最值得优先改的点
 
@@ -84,12 +110,14 @@
 最适合继续推进的仍然是：
 
 1. 评论图片与媒体审核、治理后台
-2. 多轮对话前端入口与页面交互
-3. 鉴权过渡接口与历史兼容参数的进一步清理
+2. 推荐规则人工干预入口
+3. 采纳答案取消、采纳历史和更细的答案治理
+4. 标签合并、批量审核和标签质量治理
+5. 鉴权过渡接口与历史兼容参数的进一步清理
 
 ### 4.3 完善后台管理与审计查询
 
-当前登录审计已经能写入 `LOGIN_LOG`，用户状态口径也已经生效，管理员网页后台已经覆盖用户治理、分类管理、内容治理和审计日志查询。后续更值得继续补的是媒体审核、日志导出和推荐规则人工干预。
+当前登录审计已经能写入 `LOGIN_LOG`，用户状态口径也已经生效，管理员网页后台已经覆盖用户治理、分类管理、标签治理、内容治理和审计日志查询。后续更值得继续补的是媒体审核、日志导出和推荐规则人工干预。
 
 详细说明见：
 
@@ -115,6 +143,7 @@
 
 ### 5.3 网页前端
 
+- `app/web/index.html`
 - `app/web/login.html`
 - `app/web/home.html`
 - `app/web/detail.html`
@@ -124,11 +153,17 @@
 
 当前网页前端的作用是：
 
-- 演示登录、首页流、详情页、用户中心和管理员后台交互
+- 演示产品介绍首页、登录、首页流、详情页、用户中心和管理员后台交互
+- 覆盖推荐 / 热榜分区、分类 / 状态 / 标签筛选、全站搜索和搜索历史
+- 支持发帖时选择分类、已有标签、自定义标签、标签建议、AI 自动标签和问题配图
 - 覆盖首页、详情页、用户中心的收藏主链路，以及管理员侧用户、分类、内容和日志治理
 - 支持问题配图和回答配图上传，并在详情页正文下方展示
+- 支持用户头像展示、上传和删除，用户展示优先昵称、无昵称时回退用户名
+- 支持问题详情页评论、楼中楼回复、AI 首答多轮追问会话
 - 管理员后台提供中文友好的角色、状态和日志类型展示
 - 管理员后台内容治理页可查询问题 ID、回答 ID、评论 ID，并一键填入治理表单
+- 管理员后台支持基础标签治理
+- 首页和详情页支持游客浏览，右上角显示登录按钮；发帖、收藏、回答、评论、反馈和 AI 追问等操作要求登录
 - 通过 FastAPI 统一页面入口访问，并用同源 HTTP 调后端接口
 - 验证 JWT 登录态与页面交互是否能跑通
 
@@ -141,6 +176,11 @@
 - 验证业务逻辑能否跑通
 - 作为独立调用方测试接口
 - 避免直接在 Python 里绕过 API 调 service
+
+### 5.5 桌面客户端
+
+- `desktop/`：Tauri 桌面客户端工程
+- [desktop_client_setup.md](desktop_client_setup.md)：客户端环境配置、运行、打包和安装包下载指南
 
 ## 6. 当前 API 主链路
 
@@ -162,6 +202,7 @@
 
 - `GET /api/categories`
 - `GET /api/tags`
+- `GET /api/tags/suggestions`
 - `GET /api/search/questions`
 - `GET /api/search/history`
 
@@ -190,7 +231,13 @@
 - `POST /api/users/{user_id}/recommendations/generate`
 - `GET /api/users/{user_id}/recommendations`
 
-### 6.6 头像与内容图片
+### 6.6 AI 多轮追问
+
+- `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
+- `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
+- `GET /api/chat/sessions/{session_id}`
+
+### 6.7 头像与内容图片
 
 - `POST /api/users/me/avatar`
 - `GET /api/users/me/avatar`
@@ -203,6 +250,21 @@
 - `DELETE /api/answers/{answer_id}/images/{media_id}`
 - `GET /api/media/files/{file_name}`
 
+### 6.8 管理员治理
+
+- `GET /api/admin/users`
+- `PATCH /api/admin/users/{user_id}/status`
+- `PATCH /api/admin/users/{user_id}/role`
+- `GET /api/admin/categories`
+- `POST /api/admin/categories`
+- `PATCH /api/admin/categories/{category_id}`
+- `GET /api/admin/tags`
+- `PATCH /api/admin/tags/{tag_id}`
+- `PATCH /api/admin/questions/{question_id}/status`
+- `PATCH /api/admin/comments/{comment_id}/status`
+- `GET /api/admin/logs/login`
+- `GET /api/admin/logs/operations`
+
 ## 7. 当前关键业务规则
 
 这几条是协作者最容易误解的地方，最好先统一口径：
@@ -211,6 +273,7 @@
 - `POST /api/questions` 是纯社区发帖入口
 - `POST /api/questions/{question_id}/accept-answer` 只允许提问者或管理员执行，并会把问题状态改成 `RESOLVED`
 - 这两类发帖当前都要求正文 `content` 必填
+- 首页和详情页的公开内容可以匿名浏览，写操作、个人中心、管理员后台和个性化推荐能力需要登录
 - 当前网页前端和受保护写接口已经以 JWT 登录态为主
 - 登录时会写 `LOGIN_LOG`，成功记 `SUCCESS`，密码错误/停用/未激活记 `FAILURE`，锁定账号记 `LOCKED`
 - `USERS.STATUS` 当前口径是：`ACTIVE` 允许登录与继续访问，`INACTIVE` / `DISABLED` 拒绝登录与访问，`LOCKED` 拒绝登录与访问且单独记锁定审计
@@ -221,6 +284,7 @@
 - 评论允许自回复
 - 评论不支持编辑
 - 评论删除采用软删除，不级联子回复
+- AI 追问会话绑定到“问题 + AI 首答”，任何已登录用户可查看，只有会话创建者可继续追问
 - 头像、问题配图和回答配图统一写入 `MEDIA_ASSETS.FILE_CONTENT BLOB`
 - 媒体访问统一通过 `/api/media/files/{file_name}` 读取 Oracle BLOB
 - 推荐逻辑优先复用数据库里的 `qa_app_pkg`
@@ -247,8 +311,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 启动 API 后，直接访问：
 
+- `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/login`
 - `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/home?section=recommend`
+- `http://127.0.0.1:8000/home?section=hot`
 - `http://127.0.0.1:8000/me`
 - `http://127.0.0.1:8000/admin`
 - `http://127.0.0.1:8000/questions/62`
@@ -269,6 +336,7 @@ python .\scripts\start_business_test.py
 - 不要把 `.env` 提交进 Git
 - 不要在 Python 里手动维护浏览量、收藏数、回答数、点赞数、平均分，数据库已经有触发器
 - 不要在应用层重复实现推荐算法，优先调用数据库过程
+- 不要绕过 `sql/views.sql` 里的视图口径做重复报表 SQL，除非确实需要更细粒度的业务查询
 - 不要忽略网页前端和后端之间的接口错位
 - 如果改了数据库约束，记得同步：
   - `sql/create_tables.sql`

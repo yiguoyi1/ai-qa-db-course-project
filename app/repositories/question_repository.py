@@ -2,6 +2,12 @@ from typing import Any
 
 import oracledb
 
+from app.core.category_catalog import (
+    DEFAULT_CATEGORY_NAME,
+    active_category_exists_sql,
+    category_order_case_sql,
+)
+
 
 def _normalize_returning_value(value: Any) -> int:
     if isinstance(value, list):
@@ -59,7 +65,7 @@ class QuestionRepository:
         tag_id: int | None,
         status: str | None,
     ) -> tuple[list[str], dict[str, Any]]:
-        clauses = ["1 = 1"]
+        clauses = [active_category_exists_sql()]
         binds: dict[str, Any] = {}
 
         if category_id is not None:
@@ -72,6 +78,9 @@ class QuestionRepository:
                 EXISTS (
                     SELECT 1
                     FROM question_tags qt_filter
+                    JOIN tags t_filter
+                      ON t_filter.tag_id = qt_filter.tag_id
+                     AND t_filter.status = 'ACTIVE'
                     WHERE qt_filter.question_id = q.question_id
                       AND qt_filter.tag_id = :tag_id
                 )
@@ -82,6 +91,8 @@ class QuestionRepository:
         if status is not None:
             clauses.append("q.status = :status")
             binds["status"] = status
+        else:
+            clauses.append("q.status <> 'DELETED'")
 
         return clauses, binds
 
@@ -134,34 +145,115 @@ class QuestionRepository:
             SELECT category_id
             FROM categories
             WHERE status = 'ACTIVE'
-            ORDER BY category_id
+            ORDER BY
+                CASE
+                    WHEN category_name = :default_category_name THEN 0
+                    ELSE 1
+                END,
+                category_id
             FETCH FIRST 1 ROWS ONLY
-            """
+            """,
+            {"default_category_name": DEFAULT_CATEGORY_NAME},
         )
         row = cursor.fetchone()
         return int(row[0]) if row is not None else None
+
+    def list_active_categories(
+        self,
+        connection: oracledb.Connection,
+    ) -> list[dict[str, Any]]:
+        cursor = connection.cursor()
+        category_order_sql = category_order_case_sql()
+        cursor.execute(
+            f"""
+            SELECT
+                category_id,
+                category_name,
+                description,
+                status
+            FROM categories
+            WHERE status = 'ACTIVE'
+            ORDER BY
+                {category_order_sql},
+                category_name,
+                category_id
+            """
+        )
+        return [
+            {
+                "category_id": int(row[0]),
+                "category_name": row[1],
+                "description": row[2],
+                "status": row[3],
+            }
+            for row in cursor.fetchall()
+        ]
+
+    def get_active_category_context(
+        self,
+        connection: oracledb.Connection,
+        category_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                category_id,
+                category_name,
+                description,
+                status
+            FROM categories
+            WHERE category_id = :category_id
+              AND status = 'ACTIVE'
+            """,
+            {"category_id": category_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return {
+            "category_id": int(row[0]),
+            "category_name": row[1],
+            "description": row[2],
+            "status": row[3],
+        }
 
     def add_tags(
         self,
         connection: oracledb.Connection,
         question_id: int,
         tag_ids: list[int],
+        *,
+        source: str = "USER_SELECTED",
+        confidence_score: float | None = None,
     ) -> None:
         if not tag_ids:
             return
 
         deduplicated_tag_ids = list(dict.fromkeys(tag_ids))
-        rows = [{"question_id": question_id, "tag_id": tag_id} for tag_id in deduplicated_tag_ids]
+        rows = [
+            {
+                "question_id": question_id,
+                "tag_id": tag_id,
+                "source": source,
+                "confidence_score": confidence_score,
+            }
+            for tag_id in deduplicated_tag_ids
+        ]
 
         cursor = connection.cursor()
         cursor.executemany(
             """
             INSERT INTO question_tags (
                 question_id,
-                tag_id
+                tag_id,
+                source,
+                confidence_score
             ) VALUES (
                 :question_id,
-                :tag_id
+                :tag_id,
+                :source,
+                :confidence_score
             )
             """,
             rows,
@@ -187,7 +279,14 @@ class QuestionRepository:
                 q.accepted_answer_id,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
@@ -229,6 +328,7 @@ class QuestionRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id = :question_id
             ORDER BY t.tag_name
             """,
@@ -276,6 +376,53 @@ class QuestionRepository:
             "accepted_answer_id": int(row[3]) if row[3] is not None else None,
         }
 
+    def get_question_context(
+        self,
+        connection: oracledb.Connection,
+        question_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                question_id,
+                user_id,
+                title,
+                status
+            FROM questions
+            WHERE question_id = :question_id
+            """,
+            {"question_id": question_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "question_id": int(row[0]),
+            "user_id": int(row[1]),
+            "title": row[2],
+            "status": row[3],
+        }
+
+    def update_question_status(
+        self,
+        connection: oracledb.Connection,
+        *,
+        question_id: int,
+        status: str,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE questions
+            SET status = :status
+            WHERE question_id = :question_id
+            """,
+            {"question_id": question_id, "status": status},
+        )
+        return int(cursor.rowcount or 0)
+
     def accept_answer(
         self,
         connection: oracledb.Connection,
@@ -290,13 +437,14 @@ class QuestionRepository:
             SET accepted_answer_id = :answer_id,
                 status = 'RESOLVED'
             WHERE q.question_id = :question_id
-              AND q.status NOT IN ('CLOSED', 'ARCHIVED')
+              AND q.status NOT IN ('CLOSED', 'ARCHIVED', 'DELETED')
               AND EXISTS (
                   SELECT 1
                   FROM answers a
                   WHERE a.answer_id = :answer_id
                     AND a.question_id = q.question_id
                     AND a.answer_type <> 'SYSTEM'
+                    AND a.status = 'ACTIVE'
               )
             """,
             {
@@ -367,7 +515,14 @@ class QuestionRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
@@ -424,6 +579,7 @@ class QuestionRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id IN ({placeholders})
             ORDER BY qt.question_id, t.tag_name
             """,

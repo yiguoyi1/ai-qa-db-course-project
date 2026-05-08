@@ -45,17 +45,32 @@
 ### 3.1 业务目标
 
 - 保存用户提出的问题
+- 支持用户选择已有标签、输入自定义标签或由 AI 自动补标签
 - 记录 AI 或人工回答
 - 自动维护问题回答数
 
 ### 3.2 数据流步骤
 
-1. 用户提交问题标题、正文、分类
-2. 系统写入 `QUESTIONS`
-3. 系统根据标签策略写入 `QUESTION_TAGS`
-4. 若为 AI 回答，写入 `ANSWERS`，同时记录 `AI_PROMPT_LOG`
-5. 若为人工补充，也写入 `ANSWERS`
-6. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
+1. 用户提交问题标题、正文、可选分类，以及可选的 `auto_category`、`tag_ids`、`custom_tags`、`auto_tag`
+2. 如果用户未选择分类且 `auto_category=true`，系统调用 AI 从当前 `ACTIVE` 分类中选择最合适分类
+3. 如果用户手动选择分类，系统校验该分类必须为 `ACTIVE`
+4. AI 分类失败、置信度不足或返回非法分类时，系统回落到 `其他问题`
+5. 系统写入 `QUESTIONS`
+6. 如果用户选择已有标签，系统写入 `QUESTION_TAGS.SOURCE = 'USER_SELECTED'`
+7. 如果用户输入自定义标签，系统创建或复用 `TAGS`，并写入 `QUESTION_TAGS.SOURCE = 'USER_CREATED'`
+8. 如果用户没有提供标签且 `auto_tag=true`，系统调用 AI 分析标签，匹配已有标签或创建新标签
+9. AI 自动分类、AI 自动标签的 Prompt 与响应复用 `AI_PROMPT_LOG` 记录
+10. 若为 AI 回答，写入 `ANSWERS`，同时记录回答生成的 `AI_PROMPT_LOG`
+11. 若为人工补充，也写入 `ANSWERS`
+12. 回答表发生新增、问题归属变更或状态变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`，仅统计 `ACTIVE` 回答
+
+分类处理补充：
+
+- 公共分类列表只返回 `ACTIVE` 分类，并按标准分类顺序展示。
+- 标准分类覆盖通用问答社区的主要内容领域，不再只使用技术演示类分类。
+- AI 自动分类只允许选择已有 `ACTIVE` 分类，不允许自动创建分类。
+- 测试造数或批量发帖应按问题兴趣领域选择分类，不能简单轮换分类数组。
+- 兼容入口如果缺失分类，只能落到 `其他问题` 这类兜底分类。
 
 ### 3.3 涉及数据表
 
@@ -152,14 +167,17 @@
 ### 7.2 权重来源
 
 - 用户自己发布的问题标签
+- 用户回答的问题标签
 - 用户收藏的问题标签
 - 用户浏览的问题标签
 - 用户反馈过的回答所关联的问题标签
+- 用户评论过的回答所关联的问题标签
+- 用户搜索关键词命中的标签
 
 ### 7.3 数据流步骤
 
 1. 系统读取用户行为数据
-2. 存储过程 `rebuild_user_tag_profile` 汇总不同来源的标签权重
+2. 存储过程 `rebuild_user_tag_profile` 汇总提问、回答、收藏、浏览、反馈、评论和搜索等来源的标签权重
 3. 删除旧画像后重建 `USER_TAG_PROFILE`
 
 ### 7.4 涉及数据表
@@ -169,24 +187,27 @@
 - `FAVORITES`
 - `BROWSE_HISTORY`
 - `ANSWER_FEEDBACK`
+- `ANSWERS`
+- `ANSWER_COMMENTS`
+- `SEARCH_HISTORY`
 - `USER_TAG_PROFILE`
 
 ## 8. 推荐生成数据流
 
 ### 8.1 业务目标
 
-- 基于用户画像为用户推荐其可能感兴趣的问题
+- 基于用户画像、相似兴趣行为、问题热度、问题新鲜度和负反馈信号为用户推荐其可能感兴趣的问题
 
 ### 8.2 当前实现逻辑
 
-当前版本实际落地的是基于标签画像的推荐流程：
+当前版本实际落地的是可解释的 `HYBRID` 推荐流程：
 
-1. 先将当前用户已有的 `TAG_BASED` 活跃推荐置为 `EXPIRED`
+1. 先将当前用户已有的 `TAG_BASED`、`POPULARITY` 和 `HYBRID` 活跃推荐置为 `EXPIRED`
 2. 从 `QUESTIONS` 中筛选候选问题
 3. 过滤用户自己提问的问题
 4. 过滤用户已经收藏的问题
 5. 过滤非 `OPEN` 状态的问题
-6. 计算推荐分数
+6. 计算画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚
 7. 取前 N 条写入 `RECOMMENDATIONS`
 
 ### 8.3 涉及数据表
@@ -196,6 +217,8 @@
 - `USER_TAG_PROFILE`
 - `RECOMMENDATIONS`
 - `FAVORITES`
+- `ANSWERS`
+- `BROWSE_HISTORY`
 
 ## 9. 多轮对话数据流
 
@@ -276,8 +299,8 @@
 1. 管理员定位目标问题。
 2. 网页后台可通过最近问题列表查看问题 ID，并一键填入治理表单。
 3. 系统读取 `QUESTIONS` 当前状态。
-4. 管理员执行状态调整，例如 `CLOSED` 或 `ARCHIVED`。
-5. 系统更新 `QUESTIONS.STATUS`。
+4. 管理员执行状态调整，例如 `CLOSED`、`ARCHIVED` 或 `DELETED`。
+5. 系统更新 `QUESTIONS.STATUS`；删除问题采用软删除，不物理删除问题、回答和评论。
 6. 写入 `OPERATION_LOG`。
 
 涉及数据表：

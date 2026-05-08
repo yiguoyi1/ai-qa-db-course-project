@@ -73,6 +73,7 @@ class LogRepository:
         op_type: str,
         op_content: str,
     ) -> None:
+        safe_content = op_content[:200]
         cursor = connection.cursor()
         cursor.execute(
             """
@@ -89,6 +90,6 @@ class LogRepository:
             {
                 "user_id": user_id,
                 "op_type": op_type,
-                "op_content": op_content,
+                "op_content": safe_content,
             },
         )

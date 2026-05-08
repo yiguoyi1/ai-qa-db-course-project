@@ -18,7 +18,7 @@ router = APIRouter(prefix="/search", tags=["search"])
     status_code=status.HTTP_200_OK,
 )
 def search_questions(
-    q: str = Query(..., min_length=1),
+    q: str = Query(..., min_length=1, max_length=100),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=50),
     category_id: int | None = Query(default=None, gt=0),

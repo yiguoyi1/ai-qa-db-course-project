@@ -1,0 +1,119 @@
+flowchart TB
+    system["问知社区\nAskWise Community"]
+
+    system --> client["访问入口"]
+    system --> userModule["用户端功能"]
+    system --> aiModule["AI 辅助能力"]
+    system --> recommendModule["画像与推荐"]
+    system --> mediaModule["媒体能力"]
+    system --> adminModule["管理员后台"]
+    system --> infraModule["数据与运行支撑"]
+
+    subgraph clientGroup["访问入口"]
+        direction TB
+        productHome["产品介绍首页"]
+        webClient["网页端\napp/web"]
+        desktopClient["Tauri 桌面客户端"]
+        cliClient["CLI 测试前端"]
+    end
+
+    subgraph userGroup["用户端功能"]
+        direction TB
+        auth["注册 / 登录 / JWT 鉴权"]
+        browse["游客浏览\n首页 / 搜索 / 筛选 / 详情"]
+        publish["发布问题\n手动分类 / AI 自动分类 / 标签 / 配图"]
+        answer["人工回答\n回答配图"]
+        comment["评论与楼中楼\n软删除占位"]
+        interact["收藏 / 浏览 / 搜索历史\n点赞 / 点踩 / 评分"]
+        accept["采纳答案\n问题转为已解决"]
+        profile["用户中心\n资料 / 头像 / 我的内容 / 历史记录"]
+    end
+
+    subgraph aiGroup["AI 辅助能力"]
+        direction TB
+        firstAnswer["AI 首答"]
+        followUp["围绕 AI 首答多轮追问"]
+        autoCategory["AI 自动分类"]
+        autoTag["AI 自动标签"]
+        promptLog["AI 调用日志\nAI_PROMPT_LOG"]
+    end
+
+    subgraph recommendGroup["画像与推荐"]
+        direction TB
+        behavior["行为采集\n提问 / 回答 / 收藏 / 浏览 / 搜索 / 反馈 / 评论"]
+        tagProfile["用户标签画像\nUSER_TAG_PROFILE"]
+        hybridRecommend["HYBRID 推荐\n画像分 / 相似兴趣 / 热度 / 新鲜度 / 惩罚项"]
+        recommendPage["首页推荐与用户中心推荐"]
+    end
+
+    subgraph mediaGroup["媒体能力"]
+        direction TB
+        avatar["用户头像"]
+        questionImage["问题配图"]
+        answerImage["回答配图"]
+        blobStorage["Oracle BLOB 存储\nMEDIA_ASSETS"]
+        mediaRead["统一媒体读取\n/api/media/files/{file_name}"]
+    end
+
+    subgraph adminGroup["管理员后台"]
+        direction TB
+        userGovernance["用户治理\n角色 / 状态"]
+        categoryGovernance["分类治理\n标准分类 / 启停"]
+        tagGovernance["标签治理\n状态 / 描述"]
+        contentGovernance["内容治理\n问题 / 回答 / 评论"]
+        audit["审计日志\n登录日志 / 操作日志"]
+    end
+
+    subgraph infraGroup["数据与运行支撑"]
+        direction TB
+        schema["Oracle 26ai Schema\n表 / 约束 / 索引"]
+        trigger["触发器\n统计字段同步"]
+        procedure["存储过程包\nqa_app_pkg"]
+        view["报表视图\nsql/views.sql"]
+        seed["种子数据与迁移脚本"]
+        docker["Docker / WSL 本地环境"]
+        deploy["阿里云 ECS / GitHub Actions"]
+    end
+
+    client --> clientGroup
+    userModule --> userGroup
+    aiModule --> aiGroup
+    recommendModule --> recommendGroup
+    mediaModule --> mediaGroup
+    adminModule --> adminGroup
+    infraModule --> infraGroup
+
+    publish --> firstAnswer
+    publish --> autoCategory
+    publish --> autoTag
+    firstAnswer --> followUp
+    firstAnswer --> promptLog
+    followUp --> promptLog
+
+    interact --> behavior
+    comment --> behavior
+    answer --> behavior
+    publish --> behavior
+    behavior --> tagProfile
+    tagProfile --> hybridRecommend
+    hybridRecommend --> recommendPage
+
+    publish --> questionImage
+    answer --> answerImage
+    profile --> avatar
+    avatar --> blobStorage
+    questionImage --> blobStorage
+    answerImage --> blobStorage
+    blobStorage --> mediaRead
+
+    userGovernance --> auth
+    categoryGovernance --> publish
+    tagGovernance --> publish
+    contentGovernance --> publish
+    contentGovernance --> answer
+    contentGovernance --> comment
+
+    schema --> trigger
+    schema --> procedure
+    schema --> view
+    seed --> schema

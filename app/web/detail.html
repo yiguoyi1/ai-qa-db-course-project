@@ -128,6 +128,23 @@
         }
         .navbar-user { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .nav-login-button {
+            height: 40px;
+            padding: 0 18px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+        .nav-login-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
         .user-menu { position: relative; }
         .user-avatar-button {
             width: 46px;
@@ -451,7 +468,11 @@
             margin-top: 16px;
         }
 
-        .media-grid img {
+        .media-grid-item {
+            position: relative;
+        }
+
+        .media-grid-item img {
             width: 100%;
             aspect-ratio: 4 / 3;
             object-fit: cover;
@@ -462,9 +483,33 @@
             transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
 
-        .media-grid img:hover {
+        .media-grid-item img:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+        }
+
+        .media-delete-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: none;
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: rgba(220, 38, 38, 0.92);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(127, 29, 29, 0.24);
+            opacity: 0;
+            transform: translateY(-2px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .media-grid-item:hover .media-delete-button,
+        .media-delete-button:focus-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .comment-shell {
@@ -736,6 +781,22 @@
             outline: none;
             border-color: #60a5fa;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .char-counter {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: #b45309;
+        }
+
+        .char-counter.error {
+            color: #dc2626;
+            font-weight: 700;
         }
 
         .comment-composer-footer {
@@ -1149,6 +1210,487 @@
             }
         }
 
+        /* Enterprise UI refinement layer: visual polish only, all existing JS hooks remain unchanged. */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-soft: #eff6ff;
+            --surface-glass: rgba(255, 255, 255, 0.88);
+            --border-color: #dbe3ef;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 18px 44px rgba(15, 23, 42, 0.09);
+            --shadow-hover: 0 24px 56px rgba(37, 99, 235, 0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 10% 6%, rgba(59, 130, 246, 0.18), transparent 28%),
+                radial-gradient(circle at 88% 2%, rgba(14, 165, 233, 0.12), transparent 28%),
+                linear-gradient(180deg, #f3f7ff 0%, #f8fbff 340px, #f4f7fb 100%);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 54%);
+        }
+
+        .navbar {
+            min-height: 74px;
+            background: rgba(255, 255, 255, 0.88);
+            border-bottom: 1px solid rgba(219, 227, 239, 0.92);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        .navbar-brand {
+            letter-spacing: -0.03em;
+        }
+
+        .section-link {
+            color: #475569;
+            transition: color 0.18s ease;
+        }
+
+        .section-link:hover {
+            color: #1d4ed8;
+        }
+
+        .nav-search-shell {
+            max-width: 560px;
+        }
+
+        .nav-search-input,
+        .answer-textarea,
+        input,
+        select,
+        textarea {
+            border-color: #dbe3ef;
+            background: rgba(248, 250, 252, 0.94);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+        }
+
+        .nav-search-input:focus,
+        .answer-textarea:focus,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+        }
+
+        .nav-search-button,
+        .comment-btn.primary,
+        button[onclick="submitAnswer()"] {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 62%, #38bdf8 100%) !important;
+            border-color: rgba(37, 99, 235, 0.18) !important;
+            box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22);
+        }
+
+        .btn-outline,
+        .comment-btn,
+        .toggle-btn {
+            border-color: #d4deeb !important;
+            background: rgba(255, 255, 255, 0.84) !important;
+            color: #334155 !important;
+        }
+
+        .btn-outline:hover,
+        .comment-btn:hover,
+        .toggle-btn:hover {
+            border-color: #93c5fd !important;
+            background: #eff6ff !important;
+            color: #1d4ed8 !important;
+        }
+
+        .container {
+            max-width: 1240px;
+            gap: 32px;
+        }
+
+        .back-link {
+            color: #2563eb;
+            font-weight: 800;
+        }
+
+        .detail-card,
+        .answer-composer-card,
+        .user-menu-panel {
+            background: var(--surface-glass);
+            border: 1px solid rgba(219, 227, 239, 0.92);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(14px);
+        }
+
+        .detail-card {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .detail-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .q-title {
+            color: #0f172a;
+            letter-spacing: -0.04em;
+        }
+
+        .q-meta,
+        .answer-composer-hint,
+        .comment-toolbar-hint {
+            color: #748198;
+        }
+
+        .markdown-content {
+            color: #253244;
+        }
+
+        .markdown-content pre {
+            border-radius: 16px;
+            border: 1px solid #1e293b;
+        }
+
+        .media-uploader,
+        .comment-form,
+        .comment-item,
+        .ai-session-list,
+        .ai-conversation-area {
+            border-radius: var(--radius-lg);
+            border-color: #dbeafe;
+        }
+
+        .comment-counter,
+        .media-upload-button {
+            border-radius: 999px;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        .media-grid-item img {
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+        }
+
+        .sidebar-sticky {
+            top: 96px;
+        }
+
+        .answer-composer-card {
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-composer-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+        }
+
+        .answer-composer-title {
+            letter-spacing: -0.02em;
+        }
+
+        /* Interaction surfaces: keep comments and AI follow-up embedded in answer cards. */
+        .answer-card {
+            margin-top: 20px;
+            padding: 24px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid #dbe3ef;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
+        }
+
+        .answer-card.accepted {
+            background: linear-gradient(180deg, #f7fef9 0%, #ffffff 82%);
+            border-color: #bbf7d0;
+            box-shadow: 0 12px 30px rgba(22, 163, 74, 0.08);
+        }
+
+        .answer-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            flex-wrap: wrap;
+        }
+
+        .answer-action-button {
+            min-height: 34px;
+            background: #ffffff;
+            border: 1px solid #d4deeb;
+            border-radius: 999px;
+            padding: 6px 14px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+
+        .answer-action-button:hover {
+            border-color: #93c5fd;
+            background: #f8fbff;
+            color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .answer-action-button.danger {
+            border-color: #fecdd3;
+            background: #fff1f2;
+            color: #be123c;
+        }
+
+        .answer-action-button.danger:hover {
+            border-color: #fda4af;
+            background: #ffe4e6;
+            color: #9f1239;
+        }
+
+        .comment-shell {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .comment-toolbar {
+            padding: 10px 12px;
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            background: rgba(248, 250, 252, 0.72);
+            box-shadow: none;
+        }
+
+        .comment-counter {
+            min-height: 32px;
+            padding: 5px 10px;
+            background: #f8fbff;
+            border-color: #d4deeb;
+            color: #1e40af;
+            font-weight: 800;
+        }
+
+        .comment-toolbar-hint {
+            color: #748198;
+        }
+
+        .comment-btn {
+            min-height: 34px;
+            padding: 7px 13px;
+            border-color: #d4deeb !important;
+            background: #ffffff !important;
+            color: #334155 !important;
+            box-shadow: none !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .comment-btn.primary {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 18px rgba(37, 99, 235, 0.16) !important;
+        }
+
+        .comment-btn.primary:hover:not(:disabled) {
+            background: #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+        }
+
+        .comment-btn.subtle {
+            background: #ffffff !important;
+        }
+
+        .comment-panel {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(248, 250, 252, 0.72);
+            border: 1px solid #dbe3ef;
+            box-shadow: none;
+        }
+
+        .comment-item {
+            background: #ffffff;
+            border-color: #e1e8f2;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .comment-item.reply {
+            background: #f9fbff;
+        }
+
+        .comment-composer {
+            border-color: #dbe3ef;
+            background: #ffffff;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-followup-shell {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #e5edf7;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .ai-followup-toolbar {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #dbe3ef;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.86), rgba(239, 246, 255, 0.58));
+            box-shadow: none;
+        }
+
+        .ai-followup-title {
+            color: #243b64;
+            gap: 9px;
+        }
+
+        .ai-followup-title span {
+            width: 28px;
+            height: 28px;
+            background: #eaf2ff;
+            color: #1d4ed8;
+            border: 1px solid #d6e6ff;
+        }
+
+        .ai-followup-hint {
+            margin-left: 37px;
+            color: #748198;
+        }
+
+        .ai-followup-panel {
+            margin-top: 10px;
+            border-radius: 14px;
+            border-color: #dbe3ef;
+            background: #ffffff;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.055);
+        }
+
+        .ai-followup-layout {
+            grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+            min-height: 320px;
+        }
+
+        .ai-session-list {
+            background: #f8fafc;
+            border-color: #e1e8f2;
+        }
+
+        .ai-session-item {
+            border-color: #e1e8f2;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-chat-head,
+        .ai-chat-composer {
+            background: #ffffff;
+            border-color: #e1e8f2;
+        }
+
+        .ai-message-list {
+            background: #f8fafc;
+        }
+
+        .ai-message {
+            border-color: #e1e8f2;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        .ai-message.ai {
+            background: #f8fbff;
+            border-color: #dbeafe;
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                max-width: 780px;
+                gap: 24px;
+            }
+
+            .detail-card {
+                padding: 22px;
+            }
+
+            .sidebar-sticky {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .answer-card {
+                padding: 18px;
+            }
+
+            .comment-toolbar,
+            .ai-followup-toolbar {
+                align-items: flex-start;
+            }
+
+            .comment-toolbar-actions,
+            .ai-followup-actions {
+                width: 100%;
+            }
+
+            .comment-toolbar-actions .comment-btn,
+            .ai-followup-actions .comment-btn {
+                flex: 1 1 0;
+                justify-content: center;
+            }
+
+            .ai-followup-title {
+                align-items: flex-start;
+            }
+
+            .ai-followup-hint {
+                margin-left: 0;
+            }
+
+            .ai-followup-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-session-list {
+                border-right: none;
+                border-bottom: 1px solid #e1e8f2;
+            }
+
+            .ai-message {
+                max-width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1166,7 +1708,8 @@
         </div>
         <div class="navbar-user">
             <span class="user-greeting" id="detail-user-greeting">正在加载用户信息...</span>
-            <div class="user-menu">
+            <button id="login-entry" class="nav-login-button" type="button" onclick="goToLogin()" style="display:none;">登录</button>
+            <div class="user-menu" id="user-menu-wrapper">
                 <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
                     <span class="nav-avatar" id="nav-avatar">我</span>
                 </button>
@@ -1193,7 +1736,8 @@
                 <h3 class="answer-composer-title">💡 撰写你的回答</h3>
                 <p id="answer-composer-hint" class="answer-composer-hint">当前问题开放回答中，可以继续补充你的思路。</p>
 
-                <textarea id="my-answer-content" rows="6" placeholder="分享你的知识和见解..." class="answer-textarea"></textarea>
+                <textarea id="my-answer-content" rows="6" maxlength="10000" placeholder="分享你的知识和见解..." class="answer-textarea" oninput="updateAnswerContentCounter()"></textarea>
+                <div id="answer-content-counter" class="char-counter" style="margin-top:-10px; margin-bottom:14px;">0 / 10000</div>
 
                 <div class="media-uploader">
                     <div class="media-uploader-title">
@@ -1214,7 +1758,7 @@
         const LOGIN_PAGE_URL = '/login';
         const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
         const MAX_ANSWER_IMAGES = 6;
-        const MAX_ANSWER_IMAGE_SIZE = 5 * 1024 * 1024;
+        const MAX_ANSWER_IMAGE_SIZE = 50 * 1024 * 1024;
         let detailOpenedAt = Date.now();
         let browseHistoryRecorded = false;
         let selectedAnswerImages = [];
@@ -1233,6 +1777,64 @@
             return url.toString();
         }
 
+        function extractErrorDetail(data) {
+            if (!data) return '';
+            if (typeof data.detail === 'string') return data.detail.trim();
+            if (typeof data.message === 'string') return data.message.trim();
+            if (Array.isArray(data.detail)) {
+                return data.detail
+                    .map(item => item?.msg || item?.message || '')
+                    .filter(Boolean)
+                    .join('；');
+            }
+            return '';
+        }
+
+        async function readErrorDetail(response) {
+            const data = await response.json().catch(() => ({}));
+            return extractErrorDetail(data);
+        }
+
+        function getFriendlyDetailError(response, detail, targetName) {
+            const text = String(detail || '');
+            const limit = targetName === '评论' ? '2000' : '10000';
+            if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
+                return `${targetName}内容不符合要求，请确认不为空且不超过 ${limit} 字。`;
+            }
+            if (text.includes('max_length') || text.includes(limit)) {
+                return `${targetName}内容不能超过 ${limit} 字，请精简后再发布。`;
+            }
+            if (response.status >= 500) {
+                return '服务暂时异常，请稍后重试或联系管理员。';
+            }
+            return text || `请求失败（${response.status}）`;
+        }
+
+        function updateCharCounter(counter, length, maxLength, label) {
+            if (!counter) return;
+            counter.classList.remove('warning', 'error');
+            if (length >= maxLength) {
+                counter.classList.add('error');
+            } else if (length >= Math.floor(maxLength * 0.9)) {
+                counter.classList.add('warning');
+            }
+            const extra = length >= maxLength
+                ? `，${label}已到上限，不能继续输入。`
+                : '';
+            counter.textContent = `${length} / ${maxLength}${extra}`;
+        }
+
+        function updateAnswerContentCounter() {
+            const textarea = document.getElementById('my-answer-content');
+            const counter = document.getElementById('answer-content-counter');
+            updateCharCounter(counter, textarea?.value.length || 0, 10000, '回答内容');
+        }
+
+        function updateCommentContentCounter(textareaId, value) {
+            const counter = document.getElementById(`${textareaId}-counter`);
+            updateCharCounter(counter, String(value || '').length, 2000, '评论内容');
+        }
+
         function clearSession() {
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('user_id');
@@ -1249,8 +1851,31 @@
             window.location.href = LOGIN_PAGE_URL;
         }
 
+        function switchToGuestMode() {
+            clearSession();
+            renderGuestNav();
+        }
+
+        function goToLogin() {
+            window.location.href = LOGIN_PAGE_URL;
+        }
+
+        function isAuthenticated() {
+            return Boolean(sessionStorage.getItem('access_token') && getCurrentUserId());
+        }
+
+        function buildAuthHeaders(extraHeaders = {}) {
+            const token = sessionStorage.getItem('access_token');
+            return token
+                ? { ...extraHeaders, 'Authorization': `Bearer ${token}` }
+                : { ...extraHeaders };
+        }
+
         function logout() {
-            redirectToLogin();
+            clearSession();
+            closeUserMenu();
+            renderGuestNav();
+            loadQuestionDetail(false);
         }
 
         function goToProfile() {
@@ -1366,6 +1991,45 @@
             avatar.textContent = getInitial(displayName);
         }
 
+        function renderGuestNav() {
+            const greeting = document.getElementById('detail-user-greeting');
+            const loginEntry = document.getElementById('login-entry');
+            const menuWrapper = document.getElementById('user-menu-wrapper');
+            const adminEntry = document.getElementById('admin-entry');
+            if (greeting) {
+                greeting.innerText = '游客浏览';
+            }
+            if (loginEntry) {
+                loginEntry.style.display = 'inline-flex';
+                loginEntry.style.alignItems = 'center';
+            }
+            if (menuWrapper) {
+                menuWrapper.style.display = 'none';
+            }
+            if (adminEntry) {
+                adminEntry.style.display = 'none';
+            }
+        }
+
+        function renderAuthenticatedNav(displayName, role = '') {
+            const greeting = document.getElementById('detail-user-greeting');
+            const loginEntry = document.getElementById('login-entry');
+            const menuWrapper = document.getElementById('user-menu-wrapper');
+            const adminEntry = document.getElementById('admin-entry');
+            if (greeting) {
+                greeting.innerText = `欢迎回来, ${displayName || '同学'}`;
+            }
+            if (loginEntry) {
+                loginEntry.style.display = 'none';
+            }
+            if (menuWrapper) {
+                menuWrapper.style.display = 'block';
+            }
+            if (adminEntry) {
+                adminEntry.style.display = role === 'ADMIN' ? 'flex' : 'none';
+            }
+        }
+
         function closeUserMenu() {
             const panel = document.getElementById('user-menu-panel');
             const trigger = document.getElementById('user-menu-trigger');
@@ -1392,6 +2056,7 @@
         async function loadCurrentUserProfileForNav() {
             const token = sessionStorage.getItem('access_token');
             if (!token) {
+                renderGuestNav();
                 return;
             }
             try {
@@ -1400,17 +2065,17 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) {
+                    if ([401, 403, 423].includes(response.status)) {
+                        switchToGuestMode();
+                    }
                     return;
                 }
                 const profile = await response.json();
                 const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
-                document.getElementById('detail-user-greeting').innerText = `欢迎回来, ${displayName}`;
+                renderAuthenticatedNav(displayName, profile.role || sessionStorage.getItem('user_role') || '');
                 setNavAvatar(displayName, profile.avatar_url);
                 sessionStorage.setItem('username', profile.username || '');
                 sessionStorage.setItem('nickname', profile.nickname || '');
-                if (profile.role === 'ADMIN') {
-                    document.getElementById('admin-entry').style.display = 'flex';
-                }
             } catch (error) {
                 console.error('加载导航用户信息失败:', error);
             }
@@ -1496,24 +2161,28 @@
             }
 
             const isOpen = question.status === 'OPEN';
-            textarea.disabled = !isOpen;
+            const loggedIn = isAuthenticated();
+            textarea.disabled = !isOpen || !loggedIn;
             submitButton.disabled = !isOpen;
             const imageInput = document.getElementById('answer-images');
             const imageLabel = document.querySelector('label[for="answer-images"]');
             if (imageInput) {
-                imageInput.disabled = !isOpen;
+                imageInput.disabled = !isOpen || !loggedIn;
             }
             if (imageLabel) {
-                imageLabel.style.opacity = isOpen ? '1' : '0.55';
-                imageLabel.style.pointerEvents = isOpen ? 'auto' : 'none';
+                imageLabel.style.opacity = isOpen && loggedIn ? '1' : '0.55';
+                imageLabel.style.pointerEvents = isOpen && loggedIn ? 'auto' : 'none';
             }
 
             if (isOpen) {
-                hint.innerText = '当前问题开放回答中，可以继续补充你的思路。';
-                textarea.placeholder = '分享你的知识和见解...';
-                submitButton.innerText = '发 布 回 答';
+                hint.innerText = loggedIn
+                    ? '当前问题开放回答中，可以继续补充你的思路。'
+                    : '登录后可以发布回答、上传配图并参与互动。';
+                textarea.placeholder = loggedIn ? '分享你的知识和见解...' : '请先登录后再撰写回答。';
+                submitButton.innerText = loggedIn ? '发 布 回 答' : '登录后回答';
                 submitButton.style.opacity = '1';
                 submitButton.style.cursor = 'pointer';
+                updateAnswerContentCounter();
                 return;
             }
 
@@ -1523,6 +2192,7 @@
             hint.innerText = lockedMessage;
             textarea.placeholder = lockedMessage;
             textarea.value = '';
+            updateAnswerContentCounter();
             submitButton.innerText = '当前不可回答';
             submitButton.style.opacity = '0.65';
             submitButton.style.cursor = 'not-allowed';
@@ -1547,6 +2217,99 @@
 
         function escapeAttr(value) {
             return escapeHtml(value);
+        }
+
+        function renderPlainText(value) {
+            return escapeHtml(value).replace(/\n/g, '<br>');
+        }
+
+        let markedConfigured = false;
+
+        function configureMarked() {
+            if (markedConfigured || typeof marked === 'undefined') {
+                return;
+            }
+            marked.setOptions({
+                highlight: function (code, lang) {
+                    if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    if (typeof hljs !== 'undefined') {
+                        return hljs.highlightAuto(code).value;
+                    }
+                    return escapeHtml(code);
+                },
+                breaks: true
+            });
+            markedConfigured = true;
+        }
+
+        function sanitizeRenderedHtml(html) {
+            const template = document.createElement('template');
+            template.innerHTML = String(html || '');
+            const allowedTags = new Set([
+                'A', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'EM', 'H1', 'H2', 'H3',
+                'H4', 'H5', 'H6', 'HR', 'LI', 'OL', 'P', 'PRE', 'SPAN',
+                'STRONG', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR', 'UL'
+            ]);
+            const allowedAttrs = {
+                A: new Set(['href', 'title', 'target', 'rel']),
+                CODE: new Set(['class']),
+                PRE: new Set(['class']),
+                SPAN: new Set(['class'])
+            };
+            const safeUrlPattern = /^(https?:|mailto:|tel:|#|\/)/i;
+
+            function cleanNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    node.remove();
+                    return;
+                }
+
+                const tagName = node.tagName;
+                if (!allowedTags.has(tagName)) {
+                    const textNode = document.createTextNode(node.textContent || '');
+                    node.replaceWith(textNode);
+                    return;
+                }
+
+                [...node.attributes].forEach(attr => {
+                    const attrName = attr.name.toLowerCase();
+                    const tagAllowedAttrs = allowedAttrs[tagName] || new Set();
+                    if (!tagAllowedAttrs.has(attrName)) {
+                        node.removeAttribute(attr.name);
+                        return;
+                    }
+
+                    if (attrName === 'href' && !safeUrlPattern.test(attr.value.trim())) {
+                        node.removeAttribute(attr.name);
+                    }
+                    if (attrName === 'class' && !/^[a-z0-9_\-\s]+$/i.test(attr.value)) {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+
+                if (tagName === 'A' && node.getAttribute('href')) {
+                    node.setAttribute('target', '_blank');
+                    node.setAttribute('rel', 'noopener noreferrer');
+                }
+
+                [...node.childNodes].forEach(cleanNode);
+            }
+
+            [...template.content.childNodes].forEach(cleanNode);
+            return template.innerHTML;
+        }
+
+        function renderMarkdown(content) {
+            configureMarked();
+            if (typeof marked === 'undefined') {
+                return renderPlainText(content);
+            }
+            return sanitizeRenderedHtml(marked.parse(String(content || '')));
         }
 
         function resolvePublicUrl(url) {
@@ -1582,36 +2345,127 @@
         }
 
         function resolveMediaUrl(item) {
-            const rawUrl = item?.public_url || item?.url || (item?.media_id ? `/api/media/${item.media_id}/content` : '');
+            const rawUrl = item?.public_url || item?.url || '';
             if (!rawUrl) {
                 return '';
             }
             return new URL(rawUrl, window.location.origin).toString();
         }
 
-        function renderMediaGrid(images, labelPrefix) {
+        function renderMediaGrid(images, labelPrefix, options = {}) {
             if (!Array.isArray(images) || images.length === 0) {
                 return '';
             }
+            const {
+                canDelete = false,
+                ownerType = '',
+                ownerId = null,
+            } = options;
 
             const imageItems = images
                 .map((item, index) => {
                     const src = resolveMediaUrl(item);
+                    const mediaId = Number(item?.media_id || 0);
                     if (!src) {
                         return '';
                     }
+                    const deleteButton = canDelete && mediaId && ownerType && ownerId
+                        ? `<button
+                                type="button"
+                                class="media-delete-button"
+                                onclick="deleteMediaImage(event, '${escapeAttr(ownerType)}', ${Number(ownerId)}, ${mediaId})"
+                            >删除</button>`
+                        : '';
                     return `
-                        <img
-                            src="${escapeAttr(src)}"
-                            alt="${escapeAttr(labelPrefix)} ${index + 1}"
-                            onclick="window.open('${escapeAttr(src)}', '_blank')"
-                            loading="lazy"
-                        >
+                        <div class="media-grid-item">
+                            <img
+                                src="${escapeAttr(src)}"
+                                alt="${escapeAttr(labelPrefix)} ${index + 1}"
+                                onclick="window.open('${escapeAttr(src)}', '_blank')"
+                                loading="lazy"
+                            >
+                            ${deleteButton}
+                        </div>
                     `;
                 })
                 .join('');
 
             return imageItems ? `<div class="media-grid">${imageItems}</div>` : '';
+        }
+
+        async function deleteMediaImage(event, ownerType, ownerId, mediaId) {
+            event?.stopPropagation();
+            if (!ownerType || !ownerId || !mediaId) {
+                return;
+            }
+            if (!window.confirm('确认删除这张图片吗？删除后将不再展示。')) {
+                return;
+            }
+
+            const token = sessionStorage.getItem('access_token');
+            const endpoint = ownerType === 'question'
+                ? `/api/questions/${ownerId}/images/${mediaId}`
+                : `/api/answers/${ownerId}/images/${mediaId}`;
+
+            try {
+                const response = await fetch(buildApiUrl(endpoint), {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    await loadQuestionDetail(false);
+                } else if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    alert(`删除图片失败：${err.detail || response.status}`);
+                }
+            } catch (error) {
+                console.error('删除图片失败:', error);
+                alert('网络错误，暂时无法删除图片。');
+            }
+        }
+
+        async function fetchMediaItems(endpoint) {
+            try {
+                const token = sessionStorage.getItem('access_token');
+                const response = await fetch(buildApiUrl(endpoint), {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                if (!response.ok) {
+                    return null;
+                }
+                const data = await response.json();
+                return Array.isArray(data.items) ? data.items : null;
+            } catch (error) {
+                console.error('加载图片列表失败:', error);
+                return null;
+            }
+        }
+
+        async function hydrateQuestionImages(question) {
+            if (!question?.question_id) {
+                return question;
+            }
+            const questionImages = await fetchMediaItems(`/api/questions/${question.question_id}/images`);
+            if (Array.isArray(questionImages)) {
+                question.images = questionImages;
+            }
+
+            const answers = Array.isArray(question.answers) ? question.answers : [];
+            await Promise.all(answers.map(async answer => {
+                if (!answer?.answer_id) {
+                    return;
+                }
+                const answerImages = await fetchMediaItems(`/api/answers/${answer.answer_id}/images`);
+                if (Array.isArray(answerImages)) {
+                    answer.images = answerImages;
+                }
+            }));
+
+            return question;
         }
 
         function revokePreviewImages(items) {
@@ -1645,6 +2499,11 @@
         }
 
         function handleAnswerImageSelection(event) {
+            if (!isAuthenticated()) {
+                event.target.value = '';
+                redirectToLogin('请先登录后再上传回答配图。');
+                return;
+            }
             const files = Array.from(event.target.files || []);
             const { selected, errors } = buildSelectedImageItems(
                 files,
@@ -1769,6 +2628,49 @@
             return Boolean(question) && ['OPEN', 'RESOLVED'].includes(question.status);
         }
 
+        function canCurrentUserUseAiFollowUp(question = currentQuestionDetail) {
+            return Boolean(question)
+                && question.status !== 'DELETED'
+                && getCurrentUserId() === Number(question.user_id);
+        }
+
+        function canCurrentUserDeleteAnswer(answer, question = currentQuestionDetail) {
+            if (!answer || !question || question.status === 'DELETED' || answer.is_accepted) {
+                return false;
+            }
+            const currentUserId = getCurrentUserId();
+            if (!currentUserId) {
+                return false;
+            }
+            if (String(getCurrentUserRole()).toUpperCase() === 'ADMIN') {
+                return true;
+            }
+            return Number(answer.user_id) === currentUserId
+                && (answer.answer_type === 'MANUAL' || !answer.provider_name);
+        }
+
+        function removeDeletedAnswerFromCurrentDetail(answerId) {
+            if (!currentQuestionDetail || !Array.isArray(currentQuestionDetail.answers)) {
+                return false;
+            }
+            const beforeCount = currentQuestionDetail.answers.length;
+            currentQuestionDetail.answers = currentQuestionDetail.answers.filter(
+                answer => Number(answer.answer_id) !== Number(answerId)
+            );
+            if (currentQuestionDetail.answers.length === beforeCount) {
+                return false;
+            }
+
+            currentQuestionDetail.answer_count = currentQuestionDetail.answers.length;
+            if (Number(currentQuestionDetail.accepted_answer_id) === Number(answerId)) {
+                currentQuestionDetail.accepted_answer_id = null;
+            }
+            delete commentStateByAnswerId[answerId];
+            delete followUpStateByAnswerId[answerId];
+            renderDetail(currentQuestionDetail);
+            return true;
+        }
+
         function formatDateTime(value) {
             return value ? new Date(value).toLocaleString() : '';
         }
@@ -1828,11 +2730,13 @@
         function updateCommentDraft(answerId, value) {
             const state = getCommentState(answerId);
             state.draft = value;
+            updateCommentContentCounter(`comment-textarea-${answerId}`, value);
         }
 
         function updateReplyDraft(answerId, commentId, value) {
             const state = getCommentState(answerId);
             state.replyDrafts[commentId] = value;
+            updateCommentContentCounter(`reply-textarea-${answerId}-${commentId}`, value);
         }
 
         function toggleReplyThread(answerId, commentId) {
@@ -1896,6 +2800,11 @@
             const textareaId = parentCommentId === null
                 ? `comment-textarea-${answerId}`
                 : `reply-textarea-${answerId}-${parentCommentId}`;
+            const draftLength = draft.length;
+            const counterClass = draftLength >= 2000
+                ? 'char-counter error'
+                : (draftLength >= 1800 ? 'char-counter warning' : 'char-counter');
+            const counterText = `${draftLength} / 2000${draftLength >= 2000 ? '，评论内容已到上限，不能继续输入。' : ''}`;
             const onInputCall = parentCommentId === null
                 ? `updateCommentDraft(${answerId}, this.value)`
                 : `updateReplyDraft(${answerId}, ${parentCommentId}, this.value)`;
@@ -1909,7 +2818,8 @@
             return `
                 <div class="comment-composer">
                     <p class="comment-composer-title">${escapeHtml(title)}</p>
-                    <textarea id="${textareaId}" class="comment-textarea" placeholder="${escapeAttr(placeholder)}" oninput="${onInputCall}">${escapeHtml(draft)}</textarea>
+                    <textarea id="${textareaId}" class="comment-textarea" maxlength="2000" placeholder="${escapeAttr(placeholder)}" oninput="${onInputCall}">${escapeHtml(draft)}</textarea>
+                    <div id="${textareaId}-counter" class="${counterClass}">${counterText}</div>
                     <div class="comment-composer-footer">
                         <span class="comment-composer-hint">支持换行，发布后会立即出现在当前回答下。</span>
                         <div class="comment-composer-actions">
@@ -2048,7 +2958,7 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
@@ -2089,7 +2999,7 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/answers/${answerId}/comments`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
@@ -2123,6 +3033,10 @@
         }
 
         async function openCommentComposer(answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再发表评论。');
+                return;
+            }
             if (!canCommentOnQuestion(currentQuestionDetail)) {
                 alert('当前问题不再接受新评论。');
                 return;
@@ -2149,6 +3063,10 @@
         }
 
         async function toggleReplyComposer(answerId, commentId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再回复评论。');
+                return;
+            }
             if (!canCommentOnQuestion(currentQuestionDetail)) {
                 alert('当前问题不再接受新评论。');
                 return;
@@ -2186,6 +3104,10 @@
 
             if (!content) {
                 alert('评论内容不能为空。');
+                return;
+            }
+            if (content.length > 2000) {
+                alert('评论内容不能超过 2000 字，请精简后再发布。');
                 return;
             }
 
@@ -2233,7 +3155,7 @@
                     return;
                 } else {
                     const err = await response.json().catch(() => ({}));
-                    alert(`❌ 发布评论失败: ${err.detail || response.status}`);
+                    alert(`❌ 发布评论失败: ${getFriendlyDetailError(response, extractErrorDetail(err), '评论')}`);
                 }
             } catch (error) {
                 console.error('发布评论失败:', error);
@@ -2435,7 +3357,7 @@
                 const senderLabel = sender === 'user' ? getFollowUpUserMessageLabel(state) : (sender === 'ai' ? 'AI 助手' : '系统');
                 const modelLabel = message.model_name ? ` · ${escapeHtml(message.model_name)}` : '';
                 const contentHtml = sender === 'ai'
-                    ? marked.parse(String(message.content || ''))
+                    ? renderMarkdown(message.content)
                     : escapeHtml(message.content);
                 const contentClass = sender === 'ai'
                     ? 'ai-message-content markdown-content'
@@ -2524,6 +3446,10 @@
 
         async function preloadFollowUpSessions(questionId, answerId) {
             const state = getFollowUpState(answerId);
+            if (!isAuthenticated() || !canCurrentUserUseAiFollowUp()) {
+                updateFollowUpToolbar(answerId);
+                return;
+            }
             if (state.sessionsLoaded || state.loadingSessions) {
                 updateFollowUpToolbar(answerId);
                 return;
@@ -2534,6 +3460,15 @@
         async function loadFollowUpSessions(questionId, answerId, options = {}) {
             const token = sessionStorage.getItem('access_token');
             const state = getFollowUpState(answerId);
+            if (!canCurrentUserUseAiFollowUp()) {
+                state.visible = false;
+                state.errorMessage = '只有提问者可以使用 AI 追问。';
+                updateFollowUpToolbar(answerId);
+                if (!options.silent) {
+                    alert('只有提问者可以使用 AI 追问。');
+                }
+                return;
+            }
             if (!token) {
                 redirectToLogin('请先登录后再查看 AI 追问。');
                 return;
@@ -2589,6 +3524,14 @@
         }
 
         async function toggleFollowUpPanel(questionId, answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再查看 AI 追问。');
+                return;
+            }
+            if (!canCurrentUserUseAiFollowUp()) {
+                alert('只有提问者可以使用 AI 追问。');
+                return;
+            }
             const state = getFollowUpState(answerId);
             state.visible = !state.visible;
             renderFollowUpPanel(questionId, answerId);
@@ -2609,6 +3552,10 @@
         async function selectFollowUpSession(questionId, answerId, sessionId) {
             const token = sessionStorage.getItem('access_token');
             const state = getFollowUpState(answerId);
+            if (!canCurrentUserUseAiFollowUp()) {
+                alert('只有提问者可以使用 AI 追问。');
+                return;
+            }
             if (!token) {
                 redirectToLogin('请先登录后再查看 AI 会话。');
                 return;
@@ -2655,6 +3602,14 @@
         }
 
         async function startNewFollowUpSession(questionId, answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再追问 AI。');
+                return;
+            }
+            if (!canCurrentUserUseAiFollowUp()) {
+                alert('只有提问者可以使用 AI 追问。');
+                return;
+            }
             const state = getFollowUpState(answerId);
             state.visible = true;
             state.activeSessionId = null;
@@ -2675,6 +3630,11 @@
             const token = sessionStorage.getItem('access_token');
             const state = getFollowUpState(answerId);
             const content = state.draft.trim();
+
+            if (!canCurrentUserUseAiFollowUp()) {
+                alert('只有提问者可以使用 AI 追问。');
+                return;
+            }
 
             if (!token) {
                 redirectToLogin('请先登录后再追问 AI。');
@@ -2739,8 +3699,7 @@
             }
         }
 
-        async function loadQuestionDetail(resetBrowseSession = false) {
-            const token = sessionStorage.getItem('access_token');
+        async function loadQuestionDetail(resetBrowseSession = false, retryAsGuest = true) {
             const questionId = getCurrentQuestionId();
 
             if (!questionId) {
@@ -2751,11 +3710,12 @@
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}`), {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: buildAuthHeaders()
                 });
 
                 if (response.ok) {
                     const data = await response.json();
+                    await hydrateQuestionImages(data);
                     currentQuestionDetail = data;
                     if (resetBrowseSession) {
                         detailOpenedAt = Date.now();
@@ -2763,6 +3723,10 @@
                     }
                     renderDetail(data);
                 } else if ([401, 403, 423].includes(response.status)) {
+                    if (sessionStorage.getItem('access_token') && retryAsGuest) {
+                        switchToGuestMode();
+                        return loadQuestionDetail(resetBrowseSession, false);
+                    }
                     const err = await response.json().catch(() => ({}));
                     redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
                 } else {
@@ -2778,18 +3742,12 @@
             const token = sessionStorage.getItem('access_token');
             const username = sessionStorage.getItem('username');
             const role = sessionStorage.getItem('user_role');
-            if (!token) {
-                alert('请先登录！');
-                window.location.href = LOGIN_PAGE_URL;
-                return;
-            }
             const displayName = sessionStorage.getItem('nickname') || username;
-            document.getElementById('detail-user-greeting').innerText = displayName
-                ? `欢迎回来, ${displayName}`
-                : '已登录用户';
-            setNavAvatar(displayName || '我', '');
-            if (role === 'ADMIN') {
-                document.getElementById('admin-entry').style.display = 'flex';
+            if (token) {
+                renderAuthenticatedNav(displayName || '同学', role);
+                setNavAvatar(displayName || '我', '');
+            } else {
+                renderGuestNav();
             }
             await loadCurrentUserProfileForNav();
             await loadQuestionDetail(true);
@@ -2807,26 +3765,30 @@
             const date = new Date(q.ask_time).toLocaleString();
             const author = getDisplayName(q.username, q.author_nickname, q.user_id);
             const questionAuthorHtml = renderAuthorMeta(author, q.author_avatar_url);
-            const content = q.content ? q.content : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
+            const content = q.content ? renderPlainText(q.content) : '<span style="color:#9ca3af; font-style:italic;">（该用户很高冷，提问时没有填写详细描述）</span>';
             const statusBadge = buildQuestionStatusBadge(q.status);
             const favoriteMeta = getFavoriteButtonMeta(Boolean(q.is_favorited));
             const canAcceptAnswers = canCurrentUserAccept(q);
             const canComment = canCommentOnQuestion(q);
+            const isQuestionDeleted = q.status === 'DELETED';
             const resolutionText = q.accepted_answer_id
                 ? '✅ 已采纳最佳答案'
                 : (q.status === 'OPEN' ? '🟦 仍在征集回答' : '📌 当前暂无已采纳答案');
-            const questionImagesHtml = renderMediaGrid(q.images, '问题配图');
-
-            // 🌟 告诉 marked.js：当你遇到代码块时，请叫 highlight.js 来涂色！
-            marked.setOptions({
-                highlight: function (code, lang) {
-                    if (lang && hljs.getLanguage(lang)) {
-                        return hljs.highlight(code, { language: lang }).value;
-                    }
-                    return hljs.highlightAuto(code).value;
-                },
-                breaks: true // 允许原生的回车换行
+            const currentUserId = getCurrentUserId();
+            const canDeleteQuestion = currentUserId === Number(q.user_id) && !isQuestionDeleted;
+            const questionImagesHtml = renderMediaGrid(q.images, '问题配图', {
+                canDelete: canDeleteQuestion,
+                ownerType: 'question',
+                ownerId: q.question_id
             });
+            const favoriteButtonHtml = isQuestionDeleted
+                ? ''
+                : `<button onclick="toggleFavorite(${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">${favoriteMeta.label}</button>`;
+            const deleteQuestionButtonHtml = canDeleteQuestion
+                ? `<button type="button" onclick="deleteCurrentQuestion(${q.question_id})" style="background:#fff1f2; color:#be123c; border:1px solid #fecdd3; border-radius:999px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">删除帖子</button>`
+                : '';
+
+            configureMarked();
 
             // 🌟 新增：拼装回答（评论区）的 HTML 🌟
             let answersHtml = '<h3 style="margin-top: 48px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 18px; color: #111827;">💬 回答区</h3>';
@@ -2838,7 +3800,7 @@
                     const acceptedBadge = ans.is_accepted
                         ? '<span style="background:#ecfdf5; color:#047857; border:1px solid #86efac; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700;">✅ 已采纳答案</span>'
                         : '';
-                    const canShowAcceptButton = canAcceptAnswers && ans.answer_type !== 'SYSTEM' && !['CLOSED', 'ARCHIVED'].includes(q.status);
+                    const canShowAcceptButton = canAcceptAnswers && ans.answer_type !== 'SYSTEM' && !['CLOSED', 'ARCHIVED', 'DELETED'].includes(q.status);
                     const acceptButtonLabel = ans.is_accepted
                         ? '当前已采纳'
                         : (q.accepted_answer_id ? '改为采纳' : '采纳此答案');
@@ -2849,10 +3811,12 @@
                     const acceptButtonHtml = canShowAcceptButton
                         ? `<button id="accept-btn-${ansId}" onclick="acceptAnswer(${q.question_id}, ${ansId})" ${acceptButtonDisabled} style="${acceptButtonStyle} border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; transition: all 0.2s;">${acceptButtonLabel}</button>`
                         : '';
-                    const answerCardStyle = ans.is_accepted
-                        ? 'background:#f0fdf4; border:1px solid #86efac; box-shadow: 0 1px 2px rgba(0,0,0,0.02);'
-                        : 'background:#f8fafc; border:1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.02);';
+                    const deleteAnswerButtonHtml = canCurrentUserDeleteAnswer(ans, q)
+                        ? `<button id="delete-answer-btn-${ansId}" class="answer-action-button danger" type="button" onclick="deleteAnswer(${ansId})">删除回答</button>`
+                        : '';
+                    const answerCardClass = ans.is_accepted ? 'answer-card accepted' : 'answer-card';
                     const isAiAnswer = ans.answer_type === 'AI';
+                    const canUseAiFollowUp = isAiAnswer && canCurrentUserUseAiFollowUp(q);
 
                     // 🌟 智能判断：是人类还是 AI？
                     let authorName = '';
@@ -2873,7 +3837,7 @@
                         authorAvatarHtml = renderMiniAvatar(authorName, '', 'AI');
                     }
 
-                    const followUpHtml = isAiAnswer ? `
+                    const followUpHtml = canUseAiFollowUp ? `
                             <div class="ai-followup-shell">
                                 <div class="ai-followup-toolbar">
                                     <div>
@@ -2894,10 +3858,8 @@
                     ` : '';
 
                     // 组装带高级样式的 HTML
-                    // 组装带高级样式的 HTML
-                    // 组装带高级样式的 HTML
                     answersHtml += `
-                        <div style="${answerCardStyle} padding: 24px; border-radius: 12px; margin-top: 20px;">
+                        <div class="${answerCardClass}">
 
                             <div style="font-size: 14px; color: #475569; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -2909,22 +3871,27 @@
 
                             <div id="wrapper-${ansId}" class="answer-wrapper">
                                 <div class="markdown-content" style="font-size: 15px; line-height: 1.8; color: #334155;">
-                                    ${marked.parse(ans.content)}
+                                    ${renderMarkdown(ans.content)}
                                 </div>
-                                ${renderMediaGrid(ans.images, '回答配图')}
+                                ${renderMediaGrid(ans.images, '回答配图', {
+                                    canDelete: !isQuestionDeleted && currentUserId === Number(ans.user_id) && (ans.answer_type === 'MANUAL' || !ans.provider_name),
+                                    ownerType: 'answer',
+                                    ownerId: ans.answer_id
+                                })}
                                 <div id="mask-${ansId}" class="fade-mask"></div>
                             </div>
 
                             <button id="btn-${ansId}" class="toggle-btn" style="margin-bottom: 12px;" onclick="toggleAnswer(${ansId})">阅读全文 ↓</button>
 
-                            <div style="display: flex; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
-                                <button id="like-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'Y')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <div class="answer-actions">
+                                <button id="like-btn-${ansId}" class="answer-action-button" onclick="toggleFeedback(${ansId}, 'Y')">
                                     👍 <span id="like-count-${ansId}">${ans.like_count || 0}</span>
                                 </button>
-                                <button id="dislike-btn-${ansId}" onclick="toggleFeedback(${ansId}, 'N')" style="background: white; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 16px; cursor: pointer; color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                <button id="dislike-btn-${ansId}" class="answer-action-button" onclick="toggleFeedback(${ansId}, 'N')">
                                     👎 <span id="dislike-count-${ansId}">${ans.dislike_count || 0}</span>
                                 </button>
                                 ${acceptButtonHtml}
+                                ${deleteAnswerButtonHtml}
                             </div>
 
                             ${followUpHtml}
@@ -2956,7 +3923,8 @@
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
                     <h1 class="q-title" style="margin-bottom: 0;">${escapeHtml(q.title)}</h1>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                        <button onclick="toggleFavorite(${q.question_id}, ${q.is_favorited ? 'true' : 'false'})" style="${favoriteMeta.style} border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">${favoriteMeta.label}</button>
+                        ${favoriteButtonHtml}
+                        ${deleteQuestionButtonHtml}
                         ${statusBadge}
                     </div>
                 </div>
@@ -2999,7 +3967,7 @@
                     const state = getCommentState(ans.answer_id);
                     updateCommentToolbar(ans.answer_id);
                     preloadComments(ans.answer_id);
-                    if (ans.answer_type === 'AI') {
+                    if (ans.answer_type === 'AI' && canCurrentUserUseAiFollowUp(q)) {
                         const followUpState = getFollowUpState(ans.answer_id);
                         updateFollowUpToolbar(ans.answer_id);
                         preloadFollowUpSessions(q.question_id, ans.answer_id);
@@ -3017,8 +3985,132 @@
             }
         }
 
+        async function deleteCurrentQuestion(questionId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再删除帖子。');
+                return;
+            }
+
+            const confirmed = window.confirm('确定要删除这篇帖子吗？删除后其他用户将无法继续浏览或操作。');
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/questions/${questionId}`), {
+                    method: 'DELETE',
+                    headers: buildAuthHeaders()
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('user_center_active_tab', 'questions');
+                    alert('帖子已删除。');
+                    window.location.href = '/home';
+                    return;
+                }
+
+                if ([401, 403, 423].includes(response.status)) {
+                    const err = await response.json().catch(() => ({}));
+                    redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
+                    return;
+                }
+
+                const err = await response.json().catch(() => ({}));
+                alert(`删除失败：${err.detail || `请求失败（${response.status}）`}`);
+            } catch (error) {
+                console.error('删除帖子失败:', error);
+                alert('删除失败，请稍后再试。');
+            }
+        }
+
+        function getFriendlyDeleteAnswerError(response, detail) {
+            const text = String(detail || '');
+            if (response.status === 404 && (text === 'Not Found' || !text)) {
+                return '当前服务器没有匹配到删除回答接口，请确认后端已部署最新版本。';
+            }
+            if (text.includes('Accepted answers cannot be deleted')) {
+                return '已采纳回答不能直接删除，请先更换采纳答案。';
+            }
+            if (text.includes('Only the answer author or an admin')) {
+                return '只能删除自己发布的人工回答，或由管理员删除。';
+            }
+            if (text.includes('Answer has already been deleted')) {
+                return '这条回答已经删除，无需重复操作。';
+            }
+            if (text.includes('was not found')) {
+                return '这条回答不存在或已被删除。';
+            }
+            if (response.status === 403) {
+                return '你没有权限删除这条回答。';
+            }
+            if (response.status >= 500) {
+                return '服务暂时异常，请稍后重试或联系管理员。';
+            }
+            return text || `请求失败（${response.status}）`;
+        }
+
+        function getDeleteAnswerApiPath(answerId) {
+            return String(getCurrentUserRole()).toUpperCase() === 'ADMIN'
+                ? `/api/admin/answers/${answerId}`
+                : `/api/answers/${answerId}`;
+        }
+
+        async function deleteAnswer(answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再删除回答。');
+                return;
+            }
+
+            const confirmed = window.confirm('确定要删除这条回答吗？删除后该回答将不再展示。');
+            if (!confirmed) {
+                return;
+            }
+
+            const button = document.getElementById(`delete-answer-btn-${answerId}`);
+            const originalText = button?.textContent || '删除回答';
+            if (button) {
+                button.textContent = '删除中...';
+                button.disabled = true;
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(getDeleteAnswerApiPath(answerId)), {
+                    method: 'DELETE',
+                    headers: buildAuthHeaders()
+                });
+
+                if (response.ok) {
+                    removeDeletedAnswerFromCurrentDetail(answerId);
+                    alert('回答已删除。');
+                    return;
+                }
+
+                const err = await response.json().catch(() => ({}));
+                const detail = extractErrorDetail(err);
+
+                if ([401, 423].includes(response.status)) {
+                    redirectToLogin(detail || '登录状态已失效，请重新登录。');
+                    return;
+                }
+
+                alert(`删除失败：${getFriendlyDeleteAnswerError(response, detail)}`);
+            } catch (error) {
+                console.error('删除回答失败:', error);
+                alert('删除失败，请稍后再试。');
+            } finally {
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            }
+        }
+
         async function acceptAnswer(questionId, answerId) {
             const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再采纳答案。');
+                return;
+            }
 
             try {
                 const response = await fetch(buildApiUrl(`/api/questions/${questionId}/accept-answer`), {
@@ -3100,14 +4192,23 @@
 
         // 🌟 真正提交回答到后端（完美适配原作者接口）
         async function submitAnswer() {
+            const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再发布回答。');
+                return;
+            }
+
             const content = document.getElementById('my-answer-content').value.trim();
             if (!content) {
                 alert("❌ 还没有填写回答内容哦！");
                 return;
             }
+            if (content.length > 10000) {
+                alert("❌ 回答内容不能超过 10000 字，请精简后再发布。");
+                return;
+            }
 
             const questionId = getCurrentQuestionId();
-            const token = sessionStorage.getItem('access_token');
             const imagesToUpload = [...selectedAnswerImages];
 
             // 按钮变灰，防止用户狂点
@@ -3150,13 +4251,14 @@
                     }
 
                     document.getElementById('my-answer-content').value = '';
+                    updateAnswerContentCounter();
                     resetAnswerImageSelection();
                     await loadQuestionDetail(false);
                 } else if (response.status === 401) {
                     redirectToLogin('登录状态已失效，请重新登录。');
                 } else {
-                    const errorData = await response.json();
-                    alert("❌ 发布失败: " + JSON.stringify(errorData));
+                    const detail = await readErrorDetail(response);
+                    alert("❌ 发布失败: " + getFriendlyDetailError(response, detail, '回答'));
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }
@@ -3172,6 +4274,10 @@
         // 🌟 商业级反馈交互：无刷新、带变色动画、局部 DOM 更新
         async function toggleFeedback(answerId, isLike) {
             const token = sessionStorage.getItem('access_token');
+            if (!token || !getCurrentUserId()) {
+                redirectToLogin('请先登录后再进行点赞或点踩。');
+                return;
+            }
             const likeCountSpan = document.getElementById(`like-count-${answerId}`);
             const dislikeCountSpan = document.getElementById(`dislike-count-${answerId}`);
 

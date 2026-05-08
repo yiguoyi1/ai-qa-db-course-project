@@ -98,7 +98,8 @@ class UserCenterRepository:
                   WHERE q.user_id = u.user_id) AS question_count,
                 (SELECT COUNT(*)
                    FROM answers a
-                  WHERE a.user_id = u.user_id) AS answer_count,
+                  WHERE a.user_id = u.user_id
+                    AND a.status = 'ACTIVE') AS answer_count,
                 (SELECT COUNT(*)
                    FROM favorites f
                   WHERE f.user_id = u.user_id) AS favorite_count,
@@ -106,7 +107,8 @@ class UserCenterRepository:
                    FROM answers a
                    JOIN questions q
                      ON q.accepted_answer_id = a.answer_id
-                  WHERE a.user_id = u.user_id) AS accepted_answer_count
+                  WHERE a.user_id = u.user_id
+                    AND a.status = 'ACTIVE') AS accepted_answer_count
             FROM users u
             LEFT JOIN media_assets m
               ON m.media_id = u.avatar_media_id
@@ -222,6 +224,7 @@ class UserCenterRepository:
             SELECT COUNT(*)
             FROM questions
             WHERE user_id = :user_id
+              AND status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -248,7 +251,14 @@ class UserCenterRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
@@ -259,6 +269,7 @@ class UserCenterRepository:
               ON m.media_id = u.avatar_media_id
              AND m.status = 'ACTIVE'
             WHERE q.user_id = :user_id
+              AND q.status <> 'DELETED'
             ORDER BY q.ask_time DESC, q.question_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
@@ -305,8 +316,12 @@ class UserCenterRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM answers
-            WHERE user_id = :user_id
+            FROM answers a
+            JOIN questions q
+              ON q.question_id = a.question_id
+            WHERE a.user_id = :user_id
+              AND a.status = 'ACTIVE'
+              AND q.status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -346,6 +361,8 @@ class UserCenterRepository:
             JOIN questions q
               ON q.question_id = a.question_id
             WHERE a.user_id = :user_id
+              AND a.status = 'ACTIVE'
+              AND q.status <> 'DELETED'
             ORDER BY
                 CASE
                     WHEN q.accepted_answer_id = a.answer_id THEN 0
@@ -402,8 +419,11 @@ class UserCenterRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM favorites
-            WHERE user_id = :user_id
+            FROM favorites f
+            JOIN questions q
+              ON q.question_id = f.question_id
+            WHERE f.user_id = :user_id
+              AND q.status <> 'DELETED'
             """,
             {"user_id": user_id},
         )
@@ -432,7 +452,14 @@ class UserCenterRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
@@ -445,6 +472,7 @@ class UserCenterRepository:
               ON m.media_id = u.avatar_media_id
              AND m.status = 'ACTIVE'
             WHERE f.user_id = :user_id
+              AND q.status <> 'DELETED'
             ORDER BY f.favorite_time DESC, f.favorite_id DESC
             OFFSET :offset_rows ROWS FETCH NEXT :fetch_rows ROWS ONLY
             """,
@@ -520,6 +548,7 @@ class UserCenterRepository:
                 JOIN questions q
                   ON q.question_id = bh.question_id
                 WHERE bh.user_id = :user_id
+                  AND q.status <> 'DELETED'
             )
             WHERE rn = 1
             ORDER BY browse_time DESC, history_id DESC

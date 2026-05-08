@@ -21,8 +21,17 @@ class AIAnswerService:
     def __init__(self, client: DeepSeekClient | None = None) -> None:
         self._client = client or DeepSeekClient()
 
-    def generate_single_answer(self, title: str, content: str) -> GeneratedAnswer:
-        messages = build_question_answer_messages(title=title, content=content)
+    def generate_single_answer(
+        self,
+        title: str,
+        content: str,
+        image_contexts: list[str] | None = None,
+    ) -> GeneratedAnswer:
+        messages = build_question_answer_messages(
+            title=title,
+            content=content,
+            image_contexts=image_contexts,
+        )
         llm_result = self._client.generate_answer(messages)
 
         return GeneratedAnswer(

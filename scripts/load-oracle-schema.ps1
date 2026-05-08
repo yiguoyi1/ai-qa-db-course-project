@@ -5,7 +5,8 @@ param(
     [string[]]$SqlFiles = @(
         "sql/create_tables.sql",
         "sql/procedures.sql",
-        "sql/triggers.sql"
+        "sql/triggers.sql",
+        "sql/views.sql"
     )
 )
 

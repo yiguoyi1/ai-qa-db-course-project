@@ -4,19 +4,19 @@
 
 ## 1. 当前推荐分支
 
-当前推荐基于干净整合分支继续协作：
+当前推荐基于 `main` 分支继续协作：
 
 ```text
-integrate-collab-updates-clean
+main
 ```
 
-当前干净整合提交：
+当前文档整理前的本地基线提交：
 
 ```text
-d8bfefb feat: integrate admin media and accepted answer updates
+55bec04
 ```
 
-这个分支基于 `origin/main`，用一个正式提交整合了协作者的采纳答案、收藏、用户中心能力，以及本地补充的管理员、媒体、头像、问题配图和回答配图能力。
+现在的 `main` 已经整合了采纳答案、收藏、用户中心、管理员、媒体、头像、问题配图、回答配图、标签增强、AI 多轮追问前端和推荐画像相关能力。
 
 保留但不建议直接合并的安全备份分支：
 
@@ -29,7 +29,7 @@ backup-local-before-collab-integration
 
 ## 2. 已验证状态
 
-最近一次本地验证结果：
+历史本地验证曾覆盖：
 
 - Docker Desktop 已启动
 - `oracle26ai` 容器状态为 `healthy`
@@ -37,10 +37,15 @@ backup-local-before-collab-integration
 - Oracle 对象无编译错误
 - 触发器统计校验通过
 - 推荐过程幂等性校验通过
+- 增强推荐包体已在本地 Oracle 编译为 `VALID`
+- 增强推荐冒烟测试已覆盖画像重建、推荐生成、自有问题过滤、已收藏过滤和非 `OPEN` 问题过滤
 - 采纳答案跨问题引用已被数据库约束拒绝
 - Python 源码编译检查通过
 - `app.main` 和 `frontend_cli.main` 导入通过
 - CLI `questions` 命令已包含 `accept` 和图片相关命令
+- 2026-05-07 分类筛选链路已重新验证：`/api/categories` 仅返回启用分类，`/api/questions`、`/api/search/questions` 和推荐结果均按启用分类口径返回
+- 2026-05-07 本地数据库已用真实 DeepSeek API 对历史停用分类问题完成批量重分类，原 `公网快照标签治理` 下 60 条问题已迁入标准启用分类
+- 2026-05-07 验证结果：非 `DELETED` 问题不存在停用分类残留，首页问题总数恢复为 81 条，分类筛选与“全部问题”口径一致
 
 推荐重新验证命令：
 
@@ -48,6 +53,7 @@ backup-local-before-collab-integration
 powershell -ExecutionPolicy Bypass -File .\scripts\validate-oracle-schema.ps1
 python -B -c "import app.main; import frontend_cli.main; print('imports ok')"
 python -B -m frontend_cli.main questions --help
+python .\scripts\reclassify_question_categories.py --scope inactive --limit 5
 ```
 
 ## 3. 环境启动顺序
@@ -66,11 +72,15 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 API 启动后检查：
 
+- `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/health`
 - `http://127.0.0.1:8000/docs`
 - `http://127.0.0.1:8000/login`
 - `http://127.0.0.1:8000/home`
+- `http://127.0.0.1:8000/home?section=recommend`
+- `http://127.0.0.1:8000/home?section=hot`
 - `http://127.0.0.1:8000/me`
+- `http://127.0.0.1:8000/admin`
 
 ## 4. 当前核心能力
 
@@ -78,28 +88,36 @@ API 启动后检查：
 
 - 用户注册和登录
 - JWT 鉴权
+- 产品介绍首页
 - 纯社区发帖
 - AI 首答提问
+- 发帖分类、AI 自动分类、已有标签、自定义标签、标签建议和 AI 自动标签
 - 人工回答
 - 采纳答案
 - 问题收藏
 - 回答点赞、点踩和评分
 - 回答评论和楼中楼回复
+- AI 首答多轮追问网页交互
 - 搜索和搜索历史
+- 推荐 / 热榜首页分区
 - 浏览历史
 - 用户中心
 - 用户画像和推荐
-- 管理员用户、分类、问题、评论和日志治理接口
+- 管理员用户、分类、标签、问题、评论和日志治理接口
 - 用户头像
 - 问题配图
 - 回答配图
 
 当前网页入口：
 
+- `/`
 - `/login`
 - `/home`
+- `/home?section=recommend`
+- `/home?section=hot`
 - `/questions/{question_id}`
 - `/me`
+- `/admin`
 
 当前 CLI 入口：
 
@@ -128,7 +146,11 @@ python -m frontend_cli.main menu
 - 评论删除是软删除，不级联删除子回复。
 - 图片元数据统一保存在 `MEDIA_ASSETS`。
 - 统计字段优先由数据库触发器维护，不应在 Python 里重复加减。
-- 推荐逻辑优先调用数据库包 `qa_app_pkg`。
+- 推荐逻辑优先调用数据库包 `qa_app_pkg`，不要在 Python 服务层复制一套推荐算法。
+- 当前推荐 API 入参和出参保持不变，画像和推荐评分增强集中在数据库包体内部。
+- 公共分类列表只展示 `ACTIVE` 分类。
+- 公共问题列表、搜索结果和推荐结果也必须只返回启用分类下的问题，避免停用分类出现在首页但无法被筛选。
+- 历史停用分类问题不应直接隐藏或删除，优先使用 `scripts/reclassify_question_categories.py` 迁移到标准启用分类。
 
 ## 6. 数据库交接重点
 
@@ -138,15 +160,46 @@ python -m frontend_cli.main menu
 sql/create_tables.sql
 sql/procedures.sql
 sql/triggers.sql
+sql/views.sql
 sql/seed_data.sql
 ```
 
 本次整合新增或重点调整：
 
 ```text
+sql/migrations/20260405_add_answers_user_id.sql
+sql/migrations/20260405_add_answer_comments.sql
 sql/migrations/20260422_add_media_assets.sql
 sql/migrations/20260422_add_question_acceptance.sql
+sql/migrations/20260425_extend_chat_session_for_follow_up.sql
+sql/migrations/20260427_extend_tag_metadata.sql
+sql/migrations/20260429_add_deleted_question_status.sql
+sql/migrations/20260429_limit_media_asset_file_size.sql
+sql/migrations/20260502_improve_recommendation_scoring.sql
+sql/migrations/20260503_refresh_reporting_views.sql
+sql/migrations/20260507_standardize_question_categories.sql
+sql/migrations/20260508_add_answer_soft_delete.sql
 ```
+
+推荐增强迁移 `20260502_improve_recommendation_scoring.sql` 只替换 `qa_app_pkg` 包体，不修改表结构和现有 API。当前推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚共同组成。
+
+视图刷新迁移 `20260503_refresh_reporting_views.sql` 用于把报表和展示视图落到已有数据库中，覆盖问题概览、热榜、标签明细、用户行为汇总、媒体明细和 AI 追问会话汇总等查询口径。
+
+分类标准化迁移 `20260507_standardize_question_categories.sql` 用于把历史 `oracle`、`ai` 演示分类收敛到通用问答社区分类，并补齐技术开发、人工智能、学习教育、职场发展、生活方式、健康运动、旅行户外、美食烹饪、家居数码、财经理财、文化娱乐、创作设计和其他问题等标准分类。
+
+回答软删除迁移 `20260508_add_answer_soft_delete.sql` 用于为 `ANSWERS` 增加 `STATUS` 和 `DELETE_TIME`，并刷新回答质量、用户活跃汇总视图；旧库需要执行该迁移后才能使用删除回答接口。
+
+历史问题 AI 重分类脚本：
+
+```powershell
+# 只预览停用/缺失分类的问题，不写库
+python .\scripts\reclassify_question_categories.py --scope inactive --limit 10
+
+# 调用真实 DeepSeek API 并写回本地数据库
+python .\scripts\reclassify_question_categories.py --scope inactive --apply
+```
+
+脚本默认 dry-run，只有加 `--apply` 才会更新 `QUESTIONS.CATEGORY_ID`。建议先处理 `--scope inactive`，不要轻易对全部问题使用 `--scope all`，除非明确需要重新校准所有历史分类。
 
 采纳答案相关约束要点：
 
@@ -206,13 +259,14 @@ frontend_cli/
 1. 评论图片和图片审核后台。
 2. 推荐规则人工干预入口。
 3. 取消采纳或采纳历史。
-4. 多轮 AI 对话正式业务链。
+4. 标签合并、批量审核和标签质量治理。
 5. 写接口兼容字段的继续清理。
 
 已经补齐的前端交互：
 
 - 网页端问题配图和回答配图上传入口已接入，并在详情页正文下方展示。
-- 管理员网页后台已接入 `/admin`，覆盖总览、用户治理、分类管理、内容治理、登录日志和操作日志。
+- 网页端 AI 首答多轮追问入口已接入详情页，支持会话列表、消息展示和创建 / 续写追问。
+- 管理员网页后台已接入 `/admin`，覆盖总览、用户治理、分类管理、标签治理、内容治理、登录日志和操作日志。
 - 管理员后台已统一为社区蓝色视觉风格，角色、状态和日志类型显示为中文友好文案。
 - 内容治理页已经支持从最近问题定位问题 ID、展开回答查看评论 ID，并一键填入治理表单。
 

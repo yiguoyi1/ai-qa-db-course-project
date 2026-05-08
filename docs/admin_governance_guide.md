@@ -34,6 +34,8 @@
 - 查看分类列表
 - 创建分类
 - 修改分类名称、描述、状态
+- 查看标签列表，按来源、状态、关键词过滤
+- 修改标签名称、描述、状态
 - 查看用户列表
 - 修改用户角色
 - 修改用户状态
@@ -55,6 +57,7 @@
 
 这部分已经在设计中被提到，但当前代码还没有正式补齐：
 
+- 标签创建、标签合并和批量审核
 - 推荐规则人工干预
 - 媒体资源治理
 - 图片 / 头像审核
@@ -69,6 +72,7 @@
 - 管理员不能把自己改成不可用状态
 - 最后一个 `ACTIVE ADMIN` 不能被降级或停用
 - 评论治理优先采用 `HIDDEN / ACTIVE` 的显示治理方式，而不是直接强删
+- 标签治理优先采用 `ACTIVE / PENDING / DISABLED` 的状态治理方式，禁用标签不会继续进入公开标签列表和新问题绑定
 - 评论作者自己的删除链路和管理员治理链路是两条不同链路
 - 关键治理动作必须写入 `OPERATION_LOG`
 
@@ -164,15 +168,55 @@ http://127.0.0.1:8000/admin
 - `POST /api/admin/categories`
 - `PATCH /api/admin/categories/{category_id}`
 
-### 6.2 用户治理
+### 6.2 标签治理
+
+- `GET /api/admin/tags`
+- `PATCH /api/admin/tags/{tag_id}`
+
+历史标签批量治理使用脚本：
+
+```powershell
+python scripts/govern_historical_tags.py
+```
+
+默认只输出治理计划，不写数据库。确认计划无误后再执行：
+
+```powershell
+python scripts/govern_historical_tags.py --apply
+```
+
+脚本策略：
+
+- 低俗、无意义或过泛标签会标记为 `DISABLED`，不做硬删除
+- 相似标签会先迁移 `QUESTION_TAGS` 关联，再禁用源标签
+- 如果目标标签不存在，脚本会创建 `source = ADMIN` 的规范标签
+- 如果只是大小写或命名规范化，脚本只重命名原标签，不迁移关联
+
+如需用公网演示数据在本地复现标签治理效果，可以先导入只读公网快照：
+
+```powershell
+python scripts/import_public_snapshot_for_tag_test.py --limit 80
+```
+
+默认只预览公网数据，不写本地库。确认后再执行：
+
+```powershell
+python scripts/import_public_snapshot_for_tag_test.py --limit 80 --apply
+```
+
+该脚本只通过公网 HTTP API 读取问题和标签摘要，不会连接或修改服务器数据库；写入目标是本地 `.env` 指向的 Oracle 测试库。
+
+### 6.3 用户治理
 
 - `GET /api/admin/users`
 - `PATCH /api/admin/users/{user_id}/status`
 - `PATCH /api/admin/users/{user_id}/role`
 
-### 6.3 内容治理
+### 6.4 内容治理
 
 - `PATCH /api/admin/questions/{question_id}/status`
+- `DELETE /api/admin/questions/{question_id}`
+- `DELETE /api/admin/answers/{answer_id}`
 - `PATCH /api/admin/comments/{comment_id}/status`
 
 网页后台为了帮助管理员定位 ID，会复用以下普通读接口：
@@ -181,7 +225,7 @@ http://127.0.0.1:8000/admin
 - `GET /api/questions/{question_id}`
 - `GET /api/answers/{answer_id}/comments`
 
-### 6.4 日志查询
+### 6.5 日志查询
 
 - `GET /api/admin/logs/login`
 - `GET /api/admin/logs/operations`
@@ -195,31 +239,45 @@ http://127.0.0.1:8000/admin
 - `ACTIVE`
 - `INACTIVE`
 
-### 7.2 用户角色
+### 7.2 标签来源
+
+- `SYSTEM`
+- `USER`
+- `AI`
+- `ADMIN`
+
+### 7.3 标签状态
+
+- `ACTIVE`
+- `PENDING`
+- `DISABLED`
+
+### 7.4 用户角色
 
 - `USER`
 - `ADMIN`
 
-### 7.3 用户状态
+### 7.5 用户状态
 
 - `ACTIVE`
 - `INACTIVE`
 - `LOCKED`
 - `DISABLED`
 
-### 7.4 问题状态
+### 7.6 问题状态
 
 - `OPEN`
 - `RESOLVED`
 - `CLOSED`
 - `ARCHIVED`
+- `DELETED`
 
-### 7.5 评论治理状态
+### 7.7 评论治理状态
 
 - `ACTIVE`
 - `HIDDEN`
 
-### 7.6 登录日志结果
+### 7.8 登录日志结果
 
 - `SUCCESS`
 - `FAILURE`

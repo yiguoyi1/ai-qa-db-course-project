@@ -51,6 +51,7 @@ class RecommendationRepository:
             FROM user_tag_profile utp
             JOIN tags t
               ON t.tag_id = utp.tag_id
+             AND t.status = 'ACTIVE'
             WHERE utp.user_id = :user_id
             ORDER BY utp.weight DESC, t.tag_name
             """,
@@ -97,9 +98,15 @@ class RecommendationRepository:
         cursor.execute(
             """
             SELECT COUNT(*)
-            FROM recommendations
-            WHERE user_id = :user_id
-              AND status = :status
+            FROM recommendations r
+            JOIN questions q
+              ON q.question_id = r.question_id
+            JOIN categories c
+              ON c.category_id = q.category_id
+             AND c.status = 'ACTIVE'
+            WHERE r.user_id = :user_id
+              AND r.status = :status
+              AND q.status <> 'DELETED'
             """,
             {
                 "user_id": user_id,
@@ -115,10 +122,23 @@ class RecommendationRepository:
         *,
         user_id: int,
         status: str,
+        limit: int | None = None,
     ) -> list[dict[str, Any]]:
         cursor = connection.cursor()
+        limit_prefix = ""
+        limit_suffix = ""
+        binds: dict[str, Any] = {
+            "user_id": user_id,
+            "status": status,
+        }
+        if limit is not None:
+            limit_prefix = "SELECT * FROM ("
+            limit_suffix = ") WHERE ROWNUM <= :limit_rows"
+            binds["limit_rows"] = limit
+
         cursor.execute(
-            """
+            f"""
+            {limit_prefix}
             SELECT
                 r.rec_id,
                 r.rec_type,
@@ -126,22 +146,32 @@ class RecommendationRepository:
                 r.rec_reason,
                 r.rec_score,
                 r.rec_time,
-                r.status,
+                r.status AS rec_status,
                 q.question_id,
                 q.user_id,
                 q.category_id,
                 q.title,
                 q.ask_time,
-                q.status,
+                q.status AS question_status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
             FROM recommendations r
             JOIN questions q
               ON q.question_id = r.question_id
+            JOIN categories c
+              ON c.category_id = q.category_id
+             AND c.status = 'ACTIVE'
             LEFT JOIN users u
               ON u.user_id = q.user_id
             LEFT JOIN media_assets m
@@ -149,12 +179,11 @@ class RecommendationRepository:
              AND m.status = 'ACTIVE'
             WHERE r.user_id = :user_id
               AND r.status = :status
+              AND q.status <> 'DELETED'
             ORDER BY r.rec_score DESC, r.rec_id DESC
+            {limit_suffix}
             """,
-            {
-                "user_id": user_id,
-                "status": status,
-            },
+            binds,
         )
         rows = cursor.fetchall()
         if not rows:
@@ -178,6 +207,7 @@ class RecommendationRepository:
             FROM question_tags qt
             JOIN tags t
               ON t.tag_id = qt.tag_id
+             AND t.status = 'ACTIVE'
             WHERE qt.question_id IN ({placeholders})
             ORDER BY qt.question_id, t.tag_name
             """,

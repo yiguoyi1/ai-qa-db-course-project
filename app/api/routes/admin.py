@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.auth_deps import AuthenticatedUser, get_admin_user
-from app.api.deps import get_admin_service
+from app.api.deps import get_admin_service, get_answer_service
 from app.core.errors import AppError
+from app.schemas.answer import DeleteAnswerResponse
 from app.schemas.admin import (
     AdminCategoryListResponse,
     AdminCategoryMutationResponse,
@@ -10,15 +11,19 @@ from app.schemas.admin import (
     AdminLoginLogListResponse,
     AdminOperationLogListResponse,
     AdminQuestionStatusResponse,
+    AdminTagListResponse,
+    AdminTagMutationResponse,
     AdminUserListResponse,
     AdminUserMutationResponse,
     CreateCategoryRequest,
     UpdateCommentStatusRequest,
     UpdateCategoryRequest,
     UpdateQuestionStatusRequest,
+    UpdateTagRequest,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
 )
+from app.services.answer_service import AnswerService
 from app.services.admin_service import AdminService
 
 
@@ -92,6 +97,55 @@ def update_category(
 
 
 @router.get(
+    "/tags",
+    response_model=AdminTagListResponse,
+    status_code=status.HTTP_200_OK,
+)
+def list_tags(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    source: str | None = Query(default=None),
+    status_filter: str | None = Query(default=None, alias="status"),
+    keyword: str | None = Query(default=None),
+    _: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminTagListResponse:
+    try:
+        return service.list_tags(
+            page=page,
+            page_size=page_size,
+            source=source,
+            status=status_filter,
+            keyword=keyword,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.patch(
+    "/tags/{tag_id}",
+    response_model=AdminTagMutationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def update_tag(
+    tag_id: int,
+    payload: UpdateTagRequest,
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminTagMutationResponse:
+    try:
+        return service.update_tag(
+            admin_user_id=admin_user.user_id,
+            tag_id=tag_id,
+            tag_name=payload.tag_name,
+            description=payload.description,
+            status=payload.status,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.get(
     "/users",
     response_model=AdminUserListResponse,
     status_code=status.HTTP_200_OK,
@@ -101,6 +155,7 @@ def list_users(
     page_size: int = Query(default=20, ge=1, le=100),
     role: str | None = Query(default=None),
     status_filter: str | None = Query(default=None, alias="status"),
+    username: str | None = Query(default=None, max_length=50),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
 ) -> AdminUserListResponse:
@@ -110,6 +165,7 @@ def list_users(
             page_size=page_size,
             role=role,
             status=status_filter,
+            username=username,
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
@@ -124,6 +180,7 @@ def list_login_logs(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     user_id: int | None = Query(default=None, gt=0),
+    username: str | None = Query(default=None, max_length=50),
     result: str | None = Query(default=None),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
@@ -133,6 +190,7 @@ def list_login_logs(
             page=page,
             page_size=page_size,
             user_id=user_id,
+            username=username,
             result=result,
         )
     except AppError as exc:
@@ -148,6 +206,7 @@ def list_operation_logs(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     user_id: int | None = Query(default=None, gt=0),
+    username: str | None = Query(default=None, max_length=50),
     op_type: str | None = Query(default=None),
     _: AuthenticatedUser = Depends(get_admin_user),
     service: AdminService = Depends(get_admin_service),
@@ -157,6 +216,7 @@ def list_operation_logs(
             page=page,
             page_size=page_size,
             user_id=user_id,
+            username=username,
             op_type=op_type,
         )
     except AppError as exc:
@@ -221,6 +281,49 @@ def update_question_status(
             admin_user_id=admin_user.user_id,
             question_id=question_id,
             status=payload.status,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.delete(
+    "/questions/{question_id}",
+    response_model=AdminQuestionStatusResponse,
+    status_code=status.HTTP_200_OK,
+)
+def delete_question(
+    question_id: int,
+    reason: str | None = Query(default=None, max_length=200),
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminQuestionStatusResponse:
+    try:
+        return service.delete_question(
+            admin_user_id=admin_user.user_id,
+            question_id=question_id,
+            reason=reason,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.delete(
+    "/answers/{answer_id}",
+    response_model=DeleteAnswerResponse,
+    status_code=status.HTTP_200_OK,
+)
+def delete_answer(
+    answer_id: int,
+    reason: str | None = Query(default=None, max_length=200),
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AnswerService = Depends(get_answer_service),
+) -> DeleteAnswerResponse:
+    try:
+        return service.delete_answer(
+            answer_id=answer_id,
+            current_user_id=admin_user.user_id,
+            current_user_role=admin_user.role,
+            reason=reason,
         )
     except AppError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

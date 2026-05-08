@@ -146,6 +146,7 @@ class ChatRepository:
         *,
         question_id: int,
         seed_answer_id: int,
+        user_id: int,
     ) -> list[dict[str, Any]]:
         cursor = connection.cursor()
         cursor.execute(
@@ -169,6 +170,7 @@ class ChatRepository:
               ON cm.session_id = cs.session_id
             WHERE cs.question_id = :question_id
               AND cs.seed_answer_id = :seed_answer_id
+              AND cs.user_id = :user_id
             GROUP BY
                 cs.session_id,
                 cs.user_id,
@@ -184,6 +186,7 @@ class ChatRepository:
             {
                 "question_id": question_id,
                 "seed_answer_id": seed_answer_id,
+                "user_id": user_id,
             },
         )
         return [

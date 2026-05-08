@@ -47,6 +47,7 @@ class CommentRepository:
             SELECT
                 a.answer_id,
                 a.question_id,
+                a.status,
                 q.status
             FROM answers a
             JOIN questions q
@@ -62,7 +63,8 @@ class CommentRepository:
         return {
             "answer_id": int(row[0]),
             "question_id": int(row[1]),
-            "question_status": row[2],
+            "answer_status": row[2],
+            "question_status": row[3],
         }
 
     def get_comment_context(

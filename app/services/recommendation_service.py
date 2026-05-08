@@ -91,8 +91,12 @@ class RecommendationService:
         *,
         user_id: int,
         status: str = "ACTIVE",
+        limit: int | None = None,
     ) -> RecommendationListResponse:
         self._validate_user_id(user_id)
+        if limit is not None and (limit <= 0 or limit > 100):
+            raise ValidationError("limit must be between 1 and 100.")
+
         normalized_status = status.strip().upper()
         if normalized_status not in self.VALID_RECOMMENDATION_STATUSES:
             raise ValidationError("status must be one of ACTIVE, EXPIRED, or DISMISSED.")
@@ -103,6 +107,7 @@ class RecommendationService:
                 connection,
                 user_id=user_id,
                 status=normalized_status,
+                limit=limit,
             )
 
         return RecommendationListResponse(

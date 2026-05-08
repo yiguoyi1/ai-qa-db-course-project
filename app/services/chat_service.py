@@ -62,6 +62,8 @@ class ChatService:
                 raise NotFoundError(f"Answer {answer_id} was not found.")
             if seed_answer["question_id"] != question_id:
                 raise ValidationError("answer_id does not belong to the given question.")
+            if seed_answer.get("status") != "ACTIVE":
+                raise ValidationError("Only ACTIVE AI answers can be used for follow-up.")
             if seed_answer["answer_type"] != "AI":
                 raise ValidationError("当前多轮追问仅支持基于 AI 回答发起。")
 
@@ -137,6 +139,8 @@ class ChatService:
             session = self._chat_repository.get_session_by_id(connection, session_id)
             if session is None:
                 raise NotFoundError(f"Session {session_id} was not found.")
+            if session["user_id"] != current_user_id:
+                raise AppError("当前用户不能查看别人的 AI 会话。", status_code=403)
 
             messages = self._chat_repository.list_messages_by_session(
                 connection,
@@ -168,11 +172,14 @@ class ChatService:
                 raise NotFoundError(f"Answer {answer_id} was not found.")
             if seed_answer["question_id"] != question_id:
                 raise ValidationError("answer_id does not belong to the given question.")
+            if seed_answer.get("status") == "DELETED":
+                raise NotFoundError(f"Answer {answer_id} was not found.")
 
             items = self._chat_repository.list_sessions_by_anchor(
                 connection,
                 question_id=question_id,
                 seed_answer_id=answer_id,
+                user_id=current_user_id,
             )
 
         return ChatSessionListResponse(

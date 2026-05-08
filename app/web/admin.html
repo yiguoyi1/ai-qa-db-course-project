@@ -323,6 +323,11 @@
             white-space: nowrap;
         }
 
+        .btn:disabled {
+            opacity: 0.58;
+            cursor: not-allowed;
+        }
+
         .btn-primary {
             background: var(--primary);
             color: white;
@@ -399,6 +404,45 @@
 
         .muted {
             color: var(--text-muted);
+        }
+
+        .field-hint,
+        .char-counter {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .field-hint {
+            margin-top: 6px;
+        }
+
+        .char-counter {
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: var(--warning);
+        }
+
+        .char-counter.error {
+            color: var(--danger);
+            font-weight: 800;
+        }
+
+        tr.row-dirty td {
+            background: #f8fbff;
+        }
+
+        .dirty-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--warning);
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 6px;
         }
 
         .empty,
@@ -582,6 +626,273 @@
                 flex-basis: auto;
             }
         }
+
+        /* Enterprise UI refinement layer: admin console visual upgrade without changing JS logic. */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-soft: #eff6ff;
+            --surface-glass: rgba(255, 255, 255, 0.9);
+            --border-color: #dbe3ef;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 22px 52px rgba(15, 23, 42, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 12% 4%, rgba(59, 130, 246, 0.18), transparent 28%),
+                radial-gradient(circle at 88% 0%, rgba(14, 165, 233, 0.12), transparent 30%),
+                linear-gradient(180deg, #f3f7ff 0%, #f8fbff 340px, #f4f7fb 100%);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 52%);
+        }
+
+        .topbar {
+            height: 72px;
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(219, 227, 239, 0.92);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(14px);
+        }
+
+        .brand {
+            gap: 12px;
+            font-weight: 850;
+            letter-spacing: -0.03em;
+            color: #0f172a;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: #ffffff;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+        }
+
+        .layout {
+            max-width: 1320px;
+            gap: 30px;
+        }
+
+        .sidebar,
+        .hero,
+        .panel,
+        .stat-card,
+        .lookup-card {
+            background: var(--surface-glass);
+            border: 1px solid rgba(219, 227, 239, 0.92);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .sidebar {
+            padding: 18px;
+        }
+
+        .admin-card {
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at 88% 14%, rgba(125, 211, 252, 0.22), transparent 34%),
+                linear-gradient(135deg, #1d4ed8, #2563eb 58%, #38bdf8);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 20px 44px rgba(37, 99, 235, 0.24);
+        }
+
+        .admin-card p {
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .nav-button {
+            border-radius: 14px;
+            color: #475569;
+        }
+
+        .nav-button:hover,
+        .nav-button.active {
+            color: #1d4ed8;
+            background: #eff6ff;
+            box-shadow: inset 3px 0 0 #2563eb;
+        }
+
+        .hero {
+            padding: 28px;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -80px -130px auto;
+            width: 260px;
+            height: 260px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .hero h2,
+        .panel-header h3 {
+            color: #0f172a;
+            letter-spacing: -0.035em;
+        }
+
+        .panel {
+            overflow: hidden;
+        }
+
+        .panel:hover,
+        .stat-card:hover,
+        .lookup-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-header {
+            background: linear-gradient(180deg, rgba(248, 251, 255, 0.94), rgba(255, 255, 255, 0.76));
+            border-bottom-color: rgba(219, 227, 239, 0.92);
+        }
+
+        .stat-card {
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            letter-spacing: -0.04em;
+        }
+
+        input,
+        select,
+        textarea {
+            border-color: #dbe3ef;
+            border-radius: 12px;
+            background: rgba(248, 250, 252, 0.94);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+        }
+
+        .btn {
+            border-radius: 12px;
+            font-weight: 750;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 62%, #38bdf8 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 62%, #0ea5e9 100%);
+            box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.84);
+            border-color: #d4deeb;
+            color: #334155;
+        }
+
+        .btn-outline:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .btn-danger {
+            background: #fff1f2;
+            border-color: #fecdd3;
+            color: #be123c;
+        }
+
+        th {
+            background: #f8fbff;
+            color: #64748b;
+        }
+
+        td {
+            color: #334155;
+        }
+
+        .badge,
+        .id-chip {
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        }
+
+        .empty,
+        .loading {
+            border: 1px dashed #dbe3ef;
+            background: rgba(248, 250, 252, 0.82);
+            border-radius: var(--radius-lg);
+        }
+
+        .toast {
+            border-radius: 18px;
+            box-shadow: 0 22px 52px rgba(15, 23, 42, 0.22);
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                max-width: 780px;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                height: auto;
+                min-height: 72px;
+                gap: 12px;
+                align-items: flex-start;
+                flex-direction: column;
+                padding-top: 14px;
+                padding-bottom: 14px;
+            }
+
+            .top-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
     </style>
 </head>
 <body>
@@ -606,6 +917,7 @@
             <button class="nav-button active" data-section="overview" onclick="switchSection('overview')">总览 <span>→</span></button>
             <button class="nav-button" data-section="users" onclick="switchSection('users')">用户治理 <span>→</span></button>
             <button class="nav-button" data-section="categories" onclick="switchSection('categories')">分类管理 <span>→</span></button>
+            <button class="nav-button" data-section="tags" onclick="switchSection('tags')">标签治理 <span>→</span></button>
             <button class="nav-button" data-section="content" onclick="switchSection('content')">内容治理 <span>→</span></button>
             <button class="nav-button" data-section="logs" onclick="switchSection('logs')">审计日志 <span>→</span></button>
         </aside>
@@ -665,6 +977,7 @@
                                             </select>
                                         </div>
                                         <button class="btn btn-primary" onclick="updateQuestionStatus('quick')">更新问题</button>
+                                        <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('quick')">删除问题</button>
                                     </div>
                                 </div>
                             </div>
@@ -720,6 +1033,10 @@
                                     <option value="DISABLED">已停用</option>
                                 </select>
                             </div>
+                            <div class="field">
+                                <label for="user-keyword-filter">用户名</label>
+                                <input id="user-keyword-filter" type="text" maxlength="50" placeholder="输入用户名快速定位">
+                            </div>
                             <button class="btn btn-primary" onclick="applyUserFilters()">筛选</button>
                             <button class="btn btn-outline" onclick="resetUserFilters()">重置</button>
                         </div>
@@ -742,7 +1059,8 @@
                             <div class="form-row">
                                 <div class="field">
                                     <label for="new-category-name">分类名称</label>
-                                    <input id="new-category-name" maxlength="50" placeholder="例如 数据库">
+                                    <input id="new-category-name" maxlength="50" placeholder="例如 数据库" oninput="updateCategoryCreateCounters()">
+                                    <div id="new-category-name-counter" class="char-counter">0 / 50</div>
                                 </div>
                                 <div class="field small">
                                     <label for="new-category-status">状态</label>
@@ -754,9 +1072,11 @@
                             </div>
                             <div style="margin-top:12px;">
                                 <label for="new-category-desc">描述</label>
-                                <textarea id="new-category-desc" maxlength="200" placeholder="可选，说明该分类适合哪些问题"></textarea>
+                                <textarea id="new-category-desc" maxlength="200" placeholder="可选，说明该分类适合哪些问题" oninput="updateCategoryCreateCounters()"></textarea>
+                                <div id="new-category-desc-counter" class="char-counter">0 / 200</div>
+                                <div class="field-hint">停用后的分类不会出现在首页筛选和普通用户发帖分类里。</div>
                             </div>
-                            <button class="btn btn-primary" style="margin-top:14px;" onclick="createCategory()">创建分类</button>
+                            <button id="create-category-btn" class="btn btn-primary" style="margin-top:14px;" onclick="createCategory()">创建分类</button>
                         </div>
                     </div>
                     <div class="panel">
@@ -782,6 +1102,48 @@
                             <div id="categories-table" style="margin-top:18px;"><div class="loading">正在加载分类...</div></div>
                             <div class="pagination" id="categories-pagination"></div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="tags-section">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>标签治理</h3>
+                            <p>查看系统、用户和 AI 创建的标签，维护标签描述与启用状态，停用后普通用户发帖时不再展示。</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="filters">
+                            <div class="field">
+                                <label for="tag-keyword-filter">关键词</label>
+                                <input id="tag-keyword-filter" placeholder="按标签名搜索">
+                            </div>
+                            <div class="field small">
+                                <label for="tag-source-filter">来源</label>
+                                <select id="tag-source-filter">
+                                    <option value="">全部</option>
+                                    <option value="SYSTEM">系统内置</option>
+                                    <option value="USER">用户创建</option>
+                                    <option value="AI">AI 创建</option>
+                                    <option value="ADMIN">管理员维护</option>
+                                </select>
+                            </div>
+                            <div class="field small">
+                                <label for="tag-status-filter">状态</label>
+                                <select id="tag-status-filter">
+                                    <option value="">全部</option>
+                                    <option value="ACTIVE">启用</option>
+                                    <option value="PENDING">待审核</option>
+                                    <option value="DISABLED">停用</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyTagFilters()">筛选</button>
+                            <button class="btn btn-outline" onclick="resetTagFilters()">重置</button>
+                        </div>
+                        <div id="tags-table" style="margin-top:18px;"><div class="loading">正在加载标签...</div></div>
+                        <div class="pagination" id="tags-pagination"></div>
                     </div>
                 </div>
             </section>
@@ -840,6 +1202,7 @@
                                     </select>
                                 </div>
                                 <button class="btn btn-primary" onclick="updateQuestionStatus('content')">更新</button>
+                                <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('content')">删除问题</button>
                             </div>
                         </div>
                     </div>
@@ -882,8 +1245,8 @@
                         <div class="panel-body">
                             <div class="filters">
                                 <div class="field small">
-                                    <label for="login-log-user-id">用户 ID</label>
-                                    <input id="login-log-user-id" type="number" min="1" placeholder="可选">
+                                    <label for="login-log-username">用户名</label>
+                                    <input id="login-log-username" type="text" maxlength="50" placeholder="可选">
                                 </div>
                                 <div class="field small">
                                     <label for="login-log-result">结果</label>
@@ -912,8 +1275,8 @@
                         <div class="panel-body">
                             <div class="filters">
                                 <div class="field small">
-                                    <label for="operation-log-user-id">管理员 ID</label>
-                                    <input id="operation-log-user-id" type="number" min="1" placeholder="可选">
+                                    <label for="operation-log-username">管理员用户名</label>
+                                    <input id="operation-log-username" type="text" maxlength="50" placeholder="可选">
                                 </div>
                                 <div class="field">
                                     <label for="operation-log-type">操作类型</label>
@@ -948,18 +1311,21 @@
             overview: ['总览', '查看管理员后台的关键数量，并快速确认系统治理状态。'],
             users: ['用户治理', '筛选用户并调整用户角色、锁定、停用和恢复状态。'],
             categories: ['分类管理', '创建和维护社区问题分类，支持启用与停用。'],
+            tags: ['标签治理', '维护用户画像和推荐系统依赖的标签元数据。'],
             content: ['内容治理', '通过问题 ID 或评论 ID 快速调整内容状态。'],
             logs: ['审计日志', '查看登录日志和管理员操作日志，支撑可追溯治理。'],
         };
 
         const state = {
             currentSection: 'overview',
-            users: { page: 1, pageSize: 10, role: '', status: '' },
+            users: { page: 1, pageSize: 10, role: '', status: '', username: '' },
             categories: { page: 1, pageSize: 8, status: '' },
+            tags: { page: 1, pageSize: 10, source: '', status: '', keyword: '' },
             contentQuestions: { page: 1, pageSize: 6, status: '' },
-            loginLogs: { page: 1, pageSize: 10, userId: '', result: '' },
-            operationLogs: { page: 1, pageSize: 10, userId: '', opType: '' },
+            loginLogs: { page: 1, pageSize: 10, username: '', result: '' },
+            operationLogs: { page: 1, pageSize: 10, username: '', opType: '' },
         };
+        const categoryOriginalById = {};
 
         const friendlyLabels = {
             USER: '普通用户',
@@ -974,14 +1340,19 @@
             ARCHIVED: '已归档',
             HIDDEN: '已隐藏',
             DELETED: '已删除',
+            PENDING: '待审核',
+            SYSTEM: '系统内置',
+            AI: 'AI 创建',
             SUCCESS: '成功',
             FAILURE: '失败',
             ADMIN_CREATE_CATEGORY: '创建分类',
             ADMIN_UPDATE_CATEGORY: '修改分类',
+            ADMIN_UPDATE_TAG: '修改标签',
             ADMIN_UPDATE_USER_STATUS: '修改用户状态',
             ADMIN_UPDATE_USER_ROLE: '修改用户角色',
             ADMIN_UPDATE_QUESTION_STATUS: '修改问题状态',
             ADMIN_UPDATE_COMMENT_STATUS: '修改评论状态',
+            ADMIN_DELETE_QUESTION: '删除问题',
         };
 
         function friendlyLabel(value) {
@@ -1016,7 +1387,8 @@
         }
 
         function logout() {
-            redirectToLogin();
+            clearSession();
+            window.location.href = HOME_PAGE_URL;
         }
 
         function goHome() {
@@ -1090,8 +1462,8 @@
             const normalized = String(value || '').toUpperCase();
             let kind = 'gray';
             if (['ACTIVE', 'SUCCESS', 'OPEN'].includes(normalized)) kind = 'success';
-            if (['ADMIN', 'RESOLVED'].includes(normalized)) kind = 'blue';
-            if (['INACTIVE', 'LOCKED', 'HIDDEN', 'ARCHIVED'].includes(normalized)) kind = 'warn';
+            if (['ADMIN', 'SYSTEM', 'AI', 'RESOLVED'].includes(normalized)) kind = 'blue';
+            if (['INACTIVE', 'LOCKED', 'HIDDEN', 'ARCHIVED', 'PENDING'].includes(normalized)) kind = 'warn';
             if (['DISABLED', 'FAILURE', 'CLOSED', 'DELETED'].includes(normalized)) kind = 'danger';
             const label = overrides[normalized] || friendlyLabel(normalized);
             return `<span class="badge ${kind}">${escapeHtml(label)}</span>`;
@@ -1107,6 +1479,66 @@
             }, 2800);
         }
 
+        function updateCharCounter(counter, length, maxLength) {
+            if (!counter) return;
+            counter.classList.remove('warning', 'error');
+            if (length >= maxLength) {
+                counter.classList.add('error');
+            } else if (length >= Math.floor(maxLength * 0.9)) {
+                counter.classList.add('warning');
+            }
+            counter.textContent = `${length} / ${maxLength}`;
+        }
+
+        function updateCategoryCreateCounters() {
+            const nameInput = document.getElementById('new-category-name');
+            const descInput = document.getElementById('new-category-desc');
+            updateCharCounter(
+                document.getElementById('new-category-name-counter'),
+                nameInput?.value.length || 0,
+                50,
+            );
+            updateCharCounter(
+                document.getElementById('new-category-desc-counter'),
+                descInput?.value.length || 0,
+                200,
+            );
+        }
+
+        function setButtonBusy(button, isBusy, busyText) {
+            if (!button) return;
+            if (isBusy) {
+                button.dataset.originalText = button.textContent;
+                button.textContent = busyText;
+                button.disabled = true;
+                return;
+            }
+            button.textContent = button.dataset.originalText || button.textContent;
+            button.disabled = false;
+            delete button.dataset.originalText;
+        }
+
+        function getFriendlyAdminError(message) {
+            const detail = String(message || '').trim();
+            const mappings = [
+                ['You cannot remove your own ADMIN role', '不能把自己的管理员角色改为普通用户。'],
+                ['The last ADMIN account cannot be demoted', '最后一个有效管理员不能被改为普通用户。'],
+                ['An admin cannot deactivate their own current account', '不能停用或锁定自己的当前管理员账号。'],
+                ['The last ADMIN account must remain ACTIVE', '最后一个有效管理员必须保持正常状态。'],
+                ['User role is already set to the requested value', '用户角色已经是所选值，无需重复修改。'],
+                ['User status is already set to the requested value', '用户状态已经是所选值，无需重复修改。'],
+                ['Comment status is already set to the requested value', '评论状态已经是所选值，无需重复修改。'],
+                ['Category name already exists', '分类名称已存在，请换一个名称。'],
+                ['No category fields changed', '分类信息没有变化，无需重复保存。'],
+                ['status must be ACTIVE or HIDDEN', '评论状态只能选择正常展示或已隐藏。'],
+                ['请求失败：422', '提交字段不符合要求，请检查后再试。'],
+            ];
+            for (const [needle, replacement] of mappings) {
+                if (detail.includes(needle)) return replacement;
+            }
+            return detail || '操作失败，请稍后重试。';
+        }
+
         function setLoading(targetId, message) {
             document.getElementById(targetId).innerHTML = `<div class="loading">${message}</div>`;
         }
@@ -1115,7 +1547,7 @@
             const token = getAccessToken();
             if (!token) {
                 redirectToLogin('请先登录管理员账号。');
-                throw new Error('Missing token');
+                throw new Error('请先登录管理员账号。');
             }
 
             const { params = {}, ...fetchOptions } = options;
@@ -1142,7 +1574,7 @@
 
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                throw new Error(err.detail || `请求失败：${response.status}`);
+                throw new Error(getFriendlyAdminError(err.detail || `请求失败：${response.status}`));
             }
 
             return response.json();
@@ -1171,6 +1603,7 @@
                 if (section === 'overview') await loadOverview();
                 if (section === 'users') await loadUsers();
                 if (section === 'categories') await loadCategories();
+                if (section === 'tags') await loadTags();
                 if (section === 'content') await loadContentQuestions();
                 if (section === 'logs') {
                     await Promise.all([loadLoginLogs(), loadOperationLogs()]);
@@ -1213,6 +1646,7 @@
                     page_size: state.users.pageSize,
                     role: state.users.role,
                     status: state.users.status,
+                    username: state.users.username,
                 },
             });
             renderUsers(data);
@@ -1281,12 +1715,14 @@
             state.users.page = 1;
             state.users.role = document.getElementById('user-role-filter').value;
             state.users.status = document.getElementById('user-status-filter').value;
+            state.users.username = document.getElementById('user-keyword-filter').value.trim();
             loadUsers();
         }
 
         function resetUserFilters() {
             document.getElementById('user-role-filter').value = '';
             document.getElementById('user-status-filter').value = '';
+            document.getElementById('user-keyword-filter').value = '';
             applyUserFilters();
         }
 
@@ -1306,7 +1742,7 @@
                 showToast('用户状态已更新。');
                 await Promise.all([loadUsers(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1321,7 +1757,7 @@
                 showToast('用户角色已更新。');
                 await Promise.all([loadUsers(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1329,11 +1765,18 @@
             const categoryName = document.getElementById('new-category-name').value.trim();
             const description = document.getElementById('new-category-desc').value.trim();
             const statusValue = document.getElementById('new-category-status').value;
+            const createButton = document.getElementById('create-category-btn');
+            updateCategoryCreateCounters();
             if (!categoryName) {
                 showToast('分类名称不能为空。', true);
                 return;
             }
+            if (categoryName.length > 50 || description.length > 200) {
+                showToast('分类名称或描述超过长度限制，请精简后再提交。', true);
+                return;
+            }
             try {
+                setButtonBusy(createButton, true, '创建中...');
                 await adminFetch('/api/admin/categories', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1345,10 +1788,13 @@
                 });
                 document.getElementById('new-category-name').value = '';
                 document.getElementById('new-category-desc').value = '';
+                updateCategoryCreateCounters();
                 showToast('分类已创建。');
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
+            } finally {
+                setButtonBusy(createButton, false);
             }
         }
 
@@ -1367,10 +1813,18 @@
 
         function renderCategories(data) {
             const items = data.items || [];
+            Object.keys(categoryOriginalById).forEach(key => delete categoryOriginalById[key]);
             if (items.length === 0) {
                 document.getElementById('categories-table').innerHTML = '<div class="empty">暂无分类数据</div>';
                 return;
             }
+            items.forEach(category => {
+                categoryOriginalById[category.category_id] = {
+                    name: category.category_name || '',
+                    description: category.description || '',
+                    status: category.status || 'ACTIVE',
+                };
+            });
             document.getElementById('categories-table').innerHTML = `
                 <div class="table-wrap">
                     <table style="min-width: 640px;">
@@ -1385,24 +1839,54 @@
                         </thead>
                         <tbody>
                             ${items.map(category => `
-                                <tr>
+                                <tr id="category-row-${category.category_id}">
                                     <td>${category.category_id}</td>
-                                    <td><input class="inline-input" id="category-name-${category.category_id}" value="${escapeHtml(category.category_name)}"></td>
-                                    <td><input class="inline-input" id="category-desc-${category.category_id}" value="${escapeHtml(category.description || '')}"></td>
+                                    <td>
+                                        <input class="inline-input" id="category-name-${category.category_id}" maxlength="50" value="${escapeHtml(category.category_name)}" oninput="markCategoryDirty(${category.category_id})">
+                                        <div id="category-dirty-${category.category_id}" class="dirty-dot" style="display:none;">有未保存修改</div>
+                                    </td>
+                                    <td><input class="inline-input" id="category-desc-${category.category_id}" maxlength="200" value="${escapeHtml(category.description || '')}" oninput="markCategoryDirty(${category.category_id})"></td>
                                     <td>
                                         ${badge(category.status, { ACTIVE: '启用', INACTIVE: '停用' })}
-                                        <select class="inline-select" id="category-status-${category.category_id}">
+                                        <select class="inline-select" id="category-status-${category.category_id}" onchange="markCategoryDirty(${category.category_id})">
                                             <option value="ACTIVE" ${category.status === 'ACTIVE' ? 'selected' : ''}>启用</option>
                                             <option value="INACTIVE" ${category.status === 'INACTIVE' ? 'selected' : ''}>停用</option>
                                         </select>
                                     </td>
-                                    <td><button class="btn btn-primary" onclick="updateCategory(${category.category_id})">保存</button></td>
+                                    <td><button id="category-save-${category.category_id}" class="btn btn-primary" onclick="updateCategory(${category.category_id})" disabled>保存</button></td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
+        }
+
+        function getCategoryDraft(categoryId) {
+            return {
+                name: document.getElementById(`category-name-${categoryId}`)?.value.trim() || '',
+                description: document.getElementById(`category-desc-${categoryId}`)?.value.trim() || '',
+                status: document.getElementById(`category-status-${categoryId}`)?.value || '',
+            };
+        }
+
+        function isCategoryDirty(categoryId) {
+            const original = categoryOriginalById[categoryId];
+            if (!original) return false;
+            const draft = getCategoryDraft(categoryId);
+            return draft.name !== original.name
+                || draft.description !== original.description
+                || draft.status !== original.status;
+        }
+
+        function markCategoryDirty(categoryId) {
+            const isDirty = isCategoryDirty(categoryId);
+            const row = document.getElementById(`category-row-${categoryId}`);
+            const dirtyHint = document.getElementById(`category-dirty-${categoryId}`);
+            const saveButton = document.getElementById(`category-save-${categoryId}`);
+            if (row) row.classList.toggle('row-dirty', isDirty);
+            if (dirtyHint) dirtyHint.style.display = isDirty ? 'inline-flex' : 'none';
+            if (saveButton) saveButton.disabled = !isDirty;
         }
 
         function applyCategoryFilters() {
@@ -1422,14 +1906,22 @@
         }
 
         async function updateCategory(categoryId) {
-            const name = document.getElementById(`category-name-${categoryId}`).value.trim();
-            const description = document.getElementById(`category-desc-${categoryId}`).value.trim();
-            const statusValue = document.getElementById(`category-status-${categoryId}`).value;
+            const { name, description, status: statusValue } = getCategoryDraft(categoryId);
+            const saveButton = document.getElementById(`category-save-${categoryId}`);
             if (!name) {
                 showToast('分类名称不能为空。', true);
                 return;
             }
+            if (!isCategoryDirty(categoryId)) {
+                showToast('分类信息没有变化，无需保存。');
+                return;
+            }
+            if (name.length > 50 || description.length > 200) {
+                showToast('分类名称或描述超过长度限制，请精简后再保存。', true);
+                return;
+            }
             try {
+                setButtonBusy(saveButton, true, '保存中...');
                 await adminFetch(`/api/admin/categories/${categoryId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -1442,7 +1934,121 @@
                 showToast('分类已更新。');
                 await Promise.all([loadCategories(), loadOverview()]);
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
+                setButtonBusy(saveButton, false);
+                markCategoryDirty(categoryId);
+            }
+        }
+
+        async function loadTags() {
+            setLoading('tags-table', '正在加载标签...');
+            const data = await adminFetch('/api/admin/tags', {
+                params: {
+                    page: state.tags.page,
+                    page_size: state.tags.pageSize,
+                    source: state.tags.source,
+                    status: state.tags.status,
+                    keyword: state.tags.keyword,
+                },
+            });
+            renderTags(data);
+            renderPagination('tags-pagination', state.tags, data.total, 'changeTagsPage');
+        }
+
+        function renderTags(data) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                document.getElementById('tags-table').innerHTML = '<div class="empty">暂无标签数据</div>';
+                return;
+            }
+            document.getElementById('tags-table').innerHTML = `
+                <div class="table-wrap">
+                    <table style="min-width: 980px;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标签名</th>
+                                <th>来源</th>
+                                <th>状态</th>
+                                <th>描述</th>
+                                <th>创建者</th>
+                                <th>问题数</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(tag => `
+                                <tr>
+                                    <td>${tag.tag_id}</td>
+                                    <td><input class="inline-input" id="tag-name-${tag.tag_id}" value="${escapeHtml(tag.tag_name)}"></td>
+                                    <td>${badge(tag.source || 'SYSTEM', { USER: '用户创建', ADMIN: '管理员维护' })}</td>
+                                    <td>
+                                        ${badge(tag.status, { ACTIVE: '启用', PENDING: '待审核', DISABLED: '停用' })}
+                                        <select class="inline-select" id="tag-status-${tag.tag_id}">
+                                            <option value="ACTIVE" ${tag.status === 'ACTIVE' ? 'selected' : ''}>启用</option>
+                                            <option value="PENDING" ${tag.status === 'PENDING' ? 'selected' : ''}>待审核</option>
+                                            <option value="DISABLED" ${tag.status === 'DISABLED' ? 'selected' : ''}>停用</option>
+                                        </select>
+                                    </td>
+                                    <td><input class="inline-input" style="min-width:220px;" id="tag-desc-${tag.tag_id}" value="${escapeHtml(tag.description || '')}" placeholder="补充标签说明"></td>
+                                    <td>
+                                        <strong>${escapeHtml(tag.create_username || '-')}</strong>
+                                        ${tag.create_user_id ? `<div class="muted">ID：${tag.create_user_id}</div>` : ''}
+                                    </td>
+                                    <td>${tag.question_count ?? 0}</td>
+                                    <td>${formatDate(tag.create_time)}</td>
+                                    <td><button class="btn btn-primary" onclick="updateTag(${tag.tag_id})">保存</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function applyTagFilters() {
+            state.tags.page = 1;
+            state.tags.keyword = document.getElementById('tag-keyword-filter').value.trim();
+            state.tags.source = document.getElementById('tag-source-filter').value;
+            state.tags.status = document.getElementById('tag-status-filter').value;
+            loadTags();
+        }
+
+        function resetTagFilters() {
+            document.getElementById('tag-keyword-filter').value = '';
+            document.getElementById('tag-source-filter').value = '';
+            document.getElementById('tag-status-filter').value = '';
+            applyTagFilters();
+        }
+
+        function changeTagsPage(page) {
+            state.tags.page = Math.max(1, page);
+            loadTags();
+        }
+
+        async function updateTag(tagId) {
+            const name = document.getElementById(`tag-name-${tagId}`).value.trim();
+            const description = document.getElementById(`tag-desc-${tagId}`).value.trim();
+            const statusValue = document.getElementById(`tag-status-${tagId}`).value;
+            if (!name) {
+                showToast('标签名称不能为空。', true);
+                return;
+            }
+            try {
+                await adminFetch(`/api/admin/tags/${tagId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tag_name: name,
+                        description: description || null,
+                        status: statusValue,
+                    }),
+                });
+                showToast('标签已更新，普通用户发帖可见范围会同步变化。');
+                await loadTags();
+            } catch (error) {
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1490,6 +2096,7 @@
                         <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
                         <button class="btn btn-outline" onclick="inspectQuestionContent(${question.question_id})">查看回答/评论 ID</button>
                         <button class="btn btn-outline" onclick="window.open('/questions/${question.question_id}', '_blank')">打开详情页</button>
+                        <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('list', ${question.question_id})">删除问题</button>
                     </div>
                 </div>
             `).join('');
@@ -1525,6 +2132,10 @@
         }
 
         function renderQuestionInspector(question) {
+            const detailPanel = document.getElementById('content-detail-panel');
+            if (detailPanel) {
+                detailPanel.dataset.questionId = String(question.question_id);
+            }
             const answers = question.answers || [];
             const answerListHtml = answers.length
                 ? answers.map(answer => {
@@ -1561,7 +2172,10 @@
                             <h3>问题 #${question.question_id} 的回答与评论</h3>
                             <p>${escapeHtml(question.title)} · ${answers.length} 个回答</p>
                         </div>
-                        <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                        <div class="lookup-actions">
+                            <button class="btn btn-primary" onclick="fillQuestionId(${question.question_id})">填入问题 ID</button>
+                            <button class="btn btn-danger" onclick="deleteQuestionAsAdmin('inspector', ${question.question_id})">删除问题</button>
+                        </div>
                     </div>
                     <div class="panel-body">
                         <div class="lookup-list">${answerListHtml}</div>
@@ -1631,7 +2245,49 @@
                 showToast('问题状态已更新。');
                 await loadOperationLogs();
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
+            }
+        }
+
+        function resolveQuestionIdForDelete(source, explicitQuestionId = null) {
+            if (explicitQuestionId !== null && explicitQuestionId !== undefined) {
+                return Number(explicitQuestionId);
+            }
+            const idPrefix = source === 'quick' ? 'quick' : 'content';
+            return Number(document.getElementById(`${idPrefix}-question-id`)?.value);
+        }
+
+        async function deleteQuestionAsAdmin(source, explicitQuestionId = null) {
+            const questionId = resolveQuestionIdForDelete(source, explicitQuestionId);
+            if (!Number.isInteger(questionId) || questionId <= 0) {
+                showToast('请输入有效的问题 ID。', true);
+                return;
+            }
+
+            const confirmed = window.confirm(`确定要删除问题 #${questionId} 吗？删除后普通用户将无法继续浏览或操作。`);
+            if (!confirmed) {
+                return;
+            }
+
+            const reason = window.prompt('请输入删除原因（可选，最多 200 字）：', '');
+            if (reason === null) {
+                return;
+            }
+
+            try {
+                await adminFetch(`/api/admin/questions/${questionId}`, {
+                    method: 'DELETE',
+                    params: { reason: reason.trim().slice(0, 200) },
+                });
+                showToast(`问题 #${questionId} 已删除。`);
+                const detailPanel = document.getElementById('content-detail-panel');
+                if (detailPanel?.dataset.questionId === String(questionId)) {
+                    detailPanel.innerHTML = '<div class="empty">该问题已删除。</div>';
+                    delete detailPanel.dataset.questionId;
+                }
+                await Promise.allSettled([loadContentQuestions(), loadOperationLogs(), loadOverview()]);
+            } catch (error) {
+                showToast(getFriendlyAdminError(error.message || '删除问题失败。'), true);
             }
         }
 
@@ -1652,7 +2308,7 @@
                 showToast('评论状态已更新。');
                 await loadOperationLogs();
             } catch (error) {
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
             }
         }
 
@@ -1662,7 +2318,7 @@
                 params: {
                     page: state.loginLogs.page,
                     page_size: state.loginLogs.pageSize,
-                    user_id: state.loginLogs.userId,
+                    username: state.loginLogs.username,
                     result: state.loginLogs.result,
                 },
             });
@@ -1698,13 +2354,13 @@
 
         function applyLoginLogFilters() {
             state.loginLogs.page = 1;
-            state.loginLogs.userId = document.getElementById('login-log-user-id').value;
+            state.loginLogs.username = document.getElementById('login-log-username').value.trim();
             state.loginLogs.result = document.getElementById('login-log-result').value;
             loadLoginLogs();
         }
 
         function resetLoginLogFilters() {
-            document.getElementById('login-log-user-id').value = '';
+            document.getElementById('login-log-username').value = '';
             document.getElementById('login-log-result').value = '';
             applyLoginLogFilters();
         }
@@ -1720,7 +2376,7 @@
                 params: {
                     page: state.operationLogs.page,
                     page_size: state.operationLogs.pageSize,
-                    user_id: state.operationLogs.userId,
+                    username: state.operationLogs.username,
                     op_type: state.operationLogs.opType,
                 },
             });
@@ -1756,13 +2412,13 @@
 
         function applyOperationLogFilters() {
             state.operationLogs.page = 1;
-            state.operationLogs.userId = document.getElementById('operation-log-user-id').value;
+            state.operationLogs.username = document.getElementById('operation-log-username').value.trim();
             state.operationLogs.opType = document.getElementById('operation-log-type').value;
             loadOperationLogs();
         }
 
         function resetOperationLogFilters() {
-            document.getElementById('operation-log-user-id').value = '';
+            document.getElementById('operation-log-username').value = '';
             document.getElementById('operation-log-type').value = '';
             applyOperationLogFilters();
         }
@@ -1787,7 +2443,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                showToast(error.message, true);
+                showToast(getFriendlyAdminError(error.message), true);
                 if (String(error.message).includes('管理员') || String(error.message).includes('无权访问')) {
                     setTimeout(() => {
                         window.location.href = HOME_PAGE_URL;
@@ -1795,6 +2451,13 @@
                 }
             }
         }
+
+        document.getElementById('tag-keyword-filter')?.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyTagFilters();
+            }
+        });
 
         window.addEventListener('load', initializeAdminPage);
     </script>

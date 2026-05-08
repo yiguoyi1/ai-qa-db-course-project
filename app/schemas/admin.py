@@ -82,6 +82,40 @@ class AdminCategoryMutationResponse(APIModel):
     message: str
 
 
+class AdminTagItem(APIModel):
+    tag_id: int
+    tag_name: str
+    source: str
+    status: str
+    description: str | None = None
+    create_user_id: int | None = None
+    create_username: str | None = None
+    create_time: datetime
+    question_count: int = 0
+
+
+class AdminTagListResponse(APIModel):
+    items: list[AdminTagItem] = Field(default_factory=list)
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1)
+    total: int = Field(ge=0)
+
+
+class UpdateTagRequest(APIModel):
+    tag_name: str | None = Field(default=None, min_length=1, max_length=50)
+    description: str | None = Field(default=None, max_length=200)
+    status: str | None = Field(default=None, min_length=1, max_length=20)
+
+
+class AdminTagMutationResponse(APIModel):
+    tag_id: int
+    tag_name: str
+    source: str
+    status: str
+    description: str | None = None
+    message: str
+
+
 class AdminQuestionStatusResponse(APIModel):
     question_id: int
     status: str

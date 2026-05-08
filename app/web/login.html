@@ -159,11 +159,158 @@
             font-size: 26px;
         }
     }
+
+    /* Enterprise UI refinement layer: stronger first-impression branding, no auth logic changes. */
+    :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --surface-glass: rgba(255, 255, 255, 0.9);
+        --border-color: #dbe3ef;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --shadow-md: 0 34px 90px rgba(15, 23, 42, 0.16);
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        position: relative;
+        overflow-x: hidden;
+        background:
+            radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.22), transparent 30%),
+            radial-gradient(circle at 88% 12%, rgba(14, 165, 233, 0.16), transparent 28%),
+            linear-gradient(180deg, #f3f7ff 0%, #f8fbff 48%, #f4f7fb 100%);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+        content: "AI QA";
+        position: fixed;
+        left: clamp(24px, 6vw, 80px);
+        top: clamp(20px, 6vh, 70px);
+        color: rgba(37, 99, 235, 0.08);
+        font-size: clamp(46px, 10vw, 132px);
+        font-weight: 900;
+        letter-spacing: -0.08em;
+        pointer-events: none;
+    }
+
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.52), transparent 62%);
+    }
+
+    .auth-container {
+        position: relative;
+        z-index: 1;
+        max-width: 440px;
+        border-radius: 28px;
+        background: var(--surface-glass);
+        border: 1px solid rgba(219, 227, 239, 0.94);
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+    }
+
+    .auth-container::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 5px;
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+    }
+
+    .home-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 12px;
+        margin-bottom: 22px;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
+        background: #f8fbff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .home-link:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        transform: translateY(-1px);
+    }
+
+    .header h1 {
+        color: #0f172a;
+        letter-spacing: -0.05em;
+    }
+
+    .header p {
+        color: #64748b;
+    }
+
+    .input-group label {
+        color: #475569;
+        font-weight: 750;
+    }
+
+    .input-group input {
+        min-height: 48px;
+        border-color: #dbe3ef;
+        background: rgba(248, 250, 252, 0.94);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    }
+
+    .input-group input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+    }
+
+    .btn-primary {
+        min-height: 50px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 62%, #38bdf8 100%);
+        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.24);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 62%, #0ea5e9 100%);
+        box-shadow: 0 20px 38px rgba(37, 99, 235, 0.3);
+    }
+
+    .action-links a {
+        font-weight: 800;
+    }
+
+    #result-message {
+        border-radius: 16px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    @media (max-width: 520px) {
+        .auth-container {
+            border-radius: 22px;
+        }
+    }
   </style>
 </head>
 <body>
 
 <div class="auth-container">
+  <button class="home-link" type="button" onclick="goHome()">← 返回社区首页</button>
+
   <div class="header">
     <h1 id="form-title">欢迎回来</h1>
     <p id="form-subtitle">登录你的 AI 问答社区账号</p>
@@ -186,16 +333,16 @@
 
   <div id="register-section" class="hidden">
     <div class="input-group">
-      <label>设置用户名</label>
-      <input type="text" id="reg-username" placeholder="建议使用英文字母和数字" required>
+      <label>设置用户名（不得少于 3 位）</label>
+      <input type="text" id="reg-username" minlength="3" maxlength="50" placeholder="3-50 位，建议使用英文字母和数字" required>
     </div>
     <div class="input-group">
-      <label>设置密码</label>
-      <input type="password" id="reg-password" placeholder="至少 6 位字符" required>
+      <label>设置密码（不得少于 6 位）</label>
+      <input type="password" id="reg-password" minlength="6" maxlength="128" placeholder="6-128 位字符" required>
     </div>
     <div class="input-group">
-      <label>社区昵称 (可选)</label>
-      <input type="text" id="reg-nickname" placeholder="让大家怎么称呼你？">
+      <label>社区昵称（可选，最多 50 字）</label>
+      <input type="text" id="reg-nickname" maxlength="50" placeholder="让大家怎么称呼你？">
     </div>
     <button class="btn-primary" onclick="handleRegister()">注 册</button>
     <div class="action-links">
@@ -211,6 +358,10 @@
 
   function buildApiUrl(path) {
       return new URL(path, window.location.origin).toString();
+  }
+
+  function goHome() {
+      window.location.href = HOME_PAGE_URL;
   }
 
   // 切换登录/注册表单的 UI 逻辑
@@ -303,6 +454,30 @@
       return detail ? `❌ ${detail}` : '❌ 登录没有成功，请检查用户名和密码后重试。';
   }
 
+  function getRegisterValidationMessage(user, pass, nick) {
+      if (!user || !pass) {
+          return '❌ 注册字段不符合要求：用户名和密码不能为空。';
+      }
+      if (user.length < 3 || user.length > 50 || pass.length < 6 || pass.length > 128 || nick.length > 50) {
+          return '❌ 注册字段不符合要求：用户名需为 3-50 位，密码需为 6-128 位，昵称不能超过 50 字。';
+      }
+      return '';
+  }
+
+  function getFriendlyRegisterError(response, data) {
+      const detail = extractErrorDetail(data);
+      if (response.status === 422 || detail.includes('String should') || detail.includes('field required')) {
+          return '❌ 注册字段不符合要求：用户名需为 3-50 位，密码需为 6-128 位，昵称不能超过 50 字。';
+      }
+      if (detail.includes('已被注册')) {
+          return `❌ ${detail}`;
+      }
+      if (response.status >= 500) {
+          return '❌ 服务暂时异常，请稍后重试或联系管理员。';
+      }
+      return detail ? `❌ ${detail}` : '❌ 注册没有成功，请检查用户名、密码和昵称后重试。';
+  }
+
   function showNetworkError() {
       showMessage('❌ 暂时无法连接到服务，请确认后端已经启动后再试。', false);
   }
@@ -348,11 +523,15 @@
 
   // 处理注册请求 (对接后端 API)
   async function handleRegister() {
-      const user = document.getElementById('reg-username').value;
+      const user = document.getElementById('reg-username').value.trim();
       const pass = document.getElementById('reg-password').value;
-      const nick = document.getElementById('reg-nickname').value;
+      const nick = document.getElementById('reg-nickname').value.trim();
 
-      if (!user || !pass) return showMessage('❌ 用户名和密码不能为空', false);
+      const validationMessage = getRegisterValidationMessage(user, pass, nick);
+      if (validationMessage) {
+          showMessage(validationMessage, false);
+          return;
+      }
       showMessage('⏳ 正在为您创建账号...', true);
 
       try {
@@ -366,8 +545,7 @@
           if (response.ok) {
               showMessage(`✅ 注册成功！请点击下方“返回登录”进行登录。`, true);
           } else {
-              const detail = extractErrorDetail(data);
-              showMessage(`❌ ${detail || '注册没有成功，请检查用户名和密码后重试。'}`, false);
+              showMessage(getFriendlyRegisterError(response, data), false);
           }
       } catch (error) {
           showNetworkError();

@@ -9,7 +9,7 @@
 3. 支持 AI 回答过程的数据记录，提高系统的智能化特征与可追溯性。
 4. 支持单轮问答与多轮对话两种业务场景。
 5. 通过主键、外键、唯一约束及检查约束保证数据完整性与一致性。
-6. 满足数据库课程设计要求，当前版本已覆盖表、主键、外键、索引、触发器、存储过程、函数及大对象等内容，并为视图与更多推荐扩展预留空间。
+6. 满足数据库课程设计要求，当前版本已覆盖表、主键、外键、索引、触发器、存储过程、函数、视图及大对象等内容，并为更多推荐扩展预留空间。
 
 ---
 
@@ -142,6 +142,8 @@
 | PROVIDER_NAME | VARCHAR2(50) |
 | CONTENT | CLOB |
 | GENERATE_TIME | DATE |
+| STATUS | VARCHAR2(20) |
+| DELETE_TIME | DATE |
 | MODEL_NAME | VARCHAR2(50) |
 | CONFIDENCE_SCORE | NUMBER(5,2) |
 | LIKE_COUNT | NUMBER |
@@ -195,10 +197,22 @@
 | -------- | ------------ |
 | TAG_ID | NUMBER |
 | TAG_NAME | VARCHAR2(50) |
+| SOURCE | VARCHAR2(20) |
+| STATUS | VARCHAR2(20) |
+| DESCRIPTION | VARCHAR2(200) |
+| CREATE_USER_ID | NUMBER |
+| CREATE_TIME | DATE |
 
 **主键：** TAG_ID
 
 **唯一约束：** TAG_NAME
+
+**外键：**
+* CREATE_USER_ID → USERS
+
+**检查约束：**
+* SOURCE IN ('SYSTEM', 'USER', 'AI', 'ADMIN')
+* STATUS IN ('ACTIVE', 'PENDING', 'DISABLED')
 
 ---
 
@@ -209,6 +223,9 @@
 | QT_ID | NUMBER |
 | QUESTION_ID | NUMBER |
 | TAG_ID | NUMBER |
+| SOURCE | VARCHAR2(30) |
+| CONFIDENCE_SCORE | NUMBER(5,2) |
+| CREATE_TIME | DATE |
 
 **主键：** QT_ID
 
@@ -217,6 +234,10 @@
 * TAG_ID → TAGS
 
 **唯一约束：** (QUESTION_ID, TAG_ID)
+
+**检查约束：**
+* SOURCE IN ('USER_SELECTED', 'USER_CREATED', 'AI_MATCHED', 'AI_CREATED', 'ADMIN_ADJUSTED')
+* CONFIDENCE_SCORE IS NULL OR CONFIDENCE_SCORE BETWEEN 0 AND 100
 
 ---
 
@@ -460,7 +481,7 @@
 7. 一个问题可以挂载多个标签，通过 `QUESTION_TAGS` 与 `TAGS` 建立多对多关系
 8. 用户头像、问题配图和回答配图统一落入 `MEDIA_ASSETS`
 9. 用户可对问题进行浏览、收藏、搜索，对回答进行反馈和评论，这些行为分别落入独立行为表
-10. 系统根据行为数据重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
+10. 系统根据提问、回答、收藏、浏览、反馈、评论和搜索等行为重建 `USER_TAG_PROFILE`，再生成 `RECOMMENDATIONS`
 11. 登录、操作、Prompt 与会话信息独立存储，保证业务数据与审计数据解耦
 
 整体关系链路可概括为：
@@ -492,15 +513,21 @@
 
 ## 3.8 视图设计
 
-当前仓库尚未落地独立视图脚本。
+当前仓库已落地独立视图脚本 `sql/views.sql`，用于把常见统计查询和展示查询封装为稳定的数据库对象。
 
-从产品与课程设计角度，后续可补充以下视图：
+当前视图包括：
 
-1. 热门问题视图：聚合浏览量、收藏数、回答数，用于首页热点展示
-2. 用户推荐视图：按用户查看当前有效推荐结果
-3. 用户兴趣视图：按用户查看标签权重分布
+1. `V_QUESTION_OVERVIEW`：问题概览，整合作者、分类、标签数、图片数、统计字段和活跃度分
+2. `V_HOT_QUESTIONS`：热门问题，基于问题概览筛选可展示问题并提供热度分
+3. `V_ANSWER_QUALITY_SUMMARY`：回答质量概览，整合点赞、点踩、评分、采纳状态、评论数和反馈数
+4. `V_USER_TAG_PROFILE_DETAIL`：用户兴趣画像明细，展示用户、标签、权重和画像排名
+5. `V_ACTIVE_RECOMMENDATION_DETAIL`：当前有效推荐明细，整合推荐结果、目标用户、问题作者和分类信息
+6. `V_QUESTION_TAG_DETAIL`：问题标签明细，展示标签来源、绑定来源和置信度
+7. `V_USER_ACTIVITY_SUMMARY`：用户行为汇总，统计提问、回答、评论、收藏、浏览、搜索、画像和推荐数量
+8. `V_MEDIA_ASSET_DETAIL`：媒体资源明细，整合上传者、归属对象、文件类型、大小和访问地址
+9. `V_CHAT_FOLLOWUP_SUMMARY`：AI 追问会话汇总，统计会话消息数、用户消息数、AI 消息数和最后消息时间
 
-当前版本已通过基础表、索引、过程和触发器支撑这些视图后续扩展。
+这些视图不替代业务表和过程，而是用于课程答辩、后台查询、报表展示和后续页面开发。
 
 ---
 
@@ -524,11 +551,11 @@
 
 1. `sync_question_statistics`：重算问题浏览数、收藏数、回答数
 2. `refresh_answer_feedback_stats`：重算回答点赞数、点踩数、平均评分
-3. `rebuild_user_tag_profile`：根据提问、收藏、浏览、反馈行为重建用户标签画像
+3. `rebuild_user_tag_profile`：根据提问、回答、收藏、浏览、反馈、评论和搜索行为重建用户标签画像
 4. `get_recommendation_score`：计算单个问题对指定用户的推荐分数
 5. `generate_recommendations`：为指定用户生成推荐结果并更新推荐状态
 
-当前实际落地的推荐逻辑以 `TAG_BASED + USER_TAG_PROFILE` 为主。
+当前实际落地的推荐逻辑以 `HYBRID + USER_TAG_PROFILE + USER_ACTION + POPULARITY` 为主，推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚组成。
 
 ---
 
@@ -553,7 +580,7 @@
 1. `USERS.ROLE`: `USER`, `ADMIN`
 2. `USERS.STATUS`: `ACTIVE`, `INACTIVE`, `LOCKED`, `DISABLED`
 3. `CATEGORIES.STATUS`: `ACTIVE`, `INACTIVE`
-4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`
+4. `QUESTIONS.STATUS`: `OPEN`, `RESOLVED`, `CLOSED`, `ARCHIVED`, `DELETED`
 5. `ANSWERS.ANSWER_TYPE`: `AI`, `MANUAL`, `SYSTEM`
 6. `ANSWER_COMMENTS.STATUS`: `ACTIVE`, `HIDDEN`, `DELETED`
 7. `MEDIA_ASSETS.OWNER_TYPE`: `USER_AVATAR`, `QUESTION`, `ANSWER`
@@ -601,7 +628,7 @@
 3. 行为数据写入对应业务表
 4. 触发器和过程自动更新问题与回答的统计字段
 5. 存储过程根据行为重建用户标签画像
-6. 推荐过程根据画像和问题热度生成推荐结果
+6. 推荐过程根据画像、问题热度和新鲜度生成 `HYBRID` 推荐结果
 
 因此，本系统的推荐不是孤立模块，而是依赖完整行为链路驱动的。
 

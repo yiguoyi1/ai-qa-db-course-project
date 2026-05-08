@@ -30,6 +30,10 @@
             line-height: 1.5;
         }
 
+        body.modal-open {
+            overflow: hidden;
+        }
+
         /* 顶部导航栏 */
         .navbar {
             background-color: var(--card-bg);
@@ -96,6 +100,23 @@
 
         .navbar-user { display: flex; align-items: center; gap: 14px; position: relative; }
         .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .nav-login-button {
+            height: 40px;
+            padding: 0 18px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+        .nav-login-button:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
         .user-menu { position: relative; }
         .user-avatar-button {
             width: 46px;
@@ -275,6 +296,80 @@
         .feed-title-group h2 { margin: 0; font-size: 24px; letter-spacing: -0.01em; }
         .feed-title-group p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
 
+        .feed-filters {
+            margin: -6px 0 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 12px;
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-select {
+            min-width: 138px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #334155;
+            font-weight: 700;
+            outline: none;
+        }
+
+        .filter-select:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+        }
+
+        .active-filter-summary {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .question-tag-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: -4px 0 14px;
+        }
+
+        .question-tag {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .sidebar-tag-button {
+            border: 1px solid #c7d2fe;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .sidebar-tag-button:hover,
+        .sidebar-tag-button.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+        }
+
         .btn-primary {
             padding: 10px 20px;
             background-color: var(--primary);
@@ -308,6 +403,37 @@
         .post-title { font-size: 19px; font-weight: 750; margin: 0 0 8px 0; color: var(--text-main); line-height: 1.45; }
         .post-preview { font-size: 15px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5; }
         .post-meta { font-size: 13px; color: #8b95a5; display: flex; gap: 16px; flex-wrap: wrap; }
+        .question-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0 4px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .question-page-button {
+            min-width: 86px;
+            height: 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .question-page-button:hover:not(:disabled) {
+            border-color: #93c5fd;
+            color: #1d4ed8;
+            background: #eff6ff;
+        }
+        .question-page-button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
         .author-meta {
             display: inline-flex;
             align-items: center;
@@ -445,6 +571,7 @@
             align-items: center;
             padding: 20px;
             backdrop-filter: blur(8px);
+            overscroll-behavior: contain;
         }
 
         .modal-card {
@@ -453,6 +580,8 @@
             max-width: 560px;
             max-height: calc(100vh - 40px);
             overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             padding: 30px;
             border-radius: 18px;
             box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
@@ -499,6 +628,170 @@
         }
 
         textarea.form-control { resize: vertical; line-height: 1.65; }
+
+        .char-counter {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: right;
+        }
+
+        .char-counter.warning {
+            color: #b45309;
+        }
+
+        .char-counter.error {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .tag-picker {
+            margin-bottom: 22px;
+            padding: 16px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        }
+
+        .tag-picker-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .tag-picker-title {
+            margin: 0 0 4px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .tag-picker-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .tag-option-list,
+        .selected-tag-list,
+        .tag-suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-option,
+        .selected-tag,
+        .tag-suggestion {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .tag-option:hover,
+        .tag-suggestion:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+        }
+
+        .tag-option.active,
+        .selected-tag {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .selected-tag.custom {
+            background: #eef2ff;
+            color: #4338ca;
+            border-color: #c7d2fe;
+        }
+
+        .selected-tag button {
+            margin-left: 6px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .tag-input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .tag-suggestion-list {
+            margin-top: 10px;
+        }
+
+        .auto-tag-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .category-mode-card {
+            padding: 14px 16px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: #f8fbff;
+        }
+
+        .category-mode-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .category-mode-title {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 800;
+        }
+
+        .category-mode-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.55;
+        }
+
+        .form-hint {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .form-hint.warning {
+            color: #b45309;
+            font-weight: 700;
+        }
+
+        .tag-picker-empty {
+            color: #94a3b8;
+            font-size: 13px;
+        }
 
         .ai-option-card {
             margin-bottom: 24px;
@@ -618,6 +911,267 @@
             .modal-actions button {
                 width: 100%;
             }
+
+            .tag-input-row,
+            .auto-tag-row {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .feed-filters {
+                align-items: stretch;
+            }
+
+            .filter-select,
+            .feed-filters button {
+                width: 100%;
+            }
+        }
+
+        /* Enterprise UI refinement layer: only visual overrides, no business logic changes. */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-weak: #eef5ff;
+            --surface-glass: rgba(255, 255, 255, 0.86);
+            --border-color: #dbe3ef;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 18px 42px rgba(15, 23, 42, 0.09);
+            --shadow-hover: 0 24px 54px rgba(37, 99, 235, 0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 14% 8%, rgba(59, 130, 246, 0.18), transparent 28%),
+                radial-gradient(circle at 82% 0%, rgba(14, 165, 233, 0.12), transparent 26%),
+                linear-gradient(180deg, #f3f7ff 0%, #f8fbff 360px, #f4f7fb 100%);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 52%);
+        }
+
+        .navbar {
+            min-height: 74px;
+            background: rgba(255, 255, 255, 0.88);
+            border-bottom: 1px solid rgba(219, 227, 239, 0.9);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        .navbar-brand {
+            letter-spacing: -0.03em;
+        }
+
+        .section-link {
+            color: #475569;
+            transition: color 0.18s ease;
+        }
+
+        .section-link.active {
+            color: #0f172a;
+        }
+
+        .section-link.active::after {
+            height: 3px;
+            bottom: 12px;
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+        }
+
+        .search-shell {
+            max-width: 560px;
+        }
+
+        .search-input,
+        .filter-select,
+        .form-control {
+            border-color: #dbe3ef;
+            background: rgba(248, 250, 252, 0.92);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .search-input:focus,
+        .filter-select:focus,
+        .form-control:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+        }
+
+        .search-button,
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 62%, #38bdf8 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22);
+        }
+
+        .search-button:hover,
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 62%, #0ea5e9 100%);
+            box-shadow: 0 18px 34px rgba(37, 99, 235, 0.28);
+        }
+
+        .btn-outline {
+            border-color: #d4deeb;
+            background: rgba(255, 255, 255, 0.82);
+            color: #334155;
+        }
+
+        .btn-outline:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .container {
+            max-width: 1240px;
+            gap: 32px;
+        }
+
+        .feed-header {
+            align-items: flex-end;
+            margin-bottom: 18px;
+        }
+
+        .feed-title-group h2 {
+            font-size: clamp(25px, 2.1vw, 31px);
+            letter-spacing: -0.04em;
+        }
+
+        .feed-title-group p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .feed-filters,
+        .sidebar-card,
+        .post-card,
+        .modal-card,
+        .user-menu-panel {
+            background: var(--surface-glass);
+            border: 1px solid rgba(219, 227, 239, 0.92);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(14px);
+        }
+
+        .feed-filters {
+            padding: 14px;
+            border-radius: var(--radius-lg);
+        }
+
+        .post-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-xl);
+            padding: 28px 30px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.82)),
+                radial-gradient(circle at 94% 8%, rgba(37, 99, 235, 0.08), transparent 32%);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .post-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: linear-gradient(180deg, #2563eb, #38bdf8);
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .post-card:hover {
+            border-color: #bfdbfe;
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+        }
+
+        .post-card:hover::before {
+            opacity: 1;
+        }
+
+        .post-title {
+            color: #0f172a;
+            letter-spacing: -0.025em;
+        }
+
+        .post-preview,
+        .post-meta {
+            color: #748198;
+        }
+
+        .question-tag,
+        .sidebar-tag-button,
+        .tag-option,
+        .tag-suggestion,
+        .selected-tag {
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-card {
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .sidebar-card h3 {
+            letter-spacing: -0.02em;
+        }
+
+        .modal-backdrop {
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(12px);
+        }
+
+        .modal-card {
+            border-radius: 26px;
+            box-shadow: 0 34px 80px rgba(15, 23, 42, 0.24);
+        }
+
+        .tag-picker,
+        .media-uploader,
+        .ai-option-card {
+            border-color: #dbeafe;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            border-radius: 18px;
+        }
+
+        .empty-state,
+        .loading-state {
+            border-radius: var(--radius-lg);
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                max-width: 760px;
+                gap: 22px;
+            }
+
+            .feed-header {
+                align-items: flex-start;
+            }
+
+            .post-card {
+                padding: 22px;
+            }
         }
 
     </style>
@@ -650,7 +1204,8 @@
 
     <div class="navbar-user">
         <span class="user-greeting" id="user-greeting">正在加载用户信息...</span>
-        <div class="user-menu">
+        <button id="login-entry" class="nav-login-button" type="button" onclick="goToLogin()" style="display:none;">登录</button>
+        <div class="user-menu" id="user-menu-wrapper">
             <button class="user-avatar-button" id="user-menu-trigger" type="button" onclick="toggleUserMenu(event)" aria-label="打开用户菜单" aria-expanded="false">
                 <span class="nav-avatar" id="nav-avatar">我</span>
             </button>
@@ -673,7 +1228,23 @@
             <button class="btn-primary" onclick="openPostModal()">+ 提问</button>
         </div>
 
+        <div class="feed-filters">
+            <select id="category-filter" class="filter-select" onchange="applyQuestionFilters()">
+                <option value="">全部分类</option>
+            </select>
+            <select id="status-filter" class="filter-select" onchange="applyQuestionFilters()">
+                <option value="">全部状态</option>
+                <option value="OPEN">开放中</option>
+                <option value="RESOLVED">已解决</option>
+                <option value="CLOSED">已关闭</option>
+                <option value="ARCHIVED">已归档</option>
+            </select>
+            <button class="btn-outline" type="button" onclick="clearQuestionFilters()">清除筛选</button>
+            <span id="active-filter-summary" class="active-filter-summary">当前查看全部问题</span>
+        </div>
+
         <div id="post-list"></div>
+        <div id="question-pagination" class="question-pagination"></div>
     </div>
 
         <div class="sidebar">
@@ -692,12 +1263,62 @@
 
         <div class="form-field">
             <label>问题标题 <span class="required">*</span></label>
-            <input type="text" id="post-title" placeholder="一句话描述你的问题" class="form-control">
+            <input type="text" id="post-title" maxlength="200" placeholder="一句话描述你的问题" class="form-control">
         </div>
 
         <div class="form-field">
             <label>详细描述 <span class="required">*</span></label>
-            <textarea id="post-content" rows="5" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control"></textarea>
+            <textarea id="post-content" rows="5" maxlength="10000" placeholder="请补充问题背景、现象和你已经尝试过的方法" required class="form-control" oninput="updatePostContentCounter()"></textarea>
+            <div id="post-content-counter" class="char-counter">0 / 10000</div>
+        </div>
+
+        <div class="form-field">
+            <label>问题分类</label>
+            <div class="category-mode-card">
+                <div class="category-mode-row">
+                    <div>
+                        <div class="category-mode-title">AI 自动分类</div>
+                        <div class="category-mode-desc">开启后，系统会从当前启用分类中自动判断最合适的一项。</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="post-auto-category" checked onchange="togglePostCategoryMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <select id="post-category" class="form-control" disabled onchange="updatePostCategoryPreview()">
+                    <option value="">正在加载分类...</option>
+                </select>
+                <p id="post-category-preview" class="form-hint">正在读取可用分类...</p>
+            </div>
+        </div>
+
+        <div class="tag-picker">
+            <div class="tag-picker-head">
+                <div>
+                    <p class="tag-picker-title">问题标签</p>
+                    <p class="tag-picker-hint">选择已有标签或输入自定义标签，系统会用它们帮助理解问题主题。</p>
+                </div>
+                <span class="tag-picker-empty" id="post-tag-count">0 / 10</span>
+            </div>
+            <div id="post-selected-tags" class="selected-tag-list" style="margin-bottom: 12px;"></div>
+            <div id="post-tag-options" class="tag-option-list">
+                <span class="tag-picker-empty">正在加载可选标签...</span>
+            </div>
+            <div class="tag-input-row">
+                <input id="post-custom-tag-input" class="form-control" type="text" maxlength="30" placeholder="输入自定义标签，回车添加">
+                <button class="btn-outline" type="button" onclick="addCustomTagFromInput()">添加标签</button>
+            </div>
+            <div id="post-tag-suggestions" class="tag-suggestion-list"></div>
+            <div class="auto-tag-row">
+                <div>
+                    <div class="ai-option-title">没有合适标签时自动识别</div>
+                    <div class="ai-option-desc">未选择或填写标签时，由 AI 根据标题和正文补全标签。</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="post-auto-tag" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
         <div class="media-uploader">
@@ -736,9 +1357,19 @@
         const DETAIL_PAGE_BASE = '/questions';
         const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
         const MAX_QUESTION_IMAGES = 9;
-        const MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024;
+        const MAX_QUESTION_IMAGE_SIZE = 50 * 1024 * 1024;
+        const MAX_POST_TAGS = 10;
         const HOME_SECTIONS = new Set(['recommend', 'hot']);
         let selectedPostImages = [];
+        let availableCategories = [];
+        let availablePostTags = [];
+        let popularSidebarTags = [];
+        let selectedPostTagIds = new Set();
+        let selectedCustomTags = [];
+        let tagSuggestionTimer = null;
+        let currentCategoryFilter = '';
+        let currentTagFilter = '';
+        let currentStatusFilter = '';
 
     function buildApiUrl(path, params = {}) {
         const url = new URL(path, window.location.origin);
@@ -766,7 +1397,31 @@
         window.location.href = LOGIN_PAGE_URL;
     }
 
+    function switchToGuestMode() {
+        clearSession();
+        renderGuestNav();
+        updateHomeSectionUi();
+    }
+
+    function goToLogin() {
+        window.location.href = LOGIN_PAGE_URL;
+    }
+
+    function isAuthenticated() {
+        return Boolean(sessionStorage.getItem('access_token') && getCurrentUserId());
+    }
+
+    function buildAuthHeaders(extraHeaders = {}) {
+        const token = sessionStorage.getItem('access_token');
+        return token
+            ? { ...extraHeaders, 'Authorization': `Bearer ${token}` }
+            : { ...extraHeaders };
+    }
+
     // 🌟 1. 全局变量，记录当前的搜索词
+    const HOME_PAGE_SIZE = 10;
+    const MAX_POST_TITLE_LENGTH = 200;
+    const MAX_POST_CONTENT_LENGTH = 10000;
     let currentSearchQuery = '';
     let currentQuestionPage = 1;
     let currentHomeSection = 'hot';
@@ -809,9 +1464,16 @@
     }
 
     function getQuestionHotScore(question) {
-        return (Number(question.answer_count || 0) * 4)
+        const interactionScore = (Number(question.answer_count || 0) * 4)
             + (Number(question.favorite_count || 0) * 3)
             + Number(question.view_count || 0);
+        const askTime = new Date(question.ask_time).getTime();
+        if (!Number.isFinite(askTime)) {
+            return interactionScore;
+        }
+        const ageHours = Math.max(0, (Date.now() - askTime) / 36e5);
+        const freshnessScore = Math.max(0, 80 - ageHours * 3);
+        return interactionScore + freshnessScore;
     }
 
     function getHomeSectionFromUrl() {
@@ -820,11 +1482,229 @@
         return HOME_SECTIONS.has(section) ? section : 'hot';
     }
 
+    function getStatusLabel(status) {
+        switch (String(status || '').toUpperCase()) {
+            case 'OPEN':
+                return '开放中';
+            case 'RESOLVED':
+                return '已解决';
+            case 'CLOSED':
+                return '已关闭';
+            case 'ARCHIVED':
+                return '已归档';
+            default:
+                return '';
+        }
+    }
+
+    function normalizePositiveId(value) {
+        const id = Number(value);
+        return Number.isInteger(id) && id > 0 ? String(id) : '';
+    }
+
+    function getCategoryName(categoryId) {
+        const id = Number(categoryId);
+        const category = availableCategories.find(item => Number(item.category_id) === id);
+        return category?.category_name || '';
+    }
+
+    function getCategoryById(categoryId) {
+        const id = Number(categoryId);
+        return availableCategories.find(item => Number(item.category_id) === id) || null;
+    }
+
+    function getDefaultPostCategoryId() {
+        const fallbackCategory = availableCategories.find(category => category.category_name === '其他问题')
+            || availableCategories[0];
+        return normalizePositiveId(fallbackCategory?.category_id);
+    }
+
+    function getTagName(tagId) {
+        const id = Number(tagId);
+        const tag = availablePostTags.find(item => Number(item.tag_id) === id)
+            || popularSidebarTags.find(item => Number(item.tag_id) === id);
+        return tag?.tag_name || '';
+    }
+
+    function getQuestionFilterParams() {
+        return {
+            category_id: currentCategoryFilter || undefined,
+            tag_id: currentTagFilter || undefined,
+            status: currentStatusFilter || undefined
+        };
+    }
+
+    function questionMatchesFilters(question) {
+        if (currentCategoryFilter && Number(question.category_id) !== Number(currentCategoryFilter)) {
+            return false;
+        }
+        if (currentStatusFilter && String(question.status || '').toUpperCase() !== currentStatusFilter) {
+            return false;
+        }
+        if (currentTagFilter) {
+            const tags = Array.isArray(question.tags) ? question.tags : [];
+            return tags.some(tag => Number(tag.tag_id) === Number(currentTagFilter));
+        }
+        return true;
+    }
+
+    function renderQuestionTags(tags) {
+        if (!Array.isArray(tags) || tags.length === 0) {
+            return '';
+        }
+        return `
+            <div class="question-tag-list">
+                ${tags.slice(0, 5).map(tag => `<span class="question-tag"># ${escapeHtml(tag.tag_name)}</span>`).join('')}
+            </div>
+        `;
+    }
+
+    function updateFilterSummary() {
+        const summary = document.getElementById('active-filter-summary');
+        if (!summary) {
+            return;
+        }
+
+        const parts = [];
+        const categoryName = getCategoryName(currentCategoryFilter);
+        const tagName = getTagName(currentTagFilter);
+        const statusName = getStatusLabel(currentStatusFilter);
+        if (categoryName) parts.push(`分类：${categoryName}`);
+        if (tagName) parts.push(`标签：${tagName}`);
+        if (statusName) parts.push(`状态：${statusName}`);
+        summary.textContent = parts.length > 0 ? `已筛选 ${parts.join(' / ')}` : '当前查看全部问题';
+    }
+
+    function renderCategoryControls() {
+        const filterSelect = document.getElementById('category-filter');
+        const postSelect = document.getElementById('post-category');
+        const categoryOptions = availableCategories
+            .map(category => `
+                <option value="${Number(category.category_id)}" title="${escapeHtml(category.description || category.category_name)}">${escapeHtml(category.category_name)}</option>
+            `)
+            .join('');
+
+        if (filterSelect) {
+            filterSelect.innerHTML = `<option value="">全部分类</option>${categoryOptions}`;
+            filterSelect.value = currentCategoryFilter || '';
+            filterSelect.disabled = availableCategories.length === 0;
+        }
+        if (postSelect) {
+            postSelect.innerHTML = availableCategories.length > 0
+                ? `<option value="">请选择分类</option>${categoryOptions}`
+                : '<option value="">暂无可用分类</option>';
+        }
+        togglePostCategoryMode();
+        updateFilterSummary();
+    }
+
+    function togglePostCategoryMode() {
+        const autoCheckbox = document.getElementById('post-auto-category');
+        const postSelect = document.getElementById('post-category');
+        if (!autoCheckbox || !postSelect) {
+            return;
+        }
+        const autoCategory = autoCheckbox.checked;
+        postSelect.disabled = autoCategory || availableCategories.length === 0;
+        if (autoCategory) {
+            postSelect.value = '';
+        }
+        updatePostCategoryPreview();
+    }
+
+    function updatePostCategoryPreview() {
+        const autoCheckbox = document.getElementById('post-auto-category');
+        const postSelect = document.getElementById('post-category');
+        const preview = document.getElementById('post-category-preview');
+        if (!preview) {
+            return;
+        }
+
+        preview.classList.remove('warning');
+        if (availableCategories.length === 0) {
+            preview.textContent = '当前没有启用分类，请联系管理员先启用或创建分类。';
+            preview.classList.add('warning');
+            return;
+        }
+
+        if (autoCheckbox?.checked) {
+            preview.textContent = `AI 将从 ${availableCategories.length} 个启用分类中自动判断。`;
+            return;
+        }
+
+        const category = getCategoryById(postSelect?.value);
+        if (!category) {
+            preview.textContent = '请选择一个分类，或重新开启 AI 自动分类。';
+            preview.classList.add('warning');
+            return;
+        }
+
+        preview.textContent = category.description
+            ? `已选择：${category.category_name}。${category.description}`
+            : `已选择：${category.category_name}。`;
+    }
+
+    async function loadCategories() {
+        try {
+            const response = await fetch(buildApiUrl('/api/categories'));
+            if (!response.ok) {
+                throw new Error('分类加载失败');
+            }
+            const data = await response.json();
+            availableCategories = Array.isArray(data.items)
+                ? data.items.filter(category => String(category.status || 'ACTIVE').toUpperCase() === 'ACTIVE')
+                : [];
+            if (
+                currentCategoryFilter
+                && !availableCategories.some(category => Number(category.category_id) === Number(currentCategoryFilter))
+            ) {
+                currentCategoryFilter = '';
+                syncHomeUrl();
+            }
+        } catch (error) {
+            console.error('加载分类失败:', error);
+            availableCategories = [];
+        }
+        renderCategoryControls();
+    }
+
+    function applyQuestionFilters() {
+        currentCategoryFilter = normalizePositiveId(document.getElementById('category-filter')?.value);
+        currentStatusFilter = document.getElementById('status-filter')?.value || '';
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
+    function clearQuestionFilters() {
+        currentCategoryFilter = '';
+        currentTagFilter = '';
+        currentStatusFilter = '';
+        const categorySelect = document.getElementById('category-filter');
+        const statusSelect = document.getElementById('status-filter');
+        if (categorySelect) categorySelect.value = '';
+        if (statusSelect) statusSelect.value = '';
+        renderPopularTags();
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
+    function applyTagFilter(tagId) {
+        const nextValue = normalizePositiveId(tagId);
+        currentTagFilter = currentTagFilter === nextValue ? '' : nextValue;
+        renderPopularTags();
+        syncHomeUrl();
+        updateFilterSummary();
+        loadQuestions(1);
+    }
+
     function updateHomeSectionUi() {
         document.querySelectorAll('.section-link').forEach(button => {
             const key = button.id.replace('section-', '');
             button.classList.toggle('active', key === currentHomeSection && !currentSearchQuery);
         });
+        updateFilterSummary();
 
         const title = document.getElementById('feed-title');
         const subtitle = document.getElementById('feed-subtitle');
@@ -838,11 +1718,13 @@
         }
         if (currentHomeSection === 'recommend') {
             title.textContent = '推荐问答';
-            subtitle.textContent = '根据你的兴趣画像和历史行为展示更可能感兴趣的问题。';
+            subtitle.textContent = isAuthenticated()
+                ? '根据你的近期行为和社区热度展示更可能感兴趣的问题。'
+                : '登录后可开启个性化推荐，当前先展示社区热门内容。';
             return;
         }
         title.textContent = '热榜问答';
-        subtitle.textContent = '优先查看讨论度、收藏度和浏览量更高的问题。';
+        subtitle.textContent = '优先查看讨论度、收藏度、浏览量和新鲜度更高的问题。';
     }
 
     function syncHomeUrl() {
@@ -853,6 +1735,21 @@
         } else {
             url.searchParams.delete('q');
             url.searchParams.set('section', currentHomeSection);
+        }
+        if (currentCategoryFilter) {
+            url.searchParams.set('category_id', currentCategoryFilter);
+        } else {
+            url.searchParams.delete('category_id');
+        }
+        if (currentTagFilter) {
+            url.searchParams.set('tag_id', currentTagFilter);
+        } else {
+            url.searchParams.delete('tag_id');
+        }
+        if (currentStatusFilter) {
+            url.searchParams.set('status', currentStatusFilter);
+        } else {
+            url.searchParams.delete('status');
         }
         window.history.replaceState({}, '', url.toString());
     }
@@ -889,6 +1786,45 @@
         avatar.textContent = getInitial(displayName);
     }
 
+    function renderGuestNav() {
+        const greeting = document.getElementById('user-greeting');
+        const loginEntry = document.getElementById('login-entry');
+        const menuWrapper = document.getElementById('user-menu-wrapper');
+        const adminEntry = document.getElementById('admin-entry');
+        if (greeting) {
+            greeting.innerText = '游客浏览';
+        }
+        if (loginEntry) {
+            loginEntry.style.display = 'inline-flex';
+            loginEntry.style.alignItems = 'center';
+        }
+        if (menuWrapper) {
+            menuWrapper.style.display = 'none';
+        }
+        if (adminEntry) {
+            adminEntry.style.display = 'none';
+        }
+    }
+
+    function renderAuthenticatedNav(displayName, role = '') {
+        const greeting = document.getElementById('user-greeting');
+        const loginEntry = document.getElementById('login-entry');
+        const menuWrapper = document.getElementById('user-menu-wrapper');
+        const adminEntry = document.getElementById('admin-entry');
+        if (greeting) {
+            greeting.innerText = `欢迎回来, ${displayName || '同学'}`;
+        }
+        if (loginEntry) {
+            loginEntry.style.display = 'none';
+        }
+        if (menuWrapper) {
+            menuWrapper.style.display = 'block';
+        }
+        if (adminEntry) {
+            adminEntry.style.display = role === 'ADMIN' ? 'flex' : 'none';
+        }
+    }
+
     function getUserDisplayName(user, fallback = '社区用户') {
         return user?.author_nickname
             || user?.nickname
@@ -923,6 +1859,7 @@
     async function loadCurrentUserProfileForNav() {
         const token = sessionStorage.getItem('access_token');
         if (!token) {
+            renderGuestNav();
             return;
         }
         try {
@@ -931,17 +1868,17 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
+                if ([401, 403, 423].includes(response.status)) {
+                    switchToGuestMode();
+                }
                 return;
             }
             const profile = await response.json();
             const displayName = profile.nickname || profile.username || sessionStorage.getItem('username') || '同学';
-            document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
+            renderAuthenticatedNav(displayName, profile.role || sessionStorage.getItem('user_role') || '');
             setNavAvatar(displayName, profile.avatar_url);
             sessionStorage.setItem('username', profile.username || '');
             sessionStorage.setItem('nickname', profile.nickname || '');
-            if (profile.role === 'ADMIN') {
-                document.getElementById('admin-entry').style.display = 'flex';
-            }
         } catch (error) {
             console.error('加载导航用户信息失败:', error);
         }
@@ -957,49 +1894,58 @@
     }
 
     // 🌟 3. 核心：拉取帖子列表的通用函数
-    async function loadQuestions(page = 1) {
+    async function loadQuestions(page = 1, retryAsGuest = true) {
         const token = sessionStorage.getItem('access_token');
         currentQuestionPage = page;
 
         const userId = getCurrentUserId();
+        const usePersonalRecommend = Boolean(token && userId && currentHomeSection === 'recommend' && !currentSearchQuery);
+        const questionFilters = getQuestionFilterParams();
         const requestPath = currentSearchQuery
             ? '/api/search/questions'
-            : (currentHomeSection === 'recommend' ? `/api/users/${userId}/recommendations` : '/api/questions');
+            : (usePersonalRecommend ? `/api/users/${userId}/recommendations` : '/api/questions');
         const url = buildApiUrl(requestPath, currentSearchQuery
-            ? { page, page_size: 10, q: currentSearchQuery }
-            : (currentHomeSection === 'recommend'
-                ? { status: 'ACTIVE' }
-                : { page, page_size: 50 }));
+            ? { page, page_size: HOME_PAGE_SIZE, q: currentSearchQuery, ...questionFilters }
+            : (usePersonalRecommend
+                ? { status: 'ACTIVE', limit: 100 }
+                : { page, page_size: HOME_PAGE_SIZE, include_total: true, ...questionFilters }));
 
         try {
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: buildAuthHeaders({ 'Content-Type': 'application/json' })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                if (!currentSearchQuery && currentHomeSection === 'recommend') {
-                    const items = Array.isArray(data.items)
-                        ? data.items.map(item => item.question).filter(Boolean)
+                if (usePersonalRecommend) {
+                    const allItems = Array.isArray(data.items)
+                        ? data.items.map(item => item.question).filter(Boolean).filter(questionMatchesFilters)
                         : [];
-                    renderQuestions({ items });
+                    const start = (page - 1) * HOME_PAGE_SIZE;
+                    renderQuestions({
+                        items: allItems.slice(start, start + HOME_PAGE_SIZE),
+                        page,
+                        page_size: HOME_PAGE_SIZE,
+                        total: allItems.length
+                    });
                     return;
                 }
-                if (!currentSearchQuery && currentHomeSection === 'hot') {
+                if (!currentSearchQuery && ['hot', 'recommend'].includes(currentHomeSection)) {
                     const items = Array.isArray(data.items) ? [...data.items] : [];
                     items.sort((a, b) => {
                         const scoreDiff = getQuestionHotScore(b) - getQuestionHotScore(a);
                         return scoreDiff || (new Date(b.ask_time) - new Date(a.ask_time));
                     });
-                    renderQuestions({ items: items.slice(0, 10) });
+                    renderQuestions({ ...data, items });
                     return;
                 }
                 renderQuestions(data);
             } else if ([401, 403, 423].includes(response.status)) {
+                if (token && retryAsGuest) {
+                    switchToGuestMode();
+                    return loadQuestions(page, false);
+                }
                 const err = await response.json().catch(() => ({}));
                 redirectToLogin(err.detail || '登录状态已失效，请重新登录。');
             } else {
@@ -1018,25 +1964,32 @@
         const displayName = nickname || username || '同学';
         const role = sessionStorage.getItem('user_role');
 
-        if (!token) {
-            alert('您还没有登录，请先登录！');
-            window.location.href = LOGIN_PAGE_URL;
-            return;
-        }
         const url = new URL(window.location.href);
         currentSearchQuery = url.searchParams.get('q')?.trim() || '';
         currentHomeSection = currentSearchQuery ? 'hot' : getHomeSectionFromUrl();
-        document.getElementById('search-input').value = currentSearchQuery;
-        updateHomeSectionUi();
-        document.getElementById('user-greeting').innerText = `欢迎回来, ${displayName}`;
-        setNavAvatar(displayName || '我', '');
-        if (role === 'ADMIN') {
-            document.getElementById('admin-entry').style.display = 'flex';
+        currentCategoryFilter = normalizePositiveId(url.searchParams.get('category_id'));
+        currentTagFilter = normalizePositiveId(url.searchParams.get('tag_id'));
+        currentStatusFilter = (url.searchParams.get('status') || '').toUpperCase();
+        if (currentStatusFilter && !['OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED'].includes(currentStatusFilter)) {
+            currentStatusFilter = '';
         }
-        await loadCurrentUserProfileForNav();
+        document.getElementById('search-input').value = currentSearchQuery;
+        const statusSelect = document.getElementById('status-filter');
+        if (statusSelect) {
+            statusSelect.value = currentStatusFilter;
+        }
+        updateHomeSectionUi();
+        if (token) {
+            renderAuthenticatedNav(displayName, role);
+            setNavAvatar(displayName || '我', '');
+        } else {
+            renderGuestNav();
+        }
+        const profilePromise = loadCurrentUserProfileForNav();
+        const metadataPromise = Promise.all([loadCategories(), loadPopularTags()]);
+        const questionsPromise = loadQuestions(1);
 
-        loadPopularTags();
-        loadQuestions(1);
+        await Promise.allSettled([profilePromise, metadataPromise, questionsPromise]);
     };
 
     document.addEventListener('click', closeUserMenu);
@@ -1046,14 +1999,45 @@
         }
     });
 
+    function renderQuestionPagination(responseData = {}) {
+        const pager = document.getElementById('question-pagination');
+        if (!pager) {
+            return;
+        }
+
+        const page = Number(responseData.page || currentQuestionPage || 1);
+        const pageSize = Number(responseData.page_size || HOME_PAGE_SIZE);
+        const total = Number(responseData.total || 0);
+        const totalPages = total > 0 ? Math.max(1, Math.ceil(total / pageSize)) : page;
+        const hasPrevious = page > 1;
+        const hasNext = total > 0 ? page < totalPages : false;
+
+        if (!hasPrevious && !hasNext) {
+            pager.innerHTML = '';
+            return;
+        }
+
+        pager.innerHTML = `
+            <button class="question-page-button" type="button" onclick="changeQuestionPage(${page - 1})" ${hasPrevious ? '' : 'disabled'}>上一页</button>
+            <span>第 ${page} / ${totalPages} 页</span>
+            <button class="question-page-button" type="button" onclick="changeQuestionPage(${page + 1})" ${hasNext ? '' : 'disabled'}>下一页</button>
+        `;
+    }
+
+    function changeQuestionPage(page) {
+        const nextPage = Number(page);
+        if (!Number.isInteger(nextPage) || nextPage <= 0 || nextPage === currentQuestionPage) {
+            return;
+        }
+        document.querySelector('.main-feed')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        loadQuestions(nextPage);
+    }
+
     // 🌟 增强版：将真实数据渲染变成漂亮的卡片
     function renderQuestions(responseData) {
         // 🌟 关键修改：找到我们专属的帖子容器，并清空它里面的老帖子
         const listContainer = document.getElementById('post-list');
         listContainer.innerHTML = '';
-
-        // 🌟 核心排雷针：把后端传来的东西打印出来
-        console.log("👉 收到后端的数据:", responseData);
 
         // 3. 容错处理：确保我们拿到的是一个数组
         let questions = [];
@@ -1071,11 +2055,12 @@
         // 4. 如果没搜到，或者数据库没数据
         if (questions.length === 0) {
             listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: #6b7280; font-size: 15px;">📭 没有找到相关帖子哦~</div>`;
+            renderQuestionPagination(responseData);
             return;
         }
 
         // 5. 循环渲染真实数据
-        questions.forEach(q => {
+        const questionCards = questions.map(q => {
             const date = new Date(q.ask_time).toLocaleString();
             const displayContent = '<span style="color:#9ca3af; font-size:13px;">点击查看详情全文...</span>';
             const displayAuthor = getUserDisplayName(q, '社区用户');
@@ -1088,7 +2073,7 @@
                 </span>
             `;
 
-            const cardHtml = `
+            return `
                 <div class="post-card" style="cursor: pointer;" onclick="goToDetail(${q.question_id})">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                         <h3 class="post-title" style="margin-bottom: 0;">${escapeHtml(q.title)}</h3>
@@ -1098,6 +2083,7 @@
                         </div>
                     </div>
                     <p class="post-preview">${displayContent}</p>
+                    ${renderQuestionTags(q.tags)}
                     <div class="post-meta">
                         ${authorHtml}
                         <span>💬 ${q.answer_count || 0} 个回答</span>
@@ -1106,9 +2092,9 @@
                     </div>
                 </div>
             `;
-            // 🌟 关键修改：把卡片追加到 listContainer 里！
-            listContainer.innerHTML += cardHtml;
         });
+        listContainer.innerHTML = questionCards.join('');
+        renderQuestionPagination(responseData);
     }
 
     function getStatusMeta(status) {
@@ -1197,7 +2183,10 @@
     // 退出登录逻辑
     function logout() {
         clearSession();
-        window.location.href = LOGIN_PAGE_URL;
+        closeUserMenu();
+        renderGuestNav();
+        updateHomeSectionUi();
+        loadQuestions(1);
     }
 
     function goToProfile() {
@@ -1213,16 +2202,252 @@
         window.location.href = `${DETAIL_PAGE_BASE}/${questionId}?_=${Date.now()}`;
     }
     // 🌟 弹窗的开启与关闭逻辑
-    function openPostModal() {
+    async function openPostModal() {
+        if (!isAuthenticated()) {
+            redirectToLogin('请先登录后再发布问题。');
+            return;
+        }
         document.getElementById('post-modal').style.display = 'flex';
+        document.body.classList.add('modal-open');
+        if (availableCategories.length === 0) {
+            await loadCategories();
+        } else {
+            renderCategoryControls();
+        }
+        loadPostTagOptions();
+        updatePostContentCounter();
+        const autoCategory = document.getElementById('post-auto-category');
+        if (autoCategory) autoCategory.checked = true;
+        togglePostCategoryMode();
+        setTimeout(() => document.getElementById('post-title')?.focus(), 0);
     }
 
     function closePostModal() {
         document.getElementById('post-modal').style.display = 'none';
+        document.body.classList.remove('modal-open');
         // 关闭时清空输入框
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
+        const autoCategory = document.getElementById('post-auto-category');
+        if (autoCategory) autoCategory.checked = true;
+        const categorySelect = document.getElementById('post-category');
+        if (categorySelect) categorySelect.value = '';
+        togglePostCategoryMode();
+        updatePostContentCounter();
+        resetPostTagSelection();
         resetPostImageSelection();
+    }
+
+    function updateCharCounter(counter, length, maxLength, label) {
+        if (!counter) return;
+        counter.classList.remove('warning', 'error');
+        if (length >= maxLength) {
+            counter.classList.add('error');
+        } else if (length >= Math.floor(maxLength * 0.9)) {
+            counter.classList.add('warning');
+        }
+        const extra = length >= maxLength
+            ? `，${label}已到上限，不能继续输入。`
+            : '';
+        counter.textContent = `${length} / ${maxLength}${extra}`;
+    }
+
+    function updatePostContentCounter() {
+        const textarea = document.getElementById('post-content');
+        const counter = document.getElementById('post-content-counter');
+        updateCharCounter(counter, textarea?.value.length || 0, 10000, '详细描述');
+    }
+
+    function getPostTagTotal() {
+        return selectedPostTagIds.size + selectedCustomTags.length;
+    }
+
+    function canAddPostTag() {
+        if (getPostTagTotal() >= MAX_POST_TAGS) {
+            alert(`最多只能添加 ${MAX_POST_TAGS} 个标签。`);
+            return false;
+        }
+        return true;
+    }
+
+    async function loadPostTagOptions() {
+        const container = document.getElementById('post-tag-options');
+        if (!container || availablePostTags.length > 0) {
+            renderPostTagOptions();
+            return;
+        }
+
+        try {
+            const response = await fetch(buildApiUrl('/api/tags'));
+            if (!response.ok) {
+                throw new Error('标签加载失败');
+            }
+            const data = await response.json();
+            availablePostTags = Array.isArray(data.items) ? data.items : [];
+            renderPostTagOptions();
+        } catch (error) {
+            console.error('加载发帖标签失败:', error);
+            container.innerHTML = '<span class="tag-picker-empty">暂时无法加载已有标签，也可以直接输入自定义标签。</span>';
+        }
+    }
+
+    function renderPostTagOptions() {
+        const container = document.getElementById('post-tag-options');
+        if (!container) {
+            return;
+        }
+
+        const visibleTags = availablePostTags.slice(0, 16);
+        if (visibleTags.length === 0) {
+            container.innerHTML = '<span class="tag-picker-empty">暂无可选标签，可以先输入自定义标签。</span>';
+        } else {
+            container.innerHTML = visibleTags.map(tag => {
+                const id = Number(tag.tag_id);
+                const active = selectedPostTagIds.has(id);
+                return `
+                    <button class="tag-option ${active ? 'active' : ''}" type="button" onclick="toggleExistingPostTag(${id})">
+                        ${escapeHtml(tag.tag_name)}
+                    </button>
+                `;
+            }).join('');
+        }
+        renderSelectedPostTags();
+    }
+
+    function renderSelectedPostTags() {
+        const container = document.getElementById('post-selected-tags');
+        const count = document.getElementById('post-tag-count');
+        if (count) {
+            count.textContent = `${getPostTagTotal()} / ${MAX_POST_TAGS}`;
+        }
+        if (!container) {
+            return;
+        }
+
+        const selectedExisting = availablePostTags.filter(tag => selectedPostTagIds.has(Number(tag.tag_id)));
+        const existingHtml = selectedExisting.map(tag => `
+            <span class="selected-tag">
+                ${escapeHtml(tag.tag_name)}
+                <button type="button" onclick="removeExistingPostTag(${Number(tag.tag_id)})">×</button>
+            </span>
+        `).join('');
+        const customHtml = selectedCustomTags.map((tag, index) => `
+            <span class="selected-tag custom">
+                ${escapeHtml(tag)}
+                <button type="button" onclick="removeCustomPostTag(${index})">×</button>
+            </span>
+        `).join('');
+
+        container.innerHTML = existingHtml || customHtml
+            ? `${existingHtml}${customHtml}`
+            : '<span class="tag-picker-empty">还没有选择标签，可以直接发布并让 AI 自动识别。</span>';
+    }
+
+    function toggleExistingPostTag(tagId) {
+        if (selectedPostTagIds.has(tagId)) {
+            selectedPostTagIds.delete(tagId);
+        } else {
+            if (!canAddPostTag()) {
+                return;
+            }
+            selectedPostTagIds.add(tagId);
+        }
+        renderPostTagOptions();
+    }
+
+    function removeExistingPostTag(tagId) {
+        selectedPostTagIds.delete(tagId);
+        renderPostTagOptions();
+    }
+
+    function addExistingPostTag(tagId) {
+        if (selectedPostTagIds.has(tagId)) {
+            return;
+        }
+        if (!canAddPostTag()) {
+            return;
+        }
+        selectedPostTagIds.add(tagId);
+        renderPostTagOptions();
+    }
+
+    function normalizeCustomTag(value) {
+        return String(value || '').trim().replace(/^#/, '').replace(/\s+/g, ' ');
+    }
+
+    function addCustomTagFromInput() {
+        const input = document.getElementById('post-custom-tag-input');
+        const tagName = normalizeCustomTag(input?.value);
+        if (!tagName) {
+            alert('请输入要添加的标签名称。');
+            return;
+        }
+        if (!canAddPostTag()) {
+            return;
+        }
+        const duplicatedExisting = availablePostTags.find(tag => tag.tag_name === tagName);
+        if (duplicatedExisting) {
+            addExistingPostTag(Number(duplicatedExisting.tag_id));
+        } else if (!selectedCustomTags.includes(tagName)) {
+            selectedCustomTags.push(tagName);
+        }
+        if (input) {
+            input.value = '';
+        }
+        document.getElementById('post-tag-suggestions').innerHTML = '';
+        renderPostTagOptions();
+    }
+
+    function removeCustomPostTag(index) {
+        selectedCustomTags.splice(index, 1);
+        renderSelectedPostTags();
+    }
+
+    async function loadTagSuggestions(keyword) {
+        const container = document.getElementById('post-tag-suggestions');
+        if (!container) {
+            return;
+        }
+        if (!keyword) {
+            container.innerHTML = '';
+            return;
+        }
+        try {
+            const response = await fetch(buildApiUrl('/api/tags/suggestions', { keyword, limit: 8 }));
+            if (!response.ok) {
+                container.innerHTML = '';
+                return;
+            }
+            const data = await response.json();
+            const suggestions = Array.isArray(data.items) ? data.items : [];
+            container.innerHTML = suggestions.map(tag => `
+                <button class="tag-suggestion" type="button" onclick="addExistingPostTag(${Number(tag.tag_id)})">
+                    ${escapeHtml(tag.tag_name)}${tag.question_count ? ` · ${tag.question_count}题` : ''}
+                </button>
+            `).join('');
+        } catch (error) {
+            console.error('获取标签建议失败:', error);
+        }
+    }
+
+    function resetPostTagSelection() {
+        selectedPostTagIds = new Set();
+        selectedCustomTags = [];
+        const input = document.getElementById('post-custom-tag-input');
+        const autoTag = document.getElementById('post-auto-tag');
+        if (input) input.value = '';
+        if (autoTag) autoTag.checked = true;
+        const suggestions = document.getElementById('post-tag-suggestions');
+        if (suggestions) suggestions.innerHTML = '';
+        renderPostTagOptions();
+    }
+
+    function getPostTagPayload() {
+        return {
+            tag_ids: Array.from(selectedPostTagIds),
+            custom_tags: selectedCustomTags,
+            auto_tag: Boolean(document.getElementById('post-auto-tag')?.checked),
+        };
     }
 
     function formatFileSize(bytes) {
@@ -1345,45 +2570,148 @@
         }
     }
 
+    async function readErrorDetail(response) {
+        const data = await response.json().catch(() => ({}));
+        if (typeof data.detail === 'string') return data.detail;
+        if (Array.isArray(data.detail)) {
+            return data.detail
+                .map(item => getValidationItemMessage(item))
+                .filter(Boolean)
+                .join('；');
+        }
+        return data.message || '';
+    }
+
+    function getValidationItemMessage(item) {
+        const loc = Array.isArray(item?.loc) ? item.loc.join('.') : '';
+        const msg = String(item?.msg || item?.message || '');
+        const type = String(item?.type || '');
+        if (loc.includes('title')) {
+            if (type.includes('missing') || type.includes('too_short') || msg.includes('required') || msg.includes('at least')) {
+                return '标题不能为空。';
+            }
+            if (type.includes('too_long') || msg.includes('at most') || msg.includes('200')) {
+                return `标题不能超过 ${MAX_POST_TITLE_LENGTH} 个字符。`;
+            }
+            return '标题格式不正确，请检查后再发布。';
+        }
+        if (loc.includes('content')) {
+            if (type.includes('missing') || type.includes('too_short') || msg.includes('required') || msg.includes('at least')) {
+                return '正文不能为空。';
+            }
+            if (type.includes('too_long') || msg.includes('at most') || msg.includes('10000')) {
+                return `正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字。`;
+            }
+            return '正文格式不正确，请检查后再发布。';
+        }
+        if (loc.includes('category_id')) {
+            return '请选择有效的问题分类。';
+        }
+        if (loc.includes('tag_ids') || loc.includes('custom_tags')) {
+            return '标签格式不正确，请重新选择或填写标签。';
+        }
+        return msg;
+    }
+
+    function getFriendlyQuestionError(response, detail) {
+        const text = String(detail || '');
+        if (text.includes('标题') || text.includes('正文')) {
+            return text;
+        }
+        if (text.includes('所选分类') || text.includes('可用分类') || text.includes('分类')) {
+            return text;
+        }
+        if (text.includes('标签')) {
+            return text;
+        }
+        if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
+            return '发布字段不符合要求，请检查标题、正文、分类或标签。';
+        }
+        if (text.includes('content') && text.includes('10000')) {
+            return `正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字。`;
+        }
+        if (response.status >= 500) {
+            return '服务暂时异常，请稍后重试或联系管理员。';
+        }
+        return text || `请求失败（${response.status}）`;
+    }
+
     // 🌟 核心：提交帖子到后端
     async function submitQuestion() {
+        const token = sessionStorage.getItem('access_token');
+        const currentUserId = getCurrentUserId();
+        if (!token || !currentUserId) {
+            redirectToLogin('请先登录后再发布问题。');
+            return;
+        }
+
         const titleInput = document.getElementById('post-title').value.trim();
         const contentInput = document.getElementById('post-content').value.trim();
+        updatePostContentCounter();
 
         if (!titleInput) {
-            alert("❌ 标题不能为空哦！");
+            alert("❌ 标题不能为空。");
+            return;
+        }
+        if (titleInput.length > MAX_POST_TITLE_LENGTH) {
+            alert(`❌ 标题不能超过 ${MAX_POST_TITLE_LENGTH} 个字符。`);
             return;
         }
         if (!contentInput) {
-            alert("❌ 详细描述不能为空哦！");
+            alert("❌ 正文不能为空。");
+            return;
+        }
+        if (contentInput.length > MAX_POST_CONTENT_LENGTH) {
+            alert(`❌ 正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字，请精简后再发布。`);
             return;
         }
 
-        const token = sessionStorage.getItem('access_token');
         const useAi = document.getElementById('use-ai').checked;  // 获取开关状态
+        const autoCategory = Boolean(document.getElementById('post-auto-category')?.checked);
+        const categoryId = normalizePositiveId(document.getElementById('post-category')?.value);
+        if (availableCategories.length === 0) {
+            alert("❌ 当前没有可用分类，请联系管理员先启用或创建分类。");
+            return;
+        }
+        if (!autoCategory && !categoryId) {
+            alert("❌ 请选择问题分类，或开启 AI 自动分类。");
+            return;
+        }
         const imagesToUpload = [...selectedPostImages];
+        const tagPayload = getPostTagPayload();
+        const categoryPayloadId = categoryId || (autoCategory ? getDefaultPostCategoryId() : '');
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
         const originalBtnText = submitBtn.innerText;
 
         try {
             // 🌟 核心分流逻辑 🌟
             let apiUrl = buildApiUrl('/api/questions');
-            let requestBody = { title: titleInput, content: contentInput };
+            let requestBody = {
+                category_id: categoryPayloadId ? Number(categoryPayloadId) : undefined,
+                auto_category: autoCategory,
+                title: titleInput,
+                content: contentInput,
+                ...tagPayload
+            };
 
-            if (useAi) {
+            const generateAiAfterImageUpload = useAi && imagesToUpload.length > 0;
+
+            if (useAi && !generateAiAfterImageUpload) {
                 // 如果开启了 AI，走原作者带 AI 生成的专属通道
                 apiUrl = buildApiUrl('/api/questions/ask');
                 // 这个通道的标准比较严格，需要补齐参数
                 requestBody = {
-                    category_id: 1,
+                    user_id: currentUserId,
+                    category_id: categoryPayloadId ? Number(categoryPayloadId) : undefined,
+                    auto_category: autoCategory,
                     title: titleInput,
                     content: contentInput,
-                    tag_ids: []
+                    ...tagPayload
                 };
             }
 
             // UI 提示变成加载中，因为 AI 生成需要几秒钟
-            submitBtn.innerText = useAi ? '🤖 AI 正在思考中...' : '发布中...';
+            submitBtn.innerText = useAi && !generateAiAfterImageUpload ? '🤖 AI 正在思考中...' : '发布中...';
             submitBtn.disabled = true;
 
             const response = await fetch(apiUrl, {
@@ -1411,6 +2739,25 @@
                     }
                 }
 
+                if (questionId && generateAiAfterImageUpload) {
+                    submitBtn.innerText = '🤖 AI 正在结合配图生成回答...';
+                    try {
+                        const aiResponse = await fetch(buildApiUrl(`/api/questions/${questionId}/ai-answer`), {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (!aiResponse.ok) {
+                            const detail = await readErrorDetail(aiResponse);
+                            throw new Error(getFriendlyQuestionError(aiResponse, detail));
+                        }
+                    } catch (aiError) {
+                        console.error(aiError);
+                        alert(`问题和图片已发布，但 AI 首答生成失败：${aiError.message}`);
+                    }
+                }
+
                 closePostModal();
                 if (questionId && imagesToUpload.length > 0) {
                     window.location.href = `${DETAIL_PAGE_BASE}/${questionId}`;
@@ -1420,8 +2767,8 @@
             } else if (response.status === 401) {
                 redirectToLogin('登录状态已失效，请重新登录。');
             } else {
-                const errorData = await response.json();
-                alert("❌ 发布失败: " + JSON.stringify(errorData));
+                const detail = await readErrorDetail(response);
+                alert("❌ 发布失败: " + getFriendlyQuestionError(response, detail));
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
             }
@@ -1497,29 +2844,51 @@
         const container = document.getElementById('popular-tags');
 
         try {
-            const response = await fetch(buildApiUrl('/api/tags'));
-            if (!response.ok) {
-                container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
-                return;
+            if (popularSidebarTags.length === 0) {
+                const response = await fetch(buildApiUrl('/api/tags', { limit: 8 }));
+                if (!response.ok) {
+                    container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
+                    return;
+                }
+
+                const data = await response.json();
+                popularSidebarTags = Array.isArray(data.items) ? data.items : [];
             }
 
-            const data = await response.json();
-            const tags = Array.isArray(data.items) ? data.items.slice(0, 8) : [];
+            const tags = popularSidebarTags.slice(0, 8);
             if (tags.length === 0) {
                 container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂无标签数据</span>';
                 return;
             }
 
-            container.innerHTML = tags.map(tag => `
-                <span style="background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 13px;">
-                    ${tag.tag_name}
-                </span>
-            `).join('');
+            container.innerHTML = tags.map(tag => {
+                const tagId = Number(tag.tag_id);
+                const active = currentTagFilter && Number(currentTagFilter) === tagId;
+                return `
+                    <button class="sidebar-tag-button ${active ? 'active' : ''}" type="button" onclick="applyTagFilter(${tagId})">
+                        ${escapeHtml(tag.tag_name)}
+                    </button>
+                `;
+            }).join('');
+            updateFilterSummary();
         } catch (error) {
             console.error("获取标签失败", error);
             container.innerHTML = '<span style="color: #9ca3af; font-size: 13px;">暂时无法加载标签</span>';
         }
     }
+
+    document.getElementById('post-custom-tag-input')?.addEventListener('input', event => {
+        window.clearTimeout(tagSuggestionTimer);
+        const keyword = normalizeCustomTag(event.target.value);
+        tagSuggestionTimer = window.setTimeout(() => loadTagSuggestions(keyword), 260);
+    });
+
+    document.getElementById('post-custom-tag-input')?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addCustomTagFromInput();
+        }
+    });
 
 </script>
 </body>

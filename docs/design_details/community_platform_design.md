@@ -181,10 +181,11 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 - 用户标签画像：`USER_TAG_PROFILE`
 - 推荐结果：`RECOMMENDATIONS`
 
-当前推荐实现并不是所有结构都落地，而是：
+当前推荐实现采用可解释的混合规则：
 
 - 结构上支持 `TAG_BASED`、`POPULARITY`、`HYBRID`、`MANUAL`
-- 实现上当前主要落地的是 `TAG_BASED + USER_TAG_PROFILE`
+- 实现上当前主要落地的是 `HYBRID + USER_TAG_PROFILE + USER_ACTION + POPULARITY`
+- 推荐得分由画像分、相似兴趣分、热度分、新鲜度分和惩罚分组成
 
 ## 6. 页面与信息架构设计
 
@@ -395,7 +396,7 @@ AI 不是平台用户，但可以视为特殊内容生产者，职责包括：
 
 1. 收集行为数据
 2. 重建用户标签画像
-3. 生成推荐结果
+3. 生成 `HYBRID` 推荐结果
 4. 查询推荐列表
 
 当前接口：

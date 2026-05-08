@@ -25,10 +25,11 @@ class MediaService:
         "image/png": ".png",
         "image/webp": ".webp",
     }
-    MAX_AVATAR_SIZE = 2 * 1024 * 1024
-    MAX_QUESTION_IMAGE_SIZE = 5 * 1024 * 1024
+    MAX_IMAGE_SIZE = 50 * 1024 * 1024
+    MAX_AVATAR_SIZE = MAX_IMAGE_SIZE
+    MAX_QUESTION_IMAGE_SIZE = MAX_IMAGE_SIZE
     MAX_QUESTION_IMAGE_COUNT = 9
-    MAX_ANSWER_IMAGE_SIZE = 5 * 1024 * 1024
+    MAX_ANSWER_IMAGE_SIZE = MAX_IMAGE_SIZE
     MAX_ANSWER_IMAGE_COUNT = 6
 
     def __init__(
@@ -376,6 +377,8 @@ class MediaService:
             answer = self._answer_repository.get_answer_by_id(connection, answer_id)
             if answer is None:
                 raise NotFoundError(f"Answer {answer_id} was not found.")
+            if answer.get("status") == "DELETED":
+                raise NotFoundError(f"Answer {answer_id} was not found.")
             items = self._media_repository.list_active_media_by_owner(
                 connection,
                 owner_type="ANSWER",
@@ -441,6 +444,8 @@ class MediaService:
         answer = self._answer_repository.get_answer_by_id(connection, answer_id)
         if answer is None:
             raise NotFoundError(f"Answer {answer_id} was not found.")
+        if answer.get("status") != "ACTIVE":
+            raise ValidationError("Only ACTIVE answers can manage images.")
         if answer["answer_type"] != "MANUAL" or answer["user_id"] is None:
             raise AppError(
                 "Only manual answer authors can manage images for this answer.",
