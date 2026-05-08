@@ -44,18 +44,18 @@ class AdminService:
         username: str | None = None,
     ) -> AdminUserListResponse:
         if page <= 0:
-            raise ValidationError("page must be greater than 0.")
+            raise ValidationError("页码必须大于 0。")
         if page_size <= 0 or page_size > 100:
-            raise ValidationError("page_size must be between 1 and 100.")
+            raise ValidationError("每页数量必须在 1 到 100 之间。")
 
         normalized_role = self._normalize_enum(role)
         normalized_status = self._normalize_enum(status)
         normalized_username = self._normalize_keyword(username)
 
         if normalized_role is not None and normalized_role not in self.VALID_USER_ROLES:
-            raise ValidationError("role must be USER or ADMIN.")
+            raise ValidationError("用户角色只能是普通用户或管理员。")
         if normalized_status is not None and normalized_status not in self.VALID_USER_STATUSES:
-            raise ValidationError("status must be ACTIVE, INACTIVE, LOCKED, or DISABLED.")
+            raise ValidationError("用户状态只能是正常、未激活、已锁定或已停用。")
 
         with get_connection() as connection:
             items = self._admin_repository.list_users(
@@ -88,16 +88,16 @@ class AdminService:
         status: str | None = None,
     ) -> AdminCategoryListResponse:
         if page <= 0:
-            raise ValidationError("page must be greater than 0.")
+            raise ValidationError("页码必须大于 0。")
         if page_size <= 0 or page_size > 100:
-            raise ValidationError("page_size must be between 1 and 100.")
+            raise ValidationError("每页数量必须在 1 到 100 之间。")
 
         normalized_status = self._normalize_enum(status)
         if (
             normalized_status is not None
             and normalized_status not in self.VALID_CATEGORY_STATUSES
         ):
-            raise ValidationError("status must be ACTIVE or INACTIVE.")
+            raise ValidationError("分类状态只能是启用或停用。")
 
         with get_connection() as connection:
             items = self._admin_repository.list_categories(
@@ -164,7 +164,7 @@ class AdminService:
             category_name=category["category_name"],
             description=category["description"],
             status=category["status"],
-            message="Category created successfully.",
+            message="分类创建成功。",
         )
 
     def update_category(
@@ -179,7 +179,7 @@ class AdminService:
         with get_connection() as connection:
             current_category = self._admin_repository.get_category_context(connection, category_id)
             if current_category is None:
-                raise NotFoundError(f"Category {category_id} was not found.")
+                raise NotFoundError(f"分类 {category_id} 不存在。")
 
             next_name = (
                 self._require_category_name(category_name)
@@ -212,7 +212,7 @@ class AdminService:
                 and current_category["description"] == next_description
                 and current_category["status"] == next_status
             ):
-                raise ValidationError("No category fields changed.")
+                raise ValidationError("分类信息没有变化，无需重复保存。")
 
             updated_count = self._admin_repository.update_category(
                 connection,
@@ -222,7 +222,7 @@ class AdminService:
                 status=next_status,
             )
             if updated_count == 0:
-                raise NotFoundError(f"Category {category_id} could not be updated.")
+                raise NotFoundError(f"分类 {category_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -244,7 +244,7 @@ class AdminService:
             category_name=refreshed_category["category_name"],
             description=refreshed_category["description"],
             status=refreshed_category["status"],
-            message="Category updated successfully.",
+            message="分类更新成功。",
         )
 
     def list_tags(
@@ -257,18 +257,18 @@ class AdminService:
         keyword: str | None = None,
     ) -> AdminTagListResponse:
         if page <= 0:
-            raise ValidationError("page must be greater than 0.")
+            raise ValidationError("页码必须大于 0。")
         if page_size <= 0 or page_size > 100:
-            raise ValidationError("page_size must be between 1 and 100.")
+            raise ValidationError("每页数量必须在 1 到 100 之间。")
 
         normalized_source = self._normalize_enum(source)
         normalized_status = self._normalize_enum(status)
         normalized_keyword = self._normalize_keyword(keyword)
 
         if normalized_source is not None and normalized_source not in self.VALID_TAG_SOURCES:
-            raise ValidationError("source must be SYSTEM, USER, AI, or ADMIN.")
+            raise ValidationError("标签来源只能是系统、用户、AI 或管理员。")
         if normalized_status is not None and normalized_status not in self.VALID_TAG_STATUSES:
-            raise ValidationError("status must be ACTIVE, PENDING, or DISABLED.")
+            raise ValidationError("标签状态只能是启用、待审核或停用。")
 
         with get_connection() as connection:
             items = self._admin_repository.list_tags(
@@ -303,12 +303,12 @@ class AdminService:
         status: str | None,
     ) -> AdminTagMutationResponse:
         if tag_id <= 0:
-            raise ValidationError("tag_id must be greater than 0.")
+            raise ValidationError("标签 ID 必须大于 0。")
 
         with get_connection() as connection:
             current_tag = self._admin_repository.get_tag_context(connection, tag_id)
             if current_tag is None:
-                raise NotFoundError(f"Tag {tag_id} was not found.")
+                raise NotFoundError(f"标签 {tag_id} 不存在。")
 
             next_name = (
                 self._require_tag_name(tag_name)
@@ -328,14 +328,14 @@ class AdminService:
 
             duplicate_tag = self._admin_repository.get_tag_by_name(connection, next_name)
             if duplicate_tag is not None and duplicate_tag["tag_id"] != tag_id:
-                raise ValidationError("Tag name already exists.")
+                raise ValidationError("标签名称已存在，请换一个名称。")
 
             if (
                 current_tag["tag_name"] == next_name
                 and current_tag["description"] == next_description
                 and current_tag["status"] == next_status
             ):
-                raise ValidationError("No tag fields changed.")
+                raise ValidationError("标签信息没有变化，无需重复保存。")
 
             updated_count = self._admin_repository.update_tag(
                 connection,
@@ -345,7 +345,7 @@ class AdminService:
                 status=next_status,
             )
             if updated_count == 0:
-                raise NotFoundError(f"Tag {tag_id} could not be updated.")
+                raise NotFoundError(f"标签 {tag_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -368,7 +368,7 @@ class AdminService:
             source=refreshed_tag["source"],
             status=refreshed_tag["status"],
             description=refreshed_tag["description"],
-            message="Tag updated successfully.",
+            message="标签更新成功。",
         )
 
     def list_login_logs(
@@ -381,16 +381,16 @@ class AdminService:
         result: str | None = None,
     ) -> AdminLoginLogListResponse:
         if page <= 0:
-            raise ValidationError("page must be greater than 0.")
+            raise ValidationError("页码必须大于 0。")
         if page_size <= 0 or page_size > 100:
-            raise ValidationError("page_size must be between 1 and 100.")
+            raise ValidationError("每页数量必须在 1 到 100 之间。")
         if user_id is not None and user_id <= 0:
-            raise ValidationError("user_id must be greater than 0.")
+            raise ValidationError("用户 ID 必须大于 0。")
         normalized_username = self._normalize_keyword(username)
 
         normalized_result = self._normalize_enum(result)
         if normalized_result is not None and normalized_result not in self.VALID_LOGIN_RESULTS:
-            raise ValidationError("result must be SUCCESS, FAILURE, or LOCKED.")
+            raise ValidationError("登录结果只能是成功、失败或锁定。")
 
         with get_connection() as connection:
             items = self._admin_repository.list_login_logs(
@@ -425,11 +425,11 @@ class AdminService:
         op_type: str | None = None,
     ) -> AdminOperationLogListResponse:
         if page <= 0:
-            raise ValidationError("page must be greater than 0.")
+            raise ValidationError("页码必须大于 0。")
         if page_size <= 0 or page_size > 100:
-            raise ValidationError("page_size must be between 1 and 100.")
+            raise ValidationError("每页数量必须在 1 到 100 之间。")
         if user_id is not None and user_id <= 0:
-            raise ValidationError("user_id must be greater than 0.")
+            raise ValidationError("用户 ID 必须大于 0。")
         normalized_username = self._normalize_keyword(username)
 
         normalized_op_type = self._normalize_enum(op_type)
@@ -469,21 +469,21 @@ class AdminService:
         with get_connection() as connection:
             target_user = self._admin_repository.get_user_context(connection, target_user_id)
             if target_user is None:
-                raise NotFoundError(f"User {target_user_id} was not found.")
+                raise NotFoundError(f"用户 {target_user_id} 不存在。")
 
             if target_user["status"] == normalized_status:
-                raise ValidationError("User status is already set to the requested value.")
+                raise ValidationError("用户状态已经是所选值，无需重复修改。")
 
             active_admin_count = self._admin_repository.count_active_admin_users(connection)
             if target_user_id == admin_user_id and normalized_status != "ACTIVE":
-                raise ValidationError("An admin cannot deactivate their own current account.")
+                raise ValidationError("不能停用或锁定自己的当前管理员账号。")
             if (
                 target_user["role"] == "ADMIN"
                 and target_user["status"] == "ACTIVE"
                 and active_admin_count <= 1
                 and normalized_status != "ACTIVE"
             ):
-                raise ValidationError("The last ADMIN account must remain ACTIVE.")
+                raise ValidationError("最后一个有效管理员必须保持正常状态。")
 
             updated_count = self._admin_repository.update_user_status(
                 connection,
@@ -491,7 +491,7 @@ class AdminService:
                 status=normalized_status,
             )
             if updated_count == 0:
-                raise NotFoundError(f"User {target_user_id} could not be updated.")
+                raise NotFoundError(f"用户 {target_user_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -512,7 +512,7 @@ class AdminService:
             username=refreshed_user["username"],
             role=refreshed_user["role"],
             status=refreshed_user["status"],
-            message="User status updated successfully.",
+            message="用户状态更新成功。",
         )
 
     def update_user_role(
@@ -527,7 +527,7 @@ class AdminService:
         with get_connection() as connection:
             target_user = self._admin_repository.get_user_context(connection, target_user_id)
             if target_user is None:
-                raise NotFoundError(f"User {target_user_id} was not found.")
+                raise NotFoundError(f"用户 {target_user_id} 不存在。")
 
             if target_user["role"] == normalized_role:
                 raise ValidationError("用户角色已经是所选值，无需重复修改。")
@@ -541,7 +541,7 @@ class AdminService:
                 and active_admin_count <= 1
                 and normalized_role != "ADMIN"
             ):
-                raise ValidationError("The last ADMIN account cannot be demoted.")
+                raise ValidationError("最后一个有效管理员不能被改为普通用户。")
 
             updated_count = self._admin_repository.update_user_role(
                 connection,
@@ -549,7 +549,7 @@ class AdminService:
                 role=normalized_role,
             )
             if updated_count == 0:
-                raise NotFoundError(f"User {target_user_id} could not be updated.")
+                raise NotFoundError(f"用户 {target_user_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -570,7 +570,7 @@ class AdminService:
             username=refreshed_user["username"],
             role=refreshed_user["role"],
             status=refreshed_user["status"],
-            message="User role updated successfully.",
+            message="用户角色更新成功。",
         )
 
     def update_question_status(
@@ -585,9 +585,9 @@ class AdminService:
         with get_connection() as connection:
             question = self._admin_repository.get_question_context(connection, question_id)
             if question is None:
-                raise NotFoundError(f"Question {question_id} was not found.")
+                raise NotFoundError(f"问题 {question_id} 不存在。")
             if question["status"] == normalized_status:
-                raise ValidationError("Question status is already set to the requested value.")
+                raise ValidationError("问题状态已经是所选值，无需重复修改。")
 
             updated_count = self._admin_repository.update_question_status(
                 connection,
@@ -595,7 +595,7 @@ class AdminService:
                 status=normalized_status,
             )
             if updated_count == 0:
-                raise NotFoundError(f"Question {question_id} could not be updated.")
+                raise NotFoundError(f"问题 {question_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -611,7 +611,7 @@ class AdminService:
         return AdminQuestionStatusResponse(
             question_id=question_id,
             status=normalized_status,
-            message="Question status updated successfully.",
+            message="问题状态更新成功。",
         )
 
     def delete_question(
@@ -622,15 +622,15 @@ class AdminService:
         reason: str | None = None,
     ) -> AdminQuestionStatusResponse:
         if question_id <= 0:
-            raise ValidationError("question_id must be greater than 0.")
+            raise ValidationError("问题 ID 必须大于 0。")
         normalized_reason = self._normalize_reason(reason)
 
         with get_connection() as connection:
             question = self._admin_repository.get_question_context(connection, question_id)
             if question is None:
-                raise NotFoundError(f"Question {question_id} was not found.")
+                raise NotFoundError(f"问题 {question_id} 不存在。")
             if question["status"] == "DELETED":
-                raise ValidationError("Question has already been deleted.")
+                raise ValidationError("该问题已经删除，无需重复操作。")
 
             updated_count = self._admin_repository.update_question_status(
                 connection,
@@ -638,7 +638,7 @@ class AdminService:
                 status="DELETED",
             )
             if updated_count == 0:
-                raise NotFoundError(f"Question {question_id} could not be deleted.")
+                raise NotFoundError(f"问题 {question_id} 删除失败，请刷新后重试。")
 
             reason_part = f", reason={normalized_reason}" if normalized_reason else ""
             self._log_repository.create_operation_log(
@@ -655,7 +655,7 @@ class AdminService:
         return AdminQuestionStatusResponse(
             question_id=question_id,
             status="DELETED",
-            message="Question deleted successfully.",
+            message="问题删除成功。",
         )
 
     def update_comment_status(
@@ -670,7 +670,7 @@ class AdminService:
         with get_connection() as connection:
             comment = self._admin_repository.get_comment_context(connection, comment_id)
             if comment is None:
-                raise NotFoundError(f"Comment {comment_id} was not found.")
+                raise NotFoundError(f"评论 {comment_id} 不存在。")
             if comment["status"] == normalized_status:
                 raise ValidationError("评论状态已经是所选值，无需重复修改。")
 
@@ -680,7 +680,7 @@ class AdminService:
                 status=normalized_status,
             )
             if updated_count == 0:
-                raise NotFoundError(f"Comment {comment_id} could not be updated.")
+                raise NotFoundError(f"评论 {comment_id} 更新失败，请刷新后重试。")
 
             self._log_repository.create_operation_log(
                 connection,
@@ -696,7 +696,7 @@ class AdminService:
         return AdminCommentStatusResponse(
             comment_id=comment_id,
             status=normalized_status,
-            message="Comment status updated successfully.",
+            message="评论状态更新成功。",
         )
 
     @staticmethod
@@ -709,40 +709,40 @@ class AdminService:
     def _require_user_status(self, value: str) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_USER_STATUSES:
-            raise ValidationError("status must be ACTIVE, INACTIVE, LOCKED, or DISABLED.")
+            raise ValidationError("用户状态只能是正常、未激活、已锁定或已停用。")
         return normalized
 
     def _require_category_name(self, value: str | None) -> str:
         if value is None:
-            raise ValidationError("category_name is required.")
+            raise ValidationError("分类名称不能为空。")
         normalized = " ".join(value.strip().split())
         if not normalized:
-            raise ValidationError("category_name must not be blank.")
+            raise ValidationError("分类名称不能为空。")
         if len(normalized) > 50:
-            raise ValidationError("category_name must be at most 50 characters.")
+            raise ValidationError("分类名称不能超过 50 个字符。")
         return normalized
 
     def _require_category_status(self, value: str | None) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_CATEGORY_STATUSES:
-            raise ValidationError("status must be ACTIVE or INACTIVE.")
+            raise ValidationError("分类状态只能是启用或停用。")
         return normalized
 
     def _require_tag_name(self, value: str | None) -> str:
         if value is None:
-            raise ValidationError("tag_name is required.")
+            raise ValidationError("标签名称不能为空。")
         normalized = value.strip().lstrip("#")
         normalized = " ".join(normalized.split())
         if not normalized:
-            raise ValidationError("tag_name must not be blank.")
+            raise ValidationError("标签名称不能为空。")
         if len(normalized) > 50:
-            raise ValidationError("tag_name must be at most 50 characters.")
+            raise ValidationError("标签名称不能超过 50 个字符。")
         return normalized.lower().replace(" ", "-")
 
     def _require_tag_status(self, value: str | None) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_TAG_STATUSES:
-            raise ValidationError("status must be ACTIVE, PENDING, or DISABLED.")
+            raise ValidationError("标签状态只能是启用、待审核或停用。")
         return normalized
 
     @staticmethod
@@ -762,19 +762,19 @@ class AdminService:
     def _require_user_role(self, value: str) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_USER_ROLES:
-            raise ValidationError("role must be USER or ADMIN.")
+            raise ValidationError("用户角色只能是普通用户或管理员。")
         return normalized
 
     def _require_question_status(self, value: str) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_QUESTION_STATUSES:
-            raise ValidationError("status must be OPEN, RESOLVED, CLOSED, ARCHIVED, or DELETED.")
+            raise ValidationError("问题状态只能是开放中、已解决、已关闭、已归档或已删除。")
         return normalized
 
     def _require_comment_status(self, value: str) -> str:
         normalized = self._normalize_enum(value)
         if normalized not in self.VALID_COMMENT_STATUSES:
-            raise ValidationError("status must be ACTIVE or HIDDEN.")
+            raise ValidationError("评论状态只能是正常展示或已隐藏。")
         return normalized
 
     @staticmethod
@@ -783,5 +783,5 @@ class AdminService:
             return None
         normalized = " ".join(value.strip().split())
         if len(normalized) > 200:
-            raise ValidationError("reason must be at most 200 characters.")
+            raise ValidationError("删除原因不能超过 200 个字符。")
         return normalized or None

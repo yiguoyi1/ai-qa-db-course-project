@@ -1547,7 +1547,7 @@
             const token = getAccessToken();
             if (!token) {
                 redirectToLogin('请先登录管理员账号。');
-                throw new Error('Missing token');
+                throw new Error('请先登录管理员账号。');
             }
 
             const { params = {}, ...fetchOptions } = options;
