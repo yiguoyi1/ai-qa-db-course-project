@@ -1263,7 +1263,7 @@
 
         <div class="form-field">
             <label>问题标题 <span class="required">*</span></label>
-            <input type="text" id="post-title" placeholder="一句话描述你的问题" class="form-control">
+            <input type="text" id="post-title" maxlength="200" placeholder="一句话描述你的问题" class="form-control">
         </div>
 
         <div class="form-field">
@@ -1420,6 +1420,8 @@
 
     // 🌟 1. 全局变量，记录当前的搜索词
     const HOME_PAGE_SIZE = 10;
+    const MAX_POST_TITLE_LENGTH = 200;
+    const MAX_POST_CONTENT_LENGTH = 10000;
     let currentSearchQuery = '';
     let currentQuestionPage = 1;
     let currentHomeSection = 'hot';
@@ -2573,15 +2575,49 @@
         if (typeof data.detail === 'string') return data.detail;
         if (Array.isArray(data.detail)) {
             return data.detail
-                .map(item => item?.msg || item?.message || '')
+                .map(item => getValidationItemMessage(item))
                 .filter(Boolean)
                 .join('；');
         }
         return data.message || '';
     }
 
+    function getValidationItemMessage(item) {
+        const loc = Array.isArray(item?.loc) ? item.loc.join('.') : '';
+        const msg = String(item?.msg || item?.message || '');
+        const type = String(item?.type || '');
+        if (loc.includes('title')) {
+            if (type.includes('missing') || type.includes('too_short') || msg.includes('required') || msg.includes('at least')) {
+                return '标题不能为空。';
+            }
+            if (type.includes('too_long') || msg.includes('at most') || msg.includes('200')) {
+                return `标题不能超过 ${MAX_POST_TITLE_LENGTH} 个字符。`;
+            }
+            return '标题格式不正确，请检查后再发布。';
+        }
+        if (loc.includes('content')) {
+            if (type.includes('missing') || type.includes('too_short') || msg.includes('required') || msg.includes('at least')) {
+                return '正文不能为空。';
+            }
+            if (type.includes('too_long') || msg.includes('at most') || msg.includes('10000')) {
+                return `正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字。`;
+            }
+            return '正文格式不正确，请检查后再发布。';
+        }
+        if (loc.includes('category_id')) {
+            return '请选择有效的问题分类。';
+        }
+        if (loc.includes('tag_ids') || loc.includes('custom_tags')) {
+            return '标签格式不正确，请重新选择或填写标签。';
+        }
+        return msg;
+    }
+
     function getFriendlyQuestionError(response, detail) {
         const text = String(detail || '');
+        if (text.includes('标题') || text.includes('正文')) {
+            return text;
+        }
         if (text.includes('所选分类') || text.includes('可用分类') || text.includes('分类')) {
             return text;
         }
@@ -2589,10 +2625,10 @@
             return text;
         }
         if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
-            return '发布字段不符合要求：标题、正文、分类和标签请按页面提示填写，正文最多 10000 字。';
+            return '发布字段不符合要求，请检查标题、正文、分类或标签。';
         }
         if (text.includes('content') && text.includes('10000')) {
-            return '详细描述不能超过 10000 字，请精简后再发布。';
+            return `正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字。`;
         }
         if (response.status >= 500) {
             return '服务暂时异常，请稍后重试或联系管理员。';
@@ -2614,15 +2650,19 @@
         updatePostContentCounter();
 
         if (!titleInput) {
-            alert("❌ 标题不能为空哦！");
+            alert("❌ 标题不能为空。");
+            return;
+        }
+        if (titleInput.length > MAX_POST_TITLE_LENGTH) {
+            alert(`❌ 标题不能超过 ${MAX_POST_TITLE_LENGTH} 个字符。`);
             return;
         }
         if (!contentInput) {
-            alert("❌ 详细描述不能为空哦！");
+            alert("❌ 正文不能为空。");
             return;
         }
-        if (contentInput.length > 10000) {
-            alert("❌ 详细描述不能超过 10000 字，请精简后再发布。");
+        if (contentInput.length > MAX_POST_CONTENT_LENGTH) {
+            alert(`❌ 正文不能超过 ${MAX_POST_CONTENT_LENGTH} 字，请精简后再发布。`);
             return;
         }
 
