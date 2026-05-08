@@ -1458,6 +1458,18 @@
             transform: translateY(-1px);
         }
 
+        .answer-action-button.danger {
+            border-color: #fecdd3;
+            background: #fff1f2;
+            color: #be123c;
+        }
+
+        .answer-action-button.danger:hover {
+            border-color: #fda4af;
+            background: #ffe4e6;
+            color: #9f1239;
+        }
+
         .comment-shell {
             margin-top: 18px;
             padding-top: 16px;
@@ -2622,6 +2634,21 @@
                 && getCurrentUserId() === Number(question.user_id);
         }
 
+        function canCurrentUserDeleteAnswer(answer, question = currentQuestionDetail) {
+            if (!answer || !question || question.status === 'DELETED' || answer.is_accepted) {
+                return false;
+            }
+            const currentUserId = getCurrentUserId();
+            if (!currentUserId) {
+                return false;
+            }
+            if (String(getCurrentUserRole()).toUpperCase() === 'ADMIN') {
+                return true;
+            }
+            return Number(answer.user_id) === currentUserId
+                && (answer.answer_type === 'MANUAL' || !answer.provider_name);
+        }
+
         function formatDateTime(value) {
             return value ? new Date(value).toLocaleString() : '';
         }
@@ -3762,6 +3789,9 @@
                     const acceptButtonHtml = canShowAcceptButton
                         ? `<button id="accept-btn-${ansId}" onclick="acceptAnswer(${q.question_id}, ${ansId})" ${acceptButtonDisabled} style="${acceptButtonStyle} border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; transition: all 0.2s;">${acceptButtonLabel}</button>`
                         : '';
+                    const deleteAnswerButtonHtml = canCurrentUserDeleteAnswer(ans, q)
+                        ? `<button id="delete-answer-btn-${ansId}" class="answer-action-button danger" type="button" onclick="deleteAnswer(${ansId})">删除回答</button>`
+                        : '';
                     const answerCardClass = ans.is_accepted ? 'answer-card accepted' : 'answer-card';
                     const isAiAnswer = ans.answer_type === 'AI';
                     const canUseAiFollowUp = isAiAnswer && canCurrentUserUseAiFollowUp(q);
@@ -3839,6 +3869,7 @@
                                     👎 <span id="dislike-count-${ansId}">${ans.dislike_count || 0}</span>
                                 </button>
                                 ${acceptButtonHtml}
+                                ${deleteAnswerButtonHtml}
                             </div>
 
                             ${followUpHtml}
@@ -3967,6 +3998,79 @@
             } catch (error) {
                 console.error('删除帖子失败:', error);
                 alert('删除失败，请稍后再试。');
+            }
+        }
+
+        function getFriendlyDeleteAnswerError(response, detail) {
+            const text = String(detail || '');
+            if (text.includes('Accepted answers cannot be deleted')) {
+                return '已采纳回答不能直接删除，请先更换采纳答案。';
+            }
+            if (text.includes('Only the answer author or an admin')) {
+                return '只能删除自己发布的人工回答，或由管理员删除。';
+            }
+            if (text.includes('Answer has already been deleted')) {
+                return '这条回答已经删除，无需重复操作。';
+            }
+            if (text.includes('was not found')) {
+                return '这条回答不存在或已被删除。';
+            }
+            if (response.status === 403) {
+                return '你没有权限删除这条回答。';
+            }
+            if (response.status >= 500) {
+                return '服务暂时异常，请稍后重试或联系管理员。';
+            }
+            return text || `请求失败（${response.status}）`;
+        }
+
+        async function deleteAnswer(answerId) {
+            if (!isAuthenticated()) {
+                redirectToLogin('请先登录后再删除回答。');
+                return;
+            }
+
+            const confirmed = window.confirm('确定要删除这条回答吗？删除后该回答将不再展示。');
+            if (!confirmed) {
+                return;
+            }
+
+            const button = document.getElementById(`delete-answer-btn-${answerId}`);
+            const originalText = button?.textContent || '删除回答';
+            if (button) {
+                button.textContent = '删除中...';
+                button.disabled = true;
+            }
+
+            try {
+                const response = await fetch(buildApiUrl(`/api/answers/${answerId}`), {
+                    method: 'DELETE',
+                    headers: buildAuthHeaders()
+                });
+
+                if (response.ok) {
+                    alert('回答已删除。');
+                    await loadQuestionDetail(false);
+                    return;
+                }
+
+                const err = await response.json().catch(() => ({}));
+                const detail = extractErrorDetail(err);
+
+                if ([401, 423].includes(response.status)) {
+                    redirectToLogin(detail || '登录状态已失效，请重新登录。');
+                    return;
+                }
+
+                alert(`删除失败：${getFriendlyDeleteAnswerError(response, detail)}`);
+            } catch (error) {
+                console.error('删除回答失败:', error);
+                alert('删除失败，请稍后再试。');
+            } finally {
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
             }
         }
 
