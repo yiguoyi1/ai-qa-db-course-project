@@ -6,6 +6,7 @@ SET DEFINE OFF
 PROMPT Creating view V_QUESTION_OVERVIEW...
 -- 问题总览视图：把问题、作者、分类、标签数、图片数和统计字段聚合在一起。
 -- 适合首页列表、后台问题列表和报表统计复用。
+-- 回答数按 ACTIVE 回答实时统计，避免软删除回答后仍显示旧计数。
 CREATE OR REPLACE VIEW v_question_overview AS
 SELECT
     q.question_id,
@@ -20,12 +21,12 @@ SELECT
     q.accepted_answer_id,
     q.view_count,
     q.favorite_count,
-    q.answer_count,
+    NVL(answer_stats.answer_count, 0) AS answer_count,
     NVL(tag_stats.tag_count, 0) AS tag_count,
     NVL(image_stats.image_count, 0) AS image_count,
     ROUND(
         LEAST(q.favorite_count, 30) * 0.25
-        + LEAST(q.answer_count, 20) * 0.35
+        + LEAST(NVL(answer_stats.answer_count, 0), 20) * 0.35
         + LEAST(q.view_count, 200) * 0.015
         + CASE
               WHEN q.ask_time >= SYSDATE - 3 THEN 2.5
@@ -41,6 +42,16 @@ JOIN users u
   ON u.user_id = q.user_id
 JOIN categories c
   ON c.category_id = q.category_id
+LEFT JOIN (
+    -- 这里不直接读取 QUESTIONS.ANSWER_COUNT，防止历史冗余计数未校准。
+    SELECT
+        question_id,
+        COUNT(*) AS answer_count
+    FROM answers
+    WHERE status = 'ACTIVE'
+    GROUP BY question_id
+) answer_stats
+  ON answer_stats.question_id = q.question_id
 LEFT JOIN (
     SELECT
         qt.question_id,

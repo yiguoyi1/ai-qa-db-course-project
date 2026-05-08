@@ -326,7 +326,13 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                     )
                          )
                        + LEAST(q.favorite_count, 30) * 0.25
-                       + LEAST(q.answer_count, 20) * 0.35
+                       -- 使用 ACTIVE 回答实时计数，避免软删除后推荐热度仍读取旧计数。
+                       + LEAST((
+                             SELECT COUNT(*)
+                               FROM answers a_count
+                              WHERE a_count.question_id = q.question_id
+                                AND a_count.status = 'ACTIVE'
+                         ), 20) * 0.35
                        + LEAST(q.view_count, 200) * 0.015
                        + CASE
                              WHEN q.ask_time >= SYSDATE - 3 THEN 2.5
@@ -377,7 +383,6 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
          WHERE q.question_id = p_question_id
          GROUP BY q.question_id,
                   q.favorite_count,
-                  q.answer_count,
                   q.view_count,
                   q.ask_time;
 
@@ -512,7 +517,13 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                                                            ) AS similar_interest_score,
                                                                            ROUND(
                                                                                LEAST(q.favorite_count, 30) * 0.25
-                                                                               + LEAST(q.answer_count, 20) * 0.35
+                                                                               -- 使用 ACTIVE 回答实时计数，避免软删除后推荐热度仍读取旧计数。
+                                                                               + LEAST((
+                                                                                     SELECT COUNT(*)
+                                                                                       FROM answers a_count
+                                                                                      WHERE a_count.question_id = q.question_id
+                                                                                        AND a_count.status = 'ACTIVE'
+                                                                                 ), 20) * 0.35
                                                                                + LEAST(q.view_count, 200) * 0.015,
                                                                                2
                                                                            ) AS popularity_score,
@@ -569,7 +580,6 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                                                               q.user_id,
                                                                               q.status,
                                                                               q.favorite_count,
-                                                                              q.answer_count,
                                                                               q.view_count,
                                                                               q.ask_time
                                                                    ) candidate

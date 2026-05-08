@@ -279,7 +279,14 @@ class QuestionRepository:
                 q.accepted_answer_id,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
@@ -508,7 +515,14 @@ class QuestionRepository:
                 q.status,
                 q.view_count,
                 q.favorite_count,
-                q.answer_count,
+                -- Derive visible answers at read time so soft-deleted rows do not
+                -- leak through stale denormalized question counters.
+                (
+                    SELECT COUNT(*)
+                    FROM answers a_count
+                    WHERE a_count.question_id = q.question_id
+                      AND a_count.status = 'ACTIVE'
+                ) AS answer_count,
                 u.username,
                 u.nickname,
                 m.public_url
