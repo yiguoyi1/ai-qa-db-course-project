@@ -1511,6 +1511,12 @@
         return availableCategories.find(item => Number(item.category_id) === id) || null;
     }
 
+    function getDefaultPostCategoryId() {
+        const fallbackCategory = availableCategories.find(category => category.category_name === '其他问题')
+            || availableCategories[0];
+        return normalizePositiveId(fallbackCategory?.category_id);
+    }
+
     function getTagName(tagId) {
         const id = Number(tagId);
         const tag = availablePostTags.find(item => Number(item.tag_id) === id)
@@ -2576,6 +2582,12 @@
 
     function getFriendlyQuestionError(response, detail) {
         const text = String(detail || '');
+        if (text.includes('所选分类') || text.includes('可用分类') || text.includes('分类')) {
+            return text;
+        }
+        if (text.includes('标签')) {
+            return text;
+        }
         if (response.status === 422 || text.includes('String should') || text.includes('字段')) {
             return '发布字段不符合要求：标题、正文、分类和标签请按页面提示填写，正文最多 10000 字。';
         }
@@ -2591,7 +2603,8 @@
     // 🌟 核心：提交帖子到后端
     async function submitQuestion() {
         const token = sessionStorage.getItem('access_token');
-        if (!token || !getCurrentUserId()) {
+        const currentUserId = getCurrentUserId();
+        if (!token || !currentUserId) {
             redirectToLogin('请先登录后再发布问题。');
             return;
         }
@@ -2626,6 +2639,7 @@
         }
         const imagesToUpload = [...selectedPostImages];
         const tagPayload = getPostTagPayload();
+        const categoryPayloadId = categoryId || (autoCategory ? getDefaultPostCategoryId() : '');
         const submitBtn = document.querySelector('button[onclick="submitQuestion()"]');
         const originalBtnText = submitBtn.innerText;
 
@@ -2633,7 +2647,7 @@
             // 🌟 核心分流逻辑 🌟
             let apiUrl = buildApiUrl('/api/questions');
             let requestBody = {
-                category_id: categoryId || undefined,
+                category_id: categoryPayloadId ? Number(categoryPayloadId) : undefined,
                 auto_category: autoCategory,
                 title: titleInput,
                 content: contentInput,
@@ -2647,7 +2661,8 @@
                 apiUrl = buildApiUrl('/api/questions/ask');
                 // 这个通道的标准比较严格，需要补齐参数
                 requestBody = {
-                    category_id: categoryId || undefined,
+                    user_id: currentUserId,
+                    category_id: categoryPayloadId ? Number(categoryPayloadId) : undefined,
                     auto_category: autoCategory,
                     title: titleInput,
                     content: contentInput,

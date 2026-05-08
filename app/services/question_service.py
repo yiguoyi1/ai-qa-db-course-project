@@ -463,7 +463,7 @@ class QuestionService:
     ) -> tuple[int, GeneratedCategory | None]:
         active_categories = self._question_repository.list_active_categories(connection)
         if not active_categories:
-            raise ValidationError("No ACTIVE category is available for publishing questions.")
+            raise ValidationError("当前没有可用分类，请联系管理员先启用或创建分类。")
 
         default_category_id = self._get_default_category_id(active_categories)
         if requested_category_id is not None:
@@ -472,7 +472,7 @@ class QuestionService:
                 requested_category_id,
             )
             if requested_category is None:
-                raise ValidationError("category_id is not active or does not exist.")
+                raise ValidationError("所选分类不存在或已停用，请重新选择分类。")
 
         should_ai_classify = auto_category and (
             requested_category_id is None
@@ -563,13 +563,16 @@ class QuestionService:
         seen: set[int] = set()
 
         for raw_tag_id in tag_ids:
-            tag_id = int(raw_tag_id)
+            try:
+                tag_id = int(raw_tag_id)
+            except (TypeError, ValueError):
+                raise ValidationError("标签参数不正确，请重新选择标签。") from None
             if tag_id <= 0:
-                raise ValidationError("tag_ids must contain positive integers.")
+                raise ValidationError("标签参数不正确，请重新选择标签。")
             if tag_id in seen:
                 continue
             if len(normalized) >= cls.MAX_QUESTION_TAGS:
-                raise ValidationError(f"A question can have at most {cls.MAX_QUESTION_TAGS} tags.")
+                raise ValidationError(f"每个问题最多只能添加 {cls.MAX_QUESTION_TAGS} 个标签。")
             seen.add(tag_id)
             normalized.append(tag_id)
 
@@ -608,11 +611,11 @@ class QuestionService:
         message = getattr(details, "message", str(details))
 
         if "ORA-02291" in message:
-            return ValidationError("user_id, category_id, or tag_ids contain invalid references.")
+            return ValidationError("发布参数包含无效的用户、分类或标签，请刷新页面后重试。")
         if "ORA-00001" in message:
-            return ValidationError("Duplicate question-tag relationship was detected.")
+            return ValidationError("问题标签重复，请刷新页面后重试。")
         if "ORA-02290" in message or "ORA-2290" in message:
-            return ValidationError("Request data violates a database constraint.")
+            return ValidationError("发布内容不符合数据库约束，请检查标题、正文、分类和标签。")
 
         return AppError(f"Database operation failed: {message}", status_code=500)
 
