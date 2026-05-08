@@ -1,0 +1,104 @@
+# AI QA Business Relationship Diagram Preview
+
+This Markdown wrapper is for VS Code Mermaid preview. Open this file and press `Ctrl+Shift+V` to render the diagram.
+
+```mermaid
+flowchart LR
+    subgraph clients["访问入口"]
+        visitor["游客"]
+        user["登录用户"]
+        admin["管理员"]
+        web["网页前端\napp/web"]
+        cli["CLI / Tauri"]
+    end
+
+    subgraph backend["后端服务"]
+        api["FastAPI API"]
+        auth["认证与用户中心\nUSERS / LOGIN_LOG"]
+        question["问题\nQUESTIONS"]
+        answer["回答\nANSWERS"]
+        comment["评论与楼中楼\nANSWER_COMMENTS"]
+        category["分类\nCATEGORIES"]
+        tag["标签\nTAGS / QUESTION_TAGS"]
+        media["媒体资源\nMEDIA_ASSETS"]
+        ai["AI 首答与追问\nAI_PROMPT_LOG / CHAT_SESSION / CHAT_MESSAGE"]
+        behavior["行为数据\nFAVORITES / BROWSE_HISTORY / SEARCH_HISTORY / ANSWER_FEEDBACK"]
+        profile["用户画像\nUSER_TAG_PROFILE"]
+        recommend["推荐结果\nRECOMMENDATIONS"]
+        governance["治理与审计\nOPERATION_LOG"]
+    end
+
+    subgraph external["外部与基础设施"]
+        db[("Oracle 26ai\nAI_QA_APP Schema")]
+        deepseek[("DeepSeek API")]
+    end
+
+    visitor --> web
+    user --> web
+    admin --> web
+    user --> cli
+    web --> api
+    cli --> api
+
+    api --> auth
+    api --> question
+    api --> answer
+    api --> comment
+    api --> category
+    api --> tag
+    api --> media
+    api --> ai
+    api --> behavior
+    api --> profile
+    api --> recommend
+    api --> governance
+
+    auth --> db
+    question --> db
+    answer --> db
+    comment --> db
+    category --> db
+    tag --> db
+    media --> db
+    ai --> db
+    behavior --> db
+    profile --> db
+    recommend --> db
+    governance --> db
+
+    user -- "注册 / 登录 / 维护资料" --> auth
+    user -- "发布问题" --> question
+    user -- "人工回答" --> answer
+    user -- "评论 / 回复" --> comment
+    user -- "收藏 / 浏览 / 搜索 / 反馈" --> behavior
+    user -- "上传头像 / 问题图 / 回答图" --> media
+
+    question -- "属于一个分类" --> category
+    question -- "绑定多个标签" --> tag
+    question -- "拥有问题配图" --> media
+    question -- "可触发 AI 首答" --> ai
+    recommend -- "推荐问题" --> question
+
+    answer -- "属于一个问题" --> question
+    answer -- "可被采纳" --> question
+    answer -- "拥有回答配图" --> media
+    comment -- "挂在回答下" --> answer
+    comment -- "回复其他评论" --> comment
+
+    ai -- "调用模型" --> deepseek
+    ai -- "生成 AI 回答" --> answer
+    ai -- "围绕 AI 首答继续追问" --> ai
+
+    behavior -- "重建兴趣权重" --> profile
+    profile -- "参与 HYBRID 推荐" --> recommend
+    behavior -- "参与 HYBRID 推荐" --> recommend
+    tag -- "提供兴趣维度" --> profile
+    tag -- "提供匹配维度" --> recommend
+
+    admin -- "用户 / 分类 / 标签 / 内容治理" --> governance
+    governance -- "调整用户状态" --> auth
+    governance -- "治理分类与标签" --> category
+    governance -- "治理分类与标签" --> tag
+    governance -- "治理问题与评论" --> question
+    governance -- "治理问题与评论" --> comment
+```

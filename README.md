@@ -1,12 +1,12 @@
-# ai-qa-db-course-project
+# 问知社区 AskWise Community
 
-AI QA community MVP backed by Oracle 26ai, FastAPI, and DeepSeek.
+问知社区是一个融合 AI 首答、用户互助、行为画像与个性化推荐的智能问答社区平台。
 
-# 智能问答记录与推荐管理系统
+本仓库原工程名为 `ai-qa-db-course-project`，当前正式项目名统一为 **问知社区 AskWise Community**。
 
 ## 项目简介
 
-本项目是一个面向数据库课程设计的问答社区 MVP，围绕“问答 + 行为 + 推荐”构建完整的数据闭环。
+本项目是一个面向数据库课程设计的智能问答社区 MVP，围绕“问答 + AI 辅助 + 用户行为 + 个性化推荐”构建完整的数据闭环。
 
 当前仓库已经不只是数据库设计稿，而是同时包含：
 
@@ -169,7 +169,7 @@ npm run build:windows
 
 Windows 版会生成 NSIS `-setup.exe` 和 WiX `.msi`，产物位于 `desktop/src-tauri/target/release/bundle/`。
 
-也可以通过 GitHub Actions 出 Windows 安装包：进入仓库的 `Actions` 页面，选择 `Build Windows Desktop Client`，手动运行后下载 `ai-qa-community-windows` artifact。
+也可以通过 GitHub Actions 出 Windows 安装包：进入仓库的 `Actions` 页面，选择 `Build Windows Desktop Client`，手动运行后下载 Windows 桌面客户端安装包。
 
 ## 当前最值得先改的地方
 

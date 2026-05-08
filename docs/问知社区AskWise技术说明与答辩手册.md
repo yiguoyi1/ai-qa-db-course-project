@@ -1,22 +1,23 @@
-# Facebook 全栈项目开发技术说明与答辩手册
+# 问知社区 AskWise Community 技术说明与答辩手册
 
-> 说明：本文档基于当前仓库真实代码编写。项目目录名为 `Facebook`，但当前真实业务不是传统 Facebook 复刻社交平台，而是一个带 AI 首答、问答社区、行为记录、推荐、用户中心和管理员后台的全栈项目。答辩时可以使用《Facebook 全栈项目开发》作为课程项目名称，但需要如实说明当前系统的实际功能边界。
+> 说明：本文档基于当前仓库真实代码编写。项目正式名称为《问知社区 AskWise Community》，当前真实业务是一个带 AI 首答、问答社区、行为记录、推荐、用户中心和管理员后台的全栈项目。旧文件名或课程模板中出现的“Facebook 全栈项目开发”只作为早期课程命名背景，不代表本项目复刻 Facebook。
 
 # 一、项目概述
 
 ### 1.1 项目名称
 
-项目名称：`Facebook 全栈项目开发`
+项目名称：`问知社区 AskWise Community`
 
 当前代码中的产品名称主要是：
 
+- `问知社区 AskWise Community`
 - `AI QA Community`
 - `智能问答记录与推荐管理系统`
 - `AI QA 社区`
 
 答辩时建议表达为：
 
-> 我的项目名称是《Facebook 全栈项目开发》，当前实现形态是一个类似社区信息流的 AI 问答社区系统。它包含用户登录、内容发布、回答、评论、收藏、图片上传、推荐和后台治理等典型社区平台能力。
+> 我的项目名称是《问知社区 AskWise Community》，当前实现形态是一个类似社区信息流的 AI 问答社区系统。它包含用户登录、内容发布、AI 首答、回答、评论、收藏、图片上传、推荐和后台治理等典型社区平台能力。早期模板里出现过 Facebook 字样，但系统本身不是 Facebook 复刻项目。
 
 ### 1.2 项目定位
 
@@ -106,10 +107,10 @@
 
 # 二、项目目录结构说明
 
-当前仓库主项目目录是 `Facebook/`。主要目录结构如下：
+当前仓库主项目目录是 `ai-qa-db-course-project/`。主要目录结构如下：
 
 ```text
-Facebook/
+ai-qa-db-course-project/
 ├── app/                              # FastAPI 后端主目录
 │   ├── main.py                       # 后端应用入口，注册路由、中间件和健康检查
 │   ├── web_routes.py                 # Web 页面路由，把 app/web 下的 HTML 交给浏览器
@@ -1568,7 +1569,7 @@ Web 前端由 FastAPI 提供，不需要单独启动前端服务器。
 
 ```bash
 # 进入项目根目录
-cd /Users/corld/Desktop/软件系统开发/Facebook
+cd /path/to/ai-qa-db-course-project
 
 # 启动 FastAPI，前端页面和 API 都由这个服务提供
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -1673,7 +1674,7 @@ git status
 git log --oneline -5
 
 # 添加文档或代码
-git add docs/Facebook全栈项目开发技术说明与答辩手册.md
+git add docs/问知社区AskWise技术说明与答辩手册.md
 
 # 提交改动
 git commit -m "docs: add defense technical handbook"
