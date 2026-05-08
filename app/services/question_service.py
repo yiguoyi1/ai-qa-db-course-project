@@ -756,6 +756,8 @@ class QuestionService:
                 raise NotFoundError(f"Answer {answer_id} was not found.")
             if answer["question_id"] != question_id:
                 raise ValidationError("answer_id 不属于当前问题，不能被采纳。")
+            if answer.get("status") != "ACTIVE":
+                raise ValidationError("只有正常展示中的回答可以被采纳。")
             if answer["answer_type"] == "SYSTEM":
                 raise ValidationError("SYSTEM 类型回答不能被采纳。")
 

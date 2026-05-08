@@ -95,7 +95,7 @@ Q23：为什么要用索引？
 A23：索引用来提高查询性能。项目里问题列表经常按状态、分类、时间查，所以有 `idx_questions_status`、`idx_questions_category_id`、`idx_questions_ask_time`。用户中心、收藏、推荐、搜索历史也都有对应索引。没有索引时数据多了可能全表扫描，查询会慢。
 
 Q24：触发器有什么作用？  
-A24：触发器用来自动维护统计数据。例如新增回答、收藏、浏览记录后，触发器会调用 `qa_app_pkg.sync_question_statistics` 更新问题的回答数、收藏数、浏览数。回答点赞变化后，也会自动更新回答的点赞数、点踩数和平均评分，保证统计字段一致。
+A24：触发器用来自动维护统计数据。例如回答新增或软删除后，触发器会重算问题的有效回答数；收藏、浏览记录变化后会调用 `qa_app_pkg.sync_question_statistics` 更新收藏数、浏览数。回答点赞变化后，也会自动更新回答的点赞数、点踩数和平均评分，保证统计字段一致。
 
 Q25：推荐系统是怎么做的？  
 A25：推荐不是假数据，而是根据用户行为生成。系统会根据用户提问、回答、收藏、浏览、反馈、评论、搜索等行为计算标签权重，写入 `user_tag_profile`。然后 `qa_app_pkg.generate_recommendations` 根据标签匹配、热度、新鲜度和惩罚项生成推荐结果。
@@ -126,7 +126,7 @@ Q32：查询问题列表调用哪个接口？
 A32：普通列表调用 `GET /api/questions`，搜索列表调用 `GET /api/search/questions`。接口支持分页、分类、标签、状态等参数。后端查询 Oracle 后返回 `QuestionListResponse`，前端把返回的 `items` 渲染成问题卡片。
 
 Q33：评论调用哪个接口？  
-A33：发表评论或回复调用 `POST /api/answers/{answer_id}/comments`，查看评论树调用 `GET /api/answers/{answer_id}/comments`，删除自己的评论调用 `DELETE /api/comments/{comment_id}`。评论是挂在回答下面的，不是直接挂在问题下面。
+A33：发表评论或回复调用 `POST /api/answers/{answer_id}/comments`，查看评论树调用 `GET /api/answers/{answer_id}/comments`，删除自己的评论调用 `DELETE /api/comments/{comment_id}`。回答作者或管理员可以通过 `DELETE /api/answers/{answer_id}` 软删除回答。评论是挂在回答下面的，不是直接挂在问题下面。
 
 Q34：点赞和收藏有什么区别？  
 A34：收藏是对问题的收藏，数据存在 `favorites` 表；点赞或点踩是对回答的反馈，数据存在 `answer_feedback` 表。收藏会影响问题的收藏数，点赞点踩会影响回答的 `like_count`、`dislike_count` 和评分统计。

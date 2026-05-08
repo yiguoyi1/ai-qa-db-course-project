@@ -58,6 +58,7 @@
 - 问题列表与详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 作者删帖：`DELETE /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
+- 作者或管理员删除回答：`DELETE /api/answers/{answer_id}`、`DELETE /api/admin/answers/{answer_id}`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 分类、标签、搜索：`GET /api/categories`、`GET /api/tags`、`GET /api/tags/suggestions`、`GET /api/search/questions`
 - 分类字典已标准化为面向通用问答社区的多领域分类，历史 `oracle`、`ai` 演示分类通过迁移收敛到新的技术/AI 分类
@@ -71,6 +72,7 @@
 - 用户画像与推荐：`POST /api/users/{user_id}/profile/rebuild`、`POST /api/users/{user_id}/recommendations/generate`、`GET /api/users/{user_id}/recommendations`
 - 管理员标签治理：`GET /api/admin/tags`、`PATCH /api/admin/tags/{tag_id}`
 - 管理员删帖：`DELETE /api/admin/questions/{question_id}`
+- 管理员删除回答：`DELETE /api/admin/answers/{answer_id}`
 - 管理员基础治理：用户、分类、问题状态、评论状态、登录日志和操作日志相关接口
 - 头像与内容图片：`POST /api/users/me/avatar`、`GET /api/users/me/avatar`、`DELETE /api/users/me/avatar`
 - 问题配图：`POST /api/questions/{question_id}/images`、`GET /api/questions/{question_id}/images`、`DELETE /api/questions/{question_id}/images/{media_id}`

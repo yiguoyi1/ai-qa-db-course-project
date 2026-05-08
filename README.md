@@ -46,6 +46,7 @@
 - 纯社区发帖：`POST /api/questions`
 - 问题列表 / 详情：`GET /api/questions`、`GET /api/questions/{question_id}`
 - 人工回答：`POST /api/questions/{question_id}/answers`
+- 删除回答：`DELETE /api/answers/{answer_id}`
 - 采纳答案：`POST /api/questions/{question_id}/accept-answer`
 - 用户中心：`GET /api/users/me/profile`、`PATCH /api/users/me/profile`、`GET /api/users/{user_id}/profile`、`GET /api/users/{user_id}/questions`、`GET /api/users/{user_id}/answers`、`GET /api/users/{user_id}/favorites`
 - 用户历史：`GET /api/users/{user_id}/browse-history`、`GET /api/users/{user_id}/search-history`
@@ -294,7 +295,8 @@ $migrations = @(
   "sql/migrations/20260429_limit_media_asset_file_size.sql",
   "sql/migrations/20260502_improve_recommendation_scoring.sql",
   "sql/migrations/20260503_refresh_reporting_views.sql",
-  "sql/migrations/20260507_standardize_question_categories.sql"
+  "sql/migrations/20260507_standardize_question_categories.sql",
+  "sql/migrations/20260508_add_answer_soft_delete.sql"
 )
 .\scripts\load-oracle-schema.ps1 -SqlFiles $migrations
 ```
@@ -473,6 +475,7 @@ CLI 现在支持：
 - `GET /api/questions`
 - `GET /api/questions/{question_id}`
 - `POST /api/questions/{question_id}/answers`
+- `DELETE /api/answers/{answer_id}`
 - `POST /api/questions/{question_id}/answers/{answer_id}/follow-up`
 - `GET /api/questions/{question_id}/answers/{answer_id}/follow-up-sessions`
 - `GET /api/chat/sessions/{session_id}`
@@ -630,6 +633,8 @@ http://127.0.0.1:8000/admin
 - `PATCH /api/admin/users/{user_id}/status`
 - `PATCH /api/admin/users/{user_id}/role`
 - `PATCH /api/admin/questions/{question_id}/status`
+- `DELETE /api/admin/questions/{question_id}`
+- `DELETE /api/admin/answers/{answer_id}`
 - `PATCH /api/admin/comments/{comment_id}/status`
 - `GET /api/admin/logs/login`
 - `GET /api/admin/logs/operations`

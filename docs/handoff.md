@@ -178,6 +178,7 @@ sql/migrations/20260429_limit_media_asset_file_size.sql
 sql/migrations/20260502_improve_recommendation_scoring.sql
 sql/migrations/20260503_refresh_reporting_views.sql
 sql/migrations/20260507_standardize_question_categories.sql
+sql/migrations/20260508_add_answer_soft_delete.sql
 ```
 
 推荐增强迁移 `20260502_improve_recommendation_scoring.sql` 只替换 `qa_app_pkg` 包体，不修改表结构和现有 API。当前推荐分数由画像分、相似兴趣分、热度分、新鲜度分、已读惩罚、负反馈惩罚和多样性惩罚共同组成。
@@ -185,6 +186,8 @@ sql/migrations/20260507_standardize_question_categories.sql
 视图刷新迁移 `20260503_refresh_reporting_views.sql` 用于把报表和展示视图落到已有数据库中，覆盖问题概览、热榜、标签明细、用户行为汇总、媒体明细和 AI 追问会话汇总等查询口径。
 
 分类标准化迁移 `20260507_standardize_question_categories.sql` 用于把历史 `oracle`、`ai` 演示分类收敛到通用问答社区分类，并补齐技术开发、人工智能、学习教育、职场发展、生活方式、健康运动、旅行户外、美食烹饪、家居数码、财经理财、文化娱乐、创作设计和其他问题等标准分类。
+
+回答软删除迁移 `20260508_add_answer_soft_delete.sql` 用于为 `ANSWERS` 增加 `STATUS` 和 `DELETE_TIME`，并刷新回答质量、用户活跃汇总视图；旧库需要执行该迁移后才能使用删除回答接口。
 
 历史问题 AI 重分类脚本：
 

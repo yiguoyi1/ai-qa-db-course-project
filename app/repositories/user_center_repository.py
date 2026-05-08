@@ -98,7 +98,8 @@ class UserCenterRepository:
                   WHERE q.user_id = u.user_id) AS question_count,
                 (SELECT COUNT(*)
                    FROM answers a
-                  WHERE a.user_id = u.user_id) AS answer_count,
+                  WHERE a.user_id = u.user_id
+                    AND a.status = 'ACTIVE') AS answer_count,
                 (SELECT COUNT(*)
                    FROM favorites f
                   WHERE f.user_id = u.user_id) AS favorite_count,
@@ -106,7 +107,8 @@ class UserCenterRepository:
                    FROM answers a
                    JOIN questions q
                      ON q.accepted_answer_id = a.answer_id
-                  WHERE a.user_id = u.user_id) AS accepted_answer_count
+                  WHERE a.user_id = u.user_id
+                    AND a.status = 'ACTIVE') AS accepted_answer_count
             FROM users u
             LEFT JOIN media_assets m
               ON m.media_id = u.avatar_media_id
@@ -311,6 +313,7 @@ class UserCenterRepository:
             JOIN questions q
               ON q.question_id = a.question_id
             WHERE a.user_id = :user_id
+              AND a.status = 'ACTIVE'
               AND q.status <> 'DELETED'
             """,
             {"user_id": user_id},
@@ -351,6 +354,7 @@ class UserCenterRepository:
             JOIN questions q
               ON q.question_id = a.question_id
             WHERE a.user_id = :user_id
+              AND a.status = 'ACTIVE'
               AND q.status <> 'DELETED'
             ORDER BY
                 CASE

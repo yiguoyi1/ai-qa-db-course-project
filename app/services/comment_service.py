@@ -35,6 +35,8 @@ class CommentService:
             answer_context = self._comment_repository.get_answer_context(connection, answer_id)
             if answer_context is None:
                 raise NotFoundError(f"Answer {answer_id} was not found.")
+            if answer_context["answer_status"] != "ACTIVE":
+                raise ValidationError("Only ACTIVE answers can accept comments.")
 
             if answer_context["question_status"] not in {"OPEN", "RESOLVED"}:
                 raise ValidationError("Only OPEN or RESOLVED questions can accept comments.")
@@ -158,6 +160,8 @@ class CommentService:
         with get_connection() as connection:
             answer_context = self._comment_repository.get_answer_context(connection, answer_id)
             if answer_context is None:
+                raise NotFoundError(f"Answer {answer_id} was not found.")
+            if answer_context["answer_status"] == "DELETED":
                 raise NotFoundError(f"Answer {answer_id} was not found.")
 
             flat_comments = self._comment_repository.list_comments_by_answer(connection, answer_id)

@@ -101,6 +101,8 @@ SELECT
     u.nickname AS author_nickname,
     a.answer_type,
     a.provider_name,
+    a.status AS answer_status,
+    a.delete_time,
     a.generate_time,
     a.like_count,
     a.dislike_count,
@@ -133,7 +135,8 @@ LEFT JOIN (
     GROUP BY answer_id
 ) feedback_stats
   ON feedback_stats.answer_id = a.answer_id
-WHERE q.status <> 'DELETED';
+WHERE q.status <> 'DELETED'
+  AND a.status <> 'DELETED';
 
 PROMPT Creating view V_USER_TAG_PROFILE_DETAIL...
 -- 用户画像明细视图：展示每个用户的标签权重和排名。
@@ -267,6 +270,7 @@ LEFT JOIN (
         COUNT(CASE WHEN answer_type = 'MANUAL' THEN 1 END) AS manual_answers
     FROM answers
     WHERE user_id IS NOT NULL
+      AND status = 'ACTIVE'
     GROUP BY user_id
 ) a_stats
   ON a_stats.user_id = u.user_id

@@ -216,6 +216,7 @@ python scripts/import_public_snapshot_for_tag_test.py --limit 80 --apply
 
 - `PATCH /api/admin/questions/{question_id}/status`
 - `DELETE /api/admin/questions/{question_id}`
+- `DELETE /api/admin/answers/{answer_id}`
 - `PATCH /api/admin/comments/{comment_id}/status`
 
 网页后台为了帮助管理员定位 ID，会复用以下普通读接口：

@@ -33,6 +33,8 @@ class AnswerItem(APIModel):
     author_avatar_url: str | None = None
     content: str
     generate_time: datetime
+    status: str = "ACTIVE"
+    delete_time: datetime | None = None
     model_name: str | None = None
     confidence_score: float | None = None
     like_count: int

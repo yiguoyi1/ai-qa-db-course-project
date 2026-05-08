@@ -24,6 +24,15 @@ class FeedbackService:
 
         with get_connection() as connection:
             try:
+                answer_status = self._feedback_repository.get_answer_status(
+                    connection,
+                    answer_id,
+                )
+                if answer_status is None:
+                    raise NotFoundError(f"Answer {answer_id} was not found.")
+                if answer_status != "ACTIVE":
+                    raise ValidationError("Only ACTIVE answers can receive feedback.")
+
                 existing_feedback_id = self._feedback_repository.find_feedback_id(
                     connection=connection,
                     answer_id=answer_id,

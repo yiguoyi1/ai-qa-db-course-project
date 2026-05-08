@@ -60,6 +60,8 @@
 - `QUESTIONS.STATUS` in `('OPEN', 'RESOLVED', 'CLOSED', 'ARCHIVED', 'DELETED')`
 - `QUESTION_TAGS.SOURCE` in `('USER_SELECTED', 'USER_CREATED', 'AI_MATCHED', 'AI_CREATED', 'ADMIN_ADJUSTED')`
 - `ANSWERS.ANSWER_TYPE` in `('AI', 'MANUAL', 'SYSTEM')`
+- `ANSWERS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
+- `ANSWERS.DELETE_TIME` is `NULL` or not earlier than `ANSWERS.GENERATE_TIME`
 - `MEDIA_ASSETS.OWNER_TYPE` in `('USER_AVATAR', 'QUESTION', 'ANSWER')`
 - `MEDIA_ASSETS.STATUS` in `('ACTIVE', 'DELETED')`
 - `ANSWER_COMMENTS.STATUS` in `('ACTIVE', 'HIDDEN', 'DELETED')`
@@ -111,6 +113,8 @@
 - `MANUAL` answers must carry a real `USER_ID`.
 - `AI` and `SYSTEM` answers must keep `USER_ID = NULL`.
 - `MANUAL` answers currently represent community user replies.
+- Answer deletion uses soft delete by setting `ANSWERS.STATUS = 'DELETED'`; normal answer lists, answer counts, feedback, comments, images, and AI follow-up only operate on `ACTIVE` answers.
+- Accepted answers cannot be deleted before changing the accepted answer, to avoid hiding the answer referenced by `QUESTIONS.ACCEPTED_ANSWER_ID`.
 
 ## Tag Source Rules
 

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.auth_deps import AuthenticatedUser, get_admin_user
-from app.api.deps import get_admin_service
+from app.api.deps import get_admin_service, get_answer_service
 from app.core.errors import AppError
+from app.schemas.answer import DeleteAnswerResponse
 from app.schemas.admin import (
     AdminCategoryListResponse,
     AdminCategoryMutationResponse,
@@ -22,6 +23,7 @@ from app.schemas.admin import (
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
 )
+from app.services.answer_service import AnswerService
 from app.services.admin_service import AdminService
 
 
@@ -299,6 +301,28 @@ def delete_question(
         return service.delete_question(
             admin_user_id=admin_user.user_id,
             question_id=question_id,
+            reason=reason,
+        )
+    except AppError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.delete(
+    "/answers/{answer_id}",
+    response_model=DeleteAnswerResponse,
+    status_code=status.HTTP_200_OK,
+)
+def delete_answer(
+    answer_id: int,
+    reason: str | None = Query(default=None, max_length=200),
+    admin_user: AuthenticatedUser = Depends(get_admin_user),
+    service: AnswerService = Depends(get_answer_service),
+) -> DeleteAnswerResponse:
+    try:
+        return service.delete_answer(
+            answer_id=answer_id,
+            current_user_id=admin_user.user_id,
+            current_user_role=admin_user.role,
             reason=reason,
         )
     except AppError as exc:

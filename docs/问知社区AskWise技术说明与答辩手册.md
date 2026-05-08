@@ -368,6 +368,7 @@ bcrypt 校验密码哈希
 项目采用软删除设计的地方包括：
 
 - 问题：状态改为 `DELETED`
+- 回答：状态改为 `DELETED`
 - 评论：状态改为 `DELETED`
 - 图片：状态改为 `DELETED`
 
@@ -667,7 +668,7 @@ A：不是 SPA 路由，而是 FastAPI 提供页面路由。比如 `/home` 返�
 |---|---|
 | `app/api/routes/auth.py` | 注册、登录 |
 | `app/api/routes/questions.py` | 问题发布、列表、详情、删除、采纳 |
-| `app/api/routes/answers.py` | 人工回答 |
+| `app/api/routes/answers.py` | 人工回答、回答软删除 |
 | `app/api/routes/comments.py` | 评论、楼中楼、软删除 |
 | `app/api/routes/favorites.py` | 收藏、取消收藏 |
 | `app/api/routes/feedback.py` | 回答点赞、点踩、评分 |
@@ -798,6 +799,7 @@ except AppError as exc:
 | 问题 | DELETE | `/api/questions/{question_id}` | 作者删除问题 | `question_id` | `QuestionDeleteResponse` | 是 | `app/api/routes/questions.py` |
 | 问题 | POST | `/api/questions/{question_id}/accept-answer` | 采纳答案 | `answer_id` | `QuestionDetailResponse` | 是 | `app/api/routes/questions.py` |
 | 回答 | POST | `/api/questions/{question_id}/answers` | 发布人工回答 | `content,confidence_score` | `QuestionDetailResponse` | 是 | `app/api/routes/answers.py` |
+| 回答 | DELETE | `/api/answers/{answer_id}` | 作者或管理员删除回答 | `reason` 可选 | `DeleteAnswerResponse` | 是 | `app/api/routes/answers.py` |
 | 浏览 | POST | `/api/questions/{question_id}/browse` | 记录浏览行为 | `duration,click_depth` | `BrowseRecordResponse` | 是 | `app/api/routes/browse.py` |
 | 收藏 | POST | `/api/questions/{question_id}/favorite` | 收藏问题 | `user_id` 兼容字段 | `FavoriteRecordResponse` | 是 | `app/api/routes/favorites.py` |
 | 收藏 | DELETE | `/api/questions/{question_id}/favorite` | 取消收藏 | `user_id` 兼容参数 | `FavoriteDeleteResponse` | 是 | `app/api/routes/favorites.py` |
@@ -841,6 +843,7 @@ except AppError as exc:
 | 管理员 | PATCH | `/api/admin/tags/{tag_id}` | 修改标签 | `tag_name,description,status` | `AdminTagMutationResponse` | 管理员 | `app/api/routes/admin.py` |
 | 管理员 | PATCH | `/api/admin/questions/{question_id}/status` | 修改问题状态 | `status,reason` | `AdminQuestionStatusResponse` | 管理员 | `app/api/routes/admin.py` |
 | 管理员 | DELETE | `/api/admin/questions/{question_id}` | 管理员删帖 | `reason` | `AdminQuestionStatusResponse` | 管理员 | `app/api/routes/admin.py` |
+| 管理员 | DELETE | `/api/admin/answers/{answer_id}` | 管理员删除回答 | `reason` | `DeleteAnswerResponse` | 管理员 | `app/api/routes/admin.py` |
 | 管理员 | PATCH | `/api/admin/comments/{comment_id}/status` | 修改评论状态 | `status,reason` | `AdminCommentStatusResponse` | 管理员 | `app/api/routes/admin.py` |
 | 管理员 | GET | `/api/admin/logs/login` | 登录日志 | `page,page_size,user_id,result` | `AdminLoginLogListResponse` | 管理员 | `app/api/routes/admin.py` |
 | 管理员 | GET | `/api/admin/logs/operations` | 操作日志 | `page,page_size,user_id,op_type` | `AdminOperationLogListResponse` | 管理员 | `app/api/routes/admin.py` |
@@ -981,7 +984,7 @@ _: AuthenticatedUser = Depends(get_admin_user)
 | `tags` | 标签表 | `tag_id, tag_name, source, status, create_user_id` | `tag_id` | `create_user_id -> users.user_id` | 支持系统、用户、AI、管理员标签 |
 | `media_assets` | 媒体资源表 | `media_id, owner_type, owner_id, file_content, public_url, status` | `media_id` | `uploader_user_id -> users.user_id` | 头像、问题图、回答图，BLOB 存储 |
 | `questions` | 问题/帖子表 | `question_id, user_id, category_id, title, content, status, accepted_answer_id` | `question_id` | `user_id -> users`，`category_id -> categories`，`accepted_answer` 复合外键 | 社区动态主体 |
-| `answers` | 回答表 | `answer_id, question_id, user_id, answer_type, content, like_count` | `answer_id` | `question_id -> questions`，`user_id -> users` | AI 回答、人工回答、系统回答 |
+| `answers` | 回答表 | `answer_id, question_id, user_id, answer_type, content, status, like_count` | `answer_id` | `question_id -> questions`，`user_id -> users` | AI 回答、人工回答、系统回答和软删除状态 |
 | `question_tags` | 问题标签关联表 | `qt_id, question_id, tag_id, source, confidence_score` | `qt_id` | `question_id -> questions`，`tag_id -> tags` | 实现问题和标签多对多 |
 | `answer_feedback` | 回答反馈表 | `feedback_id, answer_id, user_id, is_like, rating` | `feedback_id` | `answer_id -> answers`，`user_id -> users` | 点赞、点踩、评分 |
 | `answer_comments` | 回答评论表 | `comment_id, answer_id, user_id, parent_comment_id, root_comment_id, status` | `comment_id` | `answer_id -> answers`，`user_id -> users`，自引用评论外键 | 评论和楼中楼回复 |
@@ -1875,7 +1878,7 @@ Q27：索引有什么作用？
 A27：索引可以提高查询速度。比如问题列表经常按状态、分类和时间查询，所以在 `questions` 表上建立了相关索引。
 
 Q28：触发器有什么作用？  
-A28：触发器用于自动维护统计字段。例如收藏、浏览、回答变化后，触发器会调用过程同步 `questions` 的浏览数、收藏数和回答数。
+A28：触发器用于自动维护统计字段。例如回答新增或软删除后会重算 `questions.answer_count`，收藏和浏览变化后会调用过程同步收藏数、浏览数。
 
 Q29：存储过程有什么作用？  
 A29：项目把统计同步、用户画像重建、推荐生成等靠近数据的逻辑放在 PL/SQL 包 `qa_app_pkg` 中执行，减少后端重复计算。

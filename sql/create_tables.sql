@@ -139,6 +139,8 @@ CREATE TABLE answers (
     provider_name      VARCHAR2(50 CHAR),
     content            CLOB               NOT NULL,
     generate_time      DATE               DEFAULT SYSDATE NOT NULL,
+    status             VARCHAR2(20 CHAR)  DEFAULT 'ACTIVE' NOT NULL,
+    delete_time        DATE,
     model_name         VARCHAR2(50 CHAR),
     confidence_score   NUMBER(5,2),
     like_count         NUMBER             DEFAULT 0       NOT NULL,
@@ -154,6 +156,10 @@ CREATE TABLE answers (
     CONSTRAINT ck_answers_user_presence CHECK (
         (answer_type = 'MANUAL' AND user_id IS NOT NULL)
         OR (answer_type IN ('AI', 'SYSTEM') AND user_id IS NULL)
+    ),
+    CONSTRAINT ck_answers_status CHECK (status IN ('ACTIVE', 'HIDDEN', 'DELETED')),
+    CONSTRAINT ck_answers_delete_time CHECK (
+        delete_time IS NULL OR delete_time >= generate_time
     ),
     CONSTRAINT ck_answers_confidence CHECK (
         confidence_score IS NULL OR (confidence_score >= 0 AND confidence_score <= 100)
@@ -451,6 +457,7 @@ CREATE INDEX idx_questions_ask_time ON questions (ask_time);
 CREATE INDEX idx_answers_question_id ON answers (question_id);
 CREATE INDEX idx_answers_user_id ON answers (user_id);
 CREATE INDEX idx_answers_generate_time ON answers (generate_time);
+CREATE INDEX idx_answers_status ON answers (status);
 
 CREATE INDEX idx_question_tags_question_id ON question_tags (question_id);
 CREATE INDEX idx_question_tags_tag_id ON question_tags (tag_id);

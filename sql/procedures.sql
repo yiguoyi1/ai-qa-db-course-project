@@ -60,6 +60,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                    SELECT COUNT(*)
                      FROM answers
                     WHERE question_id = p_question_id
+                      AND status = 'ACTIVE'
                )
          WHERE question_id = p_question_id;
     END sync_question_statistics;
@@ -154,14 +155,15 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                  END,
                            2
                        ) AS weight
-                  FROM answers a
-                  JOIN question_tags qt
-                    ON qt.question_id = a.question_id
+                 FROM answers a
+                 JOIN question_tags qt
+                   ON qt.question_id = a.question_id
                   JOIN tags t
                     ON t.tag_id = qt.tag_id
                    AND t.status = 'ACTIVE'
                  WHERE a.user_id = p_user_id
                    AND a.answer_type = 'MANUAL'
+                   AND a.status = 'ACTIVE'
 
                 UNION ALL
 
@@ -243,6 +245,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                     ON t.tag_id = qt.tag_id
                    AND t.status = 'ACTIVE'
                  WHERE af.user_id = p_user_id
+                   AND a.status = 'ACTIVE'
 
                 UNION ALL
 
@@ -266,6 +269,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                    AND t.status = 'ACTIVE'
                  WHERE ac.user_id = p_user_id
                    AND ac.status = 'ACTIVE'
+                   AND a.status = 'ACTIVE'
 
                 UNION ALL
 
@@ -350,6 +354,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                  ON a.answer_id = af.answer_id
                               WHERE af.user_id = p_user_id
                                 AND a.question_id = q.question_id
+                                AND a.status = 'ACTIVE'
                                 AND (
                                         af.is_like = 'N'
                                         OR NVL(af.rating, 5) <= 2
@@ -537,6 +542,7 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
                                                                                    ON a.answer_id = af.answer_id
                                                                                 WHERE af.user_id = p_user_id
                                                                                   AND a.question_id = q.question_id
+                                                                                  AND a.status = 'ACTIVE'
                                                                                   AND (
                                                                                           af.is_like = 'N'
                                                                                           OR NVL(af.rating, 5) <= 2

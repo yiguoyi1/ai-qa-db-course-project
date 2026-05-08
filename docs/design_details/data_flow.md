@@ -62,7 +62,7 @@
 9. AI 自动分类、AI 自动标签的 Prompt 与响应复用 `AI_PROMPT_LOG` 记录
 10. 若为 AI 回答，写入 `ANSWERS`，同时记录回答生成的 `AI_PROMPT_LOG`
 11. 若为人工补充，也写入 `ANSWERS`
-12. 回答表发生变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`
+12. 回答表发生新增、问题归属变更或状态变化后，触发器调用过程同步 `QUESTIONS.ANSWER_COUNT`，仅统计 `ACTIVE` 回答
 
 分类处理补充：
 

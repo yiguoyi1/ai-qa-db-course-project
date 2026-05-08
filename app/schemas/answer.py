@@ -11,3 +11,11 @@ class CreateManualAnswerRequest(APIModel):
 
 class AcceptAnswerRequest(APIModel):
     answer_id: int = Field(gt=0)
+
+
+class DeleteAnswerResponse(APIModel):
+    answer_id: int
+    question_id: int
+    status: str
+    deleted: bool
+    message: str

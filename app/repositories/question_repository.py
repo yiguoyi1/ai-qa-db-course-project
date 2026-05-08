@@ -437,6 +437,7 @@ class QuestionRepository:
                   WHERE a.answer_id = :answer_id
                     AND a.question_id = q.question_id
                     AND a.answer_type <> 'SYSTEM'
+                    AND a.status = 'ACTIVE'
               )
             """,
             {

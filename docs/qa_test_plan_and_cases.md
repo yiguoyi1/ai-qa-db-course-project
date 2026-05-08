@@ -194,6 +194,9 @@
 | TC-Q-013 | 问题 | 删除后前端跳转 | 用户 A 是问题作者 | 删除帖子成功后观察页面跳转 | 当前代码预期暴露缺陷：跳到 `/profile` 可能 404；应修复为 `/me` 后再通过 | P1 |
 | TC-Q-014 | 问题 | 非作者删除帖子 | 用户 B 登录，尝试删除 A 的问题 | DELETE `/api/questions/{id}` | 返回 403；问题状态不变 | P0 |
 | TC-ANS-001 | 回答 | 人工回答成功 | 用户 B 登录；存在 OPEN 问题 | 在详情页填写回答并提交 | POST `/api/questions/{id}/answers` 返回 201；回答列表刷新；answer_count 增加 | P0 |
+| TC-ANS-009 | 回答 | 作者删除自己的回答 | 用户 B 登录；存在 B 发布且未被采纳的人工回答 | DELETE `/api/answers/{answer_id}` | 返回 DELETED；回答从详情列表隐藏；问题 answer_count 减少；操作日志写入 | P0 |
+| TC-ANS-010 | 回答 | 非作者删除回答失败 | 用户 C 登录；存在用户 B 的人工回答 | DELETE `/api/answers/{answer_id}` | 返回 403；回答仍正常展示 | P0 |
+| TC-ANS-011 | 回答 | 已采纳回答禁止删除 | 问题已采纳某回答 | 作者或管理员删除该回答 | 返回业务错误；`accepted_answer_id` 不被破坏 | P0 |
 | TC-ANS-002 | 回答 | 回答内容校验 | 用户 B 登录 | 回答内容为空、超过 10000 字 | 前端或 API 拒绝；不得新增回答 | P0 |
 | TC-ANS-003 | 回答 | user_id 兼容字段一致性 | 用户 B 登录 | payload 中传 user_id=A | 返回 403 `user_id 与当前登录用户不一致` | P0 |
 | TC-ANS-004 | 采纳 | 提问者采纳人工回答 | 用户 A 是提问者；问题有回答 | A 点击采纳 B 的回答 | 问题状态/accepted_answer_id 更新；已采纳答案高亮；列表展示 RESOLVED 或采纳状态 | P0 |

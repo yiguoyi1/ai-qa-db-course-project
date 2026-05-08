@@ -395,6 +395,7 @@ tests/
 - `GET /api/questions/{question_id}`
 - `GET /api/questions`
 - `POST /api/questions/{question_id}/answers`
+- `DELETE /api/answers/{answer_id}`
 
 ### 7.3 元数据与搜索
 

@@ -9,6 +9,10 @@ def _normalize_returning_value(value: Any) -> int:
     return int(value)
 
 
+def _read_lob(value: Any) -> str:
+    return value.read() if hasattr(value, "read") else value
+
+
 class AnswerRepository:
     def create_ai_answer(
         self,
@@ -104,6 +108,8 @@ class AnswerRepository:
                 a.provider_name,
                 a.content,
                 a.generate_time,
+                a.status,
+                a.delete_time,
                 a.model_name,
                 a.confidence_score,
                 a.like_count,
@@ -125,6 +131,7 @@ class AnswerRepository:
               ON m.media_id = u.avatar_media_id
              AND m.status = 'ACTIVE'
             WHERE a.question_id = :question_id
+              AND a.status = 'ACTIVE'
             ORDER BY
                 CASE
                     WHEN q.accepted_answer_id = a.answer_id THEN 0
@@ -152,17 +159,19 @@ class AnswerRepository:
                     "user_id": int(row[2]) if row[2] is not None else None,
                     "answer_type": row[3],
                     "provider_name": row[4],
-                    "content": row[5].read() if hasattr(row[5], "read") else row[5],
+                    "content": _read_lob(row[5]),
                     "generate_time": row[6],
-                    "model_name": row[7],
-                    "confidence_score": float(row[8]) if row[8] is not None else None,
-                    "like_count": int(row[9]),
-                    "dislike_count": int(row[10]),
-                    "avg_rating": float(row[11]) if row[11] is not None else None,
-                    "author_username": row[12],
-                    "author_nickname": row[13],
-                    "author_avatar_url": row[14],
-                    "is_accepted": bool(row[15]),
+                    "status": row[7],
+                    "delete_time": row[8],
+                    "model_name": row[9],
+                    "confidence_score": float(row[10]) if row[10] is not None else None,
+                    "like_count": int(row[11]),
+                    "dislike_count": int(row[12]),
+                    "avg_rating": float(row[13]) if row[13] is not None else None,
+                    "author_username": row[14],
+                    "author_nickname": row[15],
+                    "author_avatar_url": row[16],
+                    "is_accepted": bool(row[17]),
                 }
             )
 
@@ -184,6 +193,8 @@ class AnswerRepository:
                 provider_name,
                 content,
                 generate_time,
+                status,
+                delete_time,
                 model_name,
                 confidence_score,
                 like_count,
@@ -204,14 +215,95 @@ class AnswerRepository:
             "user_id": int(row[2]) if row[2] is not None else None,
             "answer_type": row[3],
             "provider_name": row[4],
-            "content": row[5].read() if hasattr(row[5], "read") else row[5],
+            "content": _read_lob(row[5]),
             "generate_time": row[6],
-            "model_name": row[7],
-            "confidence_score": float(row[8]) if row[8] is not None else None,
-            "like_count": int(row[9]),
-            "dislike_count": int(row[10]),
-            "avg_rating": float(row[11]) if row[11] is not None else None,
+            "status": row[7],
+            "delete_time": row[8],
+            "model_name": row[9],
+            "confidence_score": float(row[10]) if row[10] is not None else None,
+            "like_count": int(row[11]),
+            "dislike_count": int(row[12]),
+            "avg_rating": float(row[13]) if row[13] is not None else None,
         }
+
+    def get_answer_delete_context(
+        self,
+        connection: oracledb.Connection,
+        answer_id: int,
+    ) -> dict[str, Any] | None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT
+                a.answer_id,
+                a.question_id,
+                a.user_id,
+                a.answer_type,
+                a.status,
+                q.title,
+                q.status AS question_status,
+                q.accepted_answer_id
+            FROM answers a
+            JOIN questions q
+              ON q.question_id = a.question_id
+            WHERE a.answer_id = :answer_id
+            """,
+            {"answer_id": answer_id},
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        return {
+            "answer_id": int(row[0]),
+            "question_id": int(row[1]),
+            "user_id": int(row[2]) if row[2] is not None else None,
+            "answer_type": row[3],
+            "status": row[4],
+            "question_title": row[5],
+            "question_status": row[6],
+            "accepted_answer_id": int(row[7]) if row[7] is not None else None,
+        }
+
+    def soft_delete_answer(
+        self,
+        connection: oracledb.Connection,
+        *,
+        answer_id: int,
+    ) -> int:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE answers
+            SET status = 'DELETED',
+                delete_time = SYSDATE
+            WHERE answer_id = :answer_id
+              AND status <> 'DELETED'
+            """,
+            {"answer_id": answer_id},
+        )
+        return int(cursor.rowcount or 0)
+
+    def sync_question_answer_count(
+        self,
+        connection: oracledb.Connection,
+        *,
+        question_id: int,
+    ) -> None:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE questions q
+            SET answer_count = (
+                SELECT COUNT(*)
+                FROM answers a
+                WHERE a.question_id = q.question_id
+                  AND a.status = 'ACTIVE'
+            )
+            WHERE q.question_id = :question_id
+            """,
+            {"question_id": question_id},
+        )
 
     def get_answer_context(
         self,
@@ -226,4 +318,5 @@ class AnswerRepository:
             "answer_id": answer["answer_id"],
             "question_id": answer["question_id"],
             "answer_type": answer["answer_type"],
+            "status": answer["status"],
         }
