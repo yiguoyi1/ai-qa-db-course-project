@@ -4,23 +4,30 @@
 SET DEFINE OFF
 
 CREATE OR REPLACE PACKAGE qa_app_pkg AS
+    -- 同步问题统计字段：浏览数、收藏数、回答数。
+    -- 主要由触发器调用，也可以在数据修复时手动调用。
     PROCEDURE sync_question_statistics(
         p_question_id IN questions.question_id%TYPE
     );
 
+    -- 同步回答质量统计：点赞数、点踩数和平均评分。
     PROCEDURE refresh_answer_feedback_stats(
         p_answer_id IN answers.answer_id%TYPE
     );
 
+    -- 重建用户标签画像：根据提问、回答、收藏、浏览、反馈、评论和搜索行为计算标签权重。
     PROCEDURE rebuild_user_tag_profile(
         p_user_id IN users.user_id%TYPE
     );
 
+    -- 计算单个问题对某个用户的推荐分。
+    -- 分数综合用户画像、相似兴趣、热度、新鲜度、浏览惩罚和负反馈惩罚。
     FUNCTION get_recommendation_score(
         p_user_id     IN users.user_id%TYPE,
         p_question_id IN questions.question_id%TYPE
     ) RETURN NUMBER;
 
+    -- 生成用户推荐列表：将高分候选写入 recommendations 表。
     PROCEDURE generate_recommendations(
         p_user_id IN users.user_id%TYPE,
         p_limit   IN PLS_INTEGER DEFAULT 10
@@ -29,6 +36,7 @@ END qa_app_pkg;
 /
 
 CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
+    -- 从明细表重新聚合问题统计，避免 questions 中的冗余计数字段长期偏离真实数据。
     PROCEDURE sync_question_statistics(
         p_question_id IN questions.question_id%TYPE
     ) IS
@@ -56,6 +64,8 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
          WHERE question_id = p_question_id;
     END sync_question_statistics;
 
+    -- 从 answer_feedback 明细表重新聚合回答质量指标。
+    -- 点赞/点踩用于排序和展示，avg_rating 用于衡量回答质量。
     PROCEDURE refresh_answer_feedback_stats(
         p_answer_id IN answers.answer_id%TYPE
     ) IS
@@ -86,6 +96,11 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
          WHERE answer_id = p_answer_id;
     END refresh_answer_feedback_stats;
 
+    -- 用户画像构建逻辑：
+    -- 1. 先清空该用户旧画像。
+    -- 2. 从多种行为来源汇总标签权重。
+    -- 3. 近期行为权重更高，长期历史行为保留较低权重。
+    -- 4. 负反馈会降低相关标签贡献，最终只保留正权重画像。
     PROCEDURE rebuild_user_tag_profile(
         p_user_id IN users.user_id%TYPE
     ) IS
@@ -280,6 +295,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
         HAVING SUM(src.weight) > 0;
     END rebuild_user_tag_profile;
 
+    -- 推荐分计算逻辑：
+    -- 用户画像匹配是主分；相似用户收藏、问题热度和新鲜度加分；
+    -- 已浏览问题和低分/点踩反馈会扣分，避免重复或不感兴趣内容反复推荐。
     FUNCTION get_recommendation_score(
         p_user_id     IN users.user_id%TYPE,
         p_question_id IN questions.question_id%TYPE
@@ -364,6 +382,9 @@ CREATE OR REPLACE PACKAGE BODY qa_app_pkg AS
             RETURN 0;
     END get_recommendation_score;
 
+    -- 批量生成 HYBRID 推荐：
+    -- 先过期旧推荐，再根据画像匹配、相似兴趣、热度、新鲜度和惩罚项生成新推荐。
+    -- diversity_penalty 用于避免同一标签下的问题过度集中。
     PROCEDURE generate_recommendations(
         p_user_id IN users.user_id%TYPE,
         p_limit   IN PLS_INTEGER DEFAULT 10

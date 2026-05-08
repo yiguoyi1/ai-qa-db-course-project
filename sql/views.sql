@@ -4,6 +4,8 @@
 SET DEFINE OFF
 
 PROMPT Creating view V_QUESTION_OVERVIEW...
+-- 问题总览视图：把问题、作者、分类、标签数、图片数和统计字段聚合在一起。
+-- 适合首页列表、后台问题列表和报表统计复用。
 CREATE OR REPLACE VIEW v_question_overview AS
 SELECT
     q.question_id,
@@ -63,6 +65,8 @@ LEFT JOIN (
 WHERE q.status <> 'DELETED';
 
 PROMPT Creating view V_HOT_QUESTIONS...
+-- 热门问题视图：在问题总览基础上筛选公开可展示的问题，并暴露 hot_score。
+-- 前端热榜或后台数据观察可以直接基于该视图查询。
 CREATE OR REPLACE VIEW v_hot_questions AS
 SELECT
     question_id,
@@ -84,6 +88,8 @@ FROM v_question_overview
 WHERE status IN ('OPEN', 'RESOLVED');
 
 PROMPT Creating view V_ANSWER_QUALITY_SUMMARY...
+-- 回答质量视图：汇总回答作者、反馈数、平均评分、评论数和是否被采纳。
+-- 用于分析 AI/人工回答质量，也方便管理员审核内容。
 CREATE OR REPLACE VIEW v_answer_quality_summary AS
 SELECT
     a.answer_id,
@@ -130,6 +136,8 @@ LEFT JOIN (
 WHERE q.status <> 'DELETED';
 
 PROMPT Creating view V_USER_TAG_PROFILE_DETAIL...
+-- 用户画像明细视图：展示每个用户的标签权重和排名。
+-- 便于解释推荐系统为什么给某个用户推荐某类问题。
 CREATE OR REPLACE VIEW v_user_tag_profile_detail AS
 SELECT
     utp.profile_id,
@@ -153,6 +161,8 @@ JOIN tags t
  AND t.status = 'ACTIVE';
 
 PROMPT Creating view V_ACTIVE_RECOMMENDATION_DETAIL...
+-- 有效推荐明细视图：把推荐结果、问题、作者、分类和推荐原因关联起来。
+-- 用于用户中心推荐展示和后台排查推荐来源。
 CREATE OR REPLACE VIEW v_active_recommendation_detail AS
 SELECT
     r.rec_id,
@@ -184,6 +194,8 @@ WHERE r.status = 'ACTIVE'
   AND q.status <> 'DELETED';
 
 PROMPT Creating view V_QUESTION_TAG_DETAIL...
+-- 问题标签详情视图：展示问题、作者、分类、标签、绑定来源和 AI 置信度。
+-- 用于标签治理、AI 标签效果检查和问题详情扩展展示。
 CREATE OR REPLACE VIEW v_question_tag_detail AS
 SELECT
     q.question_id,
@@ -213,6 +225,8 @@ JOIN tags t
 WHERE q.status <> 'DELETED';
 
 PROMPT Creating view V_USER_ACTIVITY_SUMMARY...
+-- 用户活跃汇总视图：聚合提问、回答、评论、收藏、浏览、搜索、画像和推荐数量。
+-- 用于管理员后台快速判断用户活跃度和账号状态。
 CREATE OR REPLACE VIEW v_user_activity_summary AS
 SELECT
     u.user_id,
@@ -309,6 +323,8 @@ LEFT JOIN (
   ON r_stats.user_id = u.user_id;
 
 PROMPT Creating view V_MEDIA_ASSET_DETAIL...
+-- 媒体资源详情视图：把图片上传者、所属对象和展示 URL 聚合出来。
+-- 用于头像、问题配图、回答配图的后台治理和排查。
 CREATE OR REPLACE VIEW v_media_asset_detail AS
 SELECT
     m.media_id,
@@ -350,6 +366,8 @@ LEFT JOIN users owner_user
  AND owner_user.user_id = m.owner_id;
 
 PROMPT Creating view V_CHAT_FOLLOWUP_SUMMARY...
+-- AI 追问会话汇总视图：统计每个会话的消息数、用户消息数、AI 消息数和最后消息时间。
+-- 用于分析 AI 多轮追问活跃度，也便于后续做会话管理。
 CREATE OR REPLACE VIEW v_chat_followup_summary AS
 SELECT
     cs.session_id,
