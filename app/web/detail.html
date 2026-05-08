@@ -4003,6 +4003,9 @@
 
         function getFriendlyDeleteAnswerError(response, detail) {
             const text = String(detail || '');
+            if (response.status === 404 && (text === 'Not Found' || !text)) {
+                return '当前服务器没有匹配到删除回答接口，请确认后端已部署最新版本。';
+            }
             if (text.includes('Accepted answers cannot be deleted')) {
                 return '已采纳回答不能直接删除，请先更换采纳答案。';
             }
@@ -4024,6 +4027,12 @@
             return text || `请求失败（${response.status}）`;
         }
 
+        function getDeleteAnswerApiPath(answerId) {
+            return String(getCurrentUserRole()).toUpperCase() === 'ADMIN'
+                ? `/api/admin/answers/${answerId}`
+                : `/api/answers/${answerId}`;
+        }
+
         async function deleteAnswer(answerId) {
             if (!isAuthenticated()) {
                 redirectToLogin('请先登录后再删除回答。');
@@ -4043,7 +4052,7 @@
             }
 
             try {
-                const response = await fetch(buildApiUrl(`/api/answers/${answerId}`), {
+                const response = await fetch(buildApiUrl(getDeleteAnswerApiPath(answerId)), {
                     method: 'DELETE',
                     headers: buildAuthHeaders()
                 });
