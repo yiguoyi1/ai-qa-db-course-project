@@ -127,6 +127,13 @@ class QuestionService:
                 question_id,
             )
             self._attach_answer_images(connection, question["answers"])
+            question["answer_count"] = len(question["answers"])
+            active_answer_ids = {answer["answer_id"] for answer in question["answers"]}
+            if (
+                question.get("accepted_answer_id") is not None
+                and question["accepted_answer_id"] not in active_answer_ids
+            ):
+                question["accepted_answer_id"] = None
             return QuestionDetailResponse(**question)
 
     def generate_ai_answer_for_question(

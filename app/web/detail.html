@@ -2649,6 +2649,28 @@
                 && (answer.answer_type === 'MANUAL' || !answer.provider_name);
         }
 
+        function removeDeletedAnswerFromCurrentDetail(answerId) {
+            if (!currentQuestionDetail || !Array.isArray(currentQuestionDetail.answers)) {
+                return false;
+            }
+            const beforeCount = currentQuestionDetail.answers.length;
+            currentQuestionDetail.answers = currentQuestionDetail.answers.filter(
+                answer => Number(answer.answer_id) !== Number(answerId)
+            );
+            if (currentQuestionDetail.answers.length === beforeCount) {
+                return false;
+            }
+
+            currentQuestionDetail.answer_count = currentQuestionDetail.answers.length;
+            if (Number(currentQuestionDetail.accepted_answer_id) === Number(answerId)) {
+                currentQuestionDetail.accepted_answer_id = null;
+            }
+            delete commentStateByAnswerId[answerId];
+            delete followUpStateByAnswerId[answerId];
+            renderDetail(currentQuestionDetail);
+            return true;
+        }
+
         function formatDateTime(value) {
             return value ? new Date(value).toLocaleString() : '';
         }
@@ -4058,8 +4080,8 @@
                 });
 
                 if (response.ok) {
+                    removeDeletedAnswerFromCurrentDetail(answerId);
                     alert('回答已删除。');
-                    await loadQuestionDetail(false);
                     return;
                 }
 
