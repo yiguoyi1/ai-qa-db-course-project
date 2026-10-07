@@ -4,6 +4,8 @@
 
 本仓库原工程名为 `ai-qa-db-course-project`，当前正式项目名统一为 **问知社区 AskWise Community**。
 
+本项目自有源码采用 [MIT 许可证](LICENSE)。Oracle 容器镜像、DeepSeek API 和第三方依赖适用各自的许可或服务条款。
+
 ## 项目简介
 
 本项目是一个面向数据库课程设计的智能问答社区 MVP，围绕“问答 + AI 辅助 + 用户行为 + 个性化推荐”构建完整的数据闭环。

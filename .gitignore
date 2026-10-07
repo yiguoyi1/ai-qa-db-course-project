@@ -36,3 +36,6 @@ seed_outputs/
 
 # PDFs and exports (keep in repo only when explicitly committed)
 *.tmp
+
+# Local source release archives
+dist/
