@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">AskWise Community - Database Course Project</title>
+  <desc id="description">A question-and-answer community built with Oracle, FastAPI and DeepSeek. Community answers, AI assistance and interest-based discovery.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1280" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F8FF"/>
+      <stop offset="1" stop-color="#EDF8F5"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#2D6581" stroke-opacity="0.055"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="420" rx="20" fill="url(#background)"/>
+  <rect width="1280" height="420" rx="20" fill="url(#grid)"/>
+  <rect x="56" y="54" width="6" height="24" rx="3" fill="#207666"/>
+  <g font-family="'Segoe UI', 'Microsoft YaHei', sans-serif">
+    <text x="78" y="72" fill="#426377" font-size="15" font-weight="600" letter-spacing="3">DATABASE COURSE PROJECT</text>
+    <text x="53" y="168" fill="#122B46" font-size="80" font-weight="750" letter-spacing="-3">AskWise</text>
+    <text x="58" y="220" fill="#1F5361" font-size="27" font-weight="600">问知社区</text>
+    <text x="58" y="262" fill="#526779" font-size="18">Community knowledge. AI assistance. Built on data.</text>
+    <path d="M58 293H664" stroke="#D0DDE2"/>
+    <text x="58" y="329" fill="#183C53" font-size="16" font-weight="600">ORACLE 26ai</text>
+    <circle cx="202" cy="323" r="2" fill="#8DA3AE"/>
+    <text x="220" y="329" fill="#183C53" font-size="16" font-weight="600">FastAPI</text>
+    <circle cx="304" cy="323" r="2" fill="#8DA3AE"/>
+    <text x="322" y="329" fill="#183C53" font-size="16" font-weight="600">DeepSeek</text>
+    <circle cx="424" cy="323" r="2" fill="#8DA3AE"/>
+    <text x="442" y="329" fill="#183C53" font-size="16" font-weight="600">Web + Desktop</text>
+    <text x="58" y="377" fill="#748994" font-size="12" letter-spacing="2">ASK / ANSWER / DISCOVER</text>
+    <path d="M795 166V231Q795 245 809 245H930M1055 190V271" stroke="#8BB4B0" stroke-width="2" stroke-dasharray="5 6"/>
+    <rect x="738" y="71" width="364" height="105" rx="16" fill="white" stroke="#D7E3EC"/>
+    <rect x="758" y="91" width="42" height="42" rx="12" fill="#EAF1FF"/>
+    <text x="771" y="120" fill="#315F9D" font-size="25" font-weight="700">?</text>
+    <text x="818" y="112" fill="#16334E" font-size="18" font-weight="600">A good question starts it.</text>
+    <rect x="818" y="127" width="183" height="6" rx="3" fill="#E1EAF1"/>
+    <rect x="818" y="141" width="133" height="6" rx="3" fill="#EAF0F5"/>
+    <rect x="849" y="192" width="358" height="100" rx="16" fill="#184E4D"/>
+    <circle cx="884" cy="225" r="13" fill="#D5F3E9"/>
+    <path d="M878 225L882 229L890 220" stroke="#216C60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="909" y="231" fill="white" font-size="18" font-weight="600">People + AI build on it.</text>
+    <rect x="909" y="247" width="219" height="6" rx="3" fill="#51817A"/>
+    <rect x="909" y="261" width="157" height="6" rx="3" fill="#397068"/>
+    <rect x="764" y="314" width="408" height="57" rx="13" fill="white" stroke="#D7E3EC"/>
+    <circle cx="791" cy="343" r="6" fill="#307669"/>
+    <text x="809" y="348" fill="#3B5866" font-size="14">QUESTIONS</text>
+    <path d="M906 342H928" stroke="#9DB3BD"/>
+    <text x="941" y="348" fill="#3B5866" font-size="14">ANSWERS</text>
+    <path d="M1023 342H1045" stroke="#9DB3BD"/>
+    <text x="1058" y="348" fill="#3B5866" font-size="14">INTERESTS</text>
+  </g>
+</svg>
