@@ -2,6 +2,8 @@
 
 如果你通过 GitHub 了解这个课程项目，建议先阅读 [项目首页](../README.md) 和 [课程项目展示指南](course_project_guide.md)。后者包含演示顺序、数据库对象与业务的对应关系，以及测试准备说明。
 
+下载后的本地部署步骤见 [源码发行包使用说明](releases/source_readme.md)，版本变更见 [v0.1.1 发行说明](releases/v0.1.1.md)。源码包统一发布在 [主仓库 Releases](https://github.com/yiguoyi1/ai-qa-db-course-project/releases)。
+
 这份文档是给协作者的快速入口，帮助大家在最短时间内理解：
 
 - 这个项目现在做到哪一步了

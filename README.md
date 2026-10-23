@@ -23,10 +23,12 @@
   <a href="#database-design">数据库设计</a> ·
   <a href="#quick-start">快速开始</a> ·
   <a href="docs/course_project_guide.md">课程展示指南</a> ·
-  <a href="https://github.com/yiguoyi1/askwise-community-release/releases/latest">发行包</a>
+  <a href="https://github.com/yiguoyi1/ai-qa-db-course-project/releases/latest">发行包</a>
 </p>
 
 ## 关于项目
+
+**源码下载：** [GitHub Releases](https://github.com/yiguoyi1/ai-qa-db-course-project/releases/latest)。请选择 Assets 中的 `askwise-community-*-source.zip`，解压后按包内 README 配置环境；这是源码发行包，不是桌面安装器。[发行包使用说明](docs/releases/source_readme.md)
 
 **AskWise 是一个面向通用话题的问答社区，也是一次从 Oracle 数据建模到全栈应用实现的课程实践。** 用户可以发布问题、互相回答、采纳答案和参与楼中楼讨论；AI 提供首答与多轮追问辅助，用户行为则用于构建兴趣画像和推荐问题。
 
